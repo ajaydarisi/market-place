@@ -7,13 +7,14 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Filter } from "lucide-react";
+import { Search } from "lucide-react";
 import { useState } from "react";
 
 export default function BrowseJobs() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<string>("");
-  const { data: projects, isLoading } = useProjects({ search, category: category === "all" ? undefined : category });
+  const [sort, setSort] = useState<string>("newest");
+  const { data: projects, isLoading } = useProjects({ search, category: category === "all" ? undefined : category, sort });
 
   return (
     <div className="min-h-screen bg-background">
@@ -57,10 +58,17 @@ export default function BrowseJobs() {
           <h2 className="text-2xl font-bold font-display">
             {projects?.length ? `${projects.length} Projects Available` : 'Loading projects...'}
           </h2>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Filter className="h-4 w-4" />
-            <span>Sort by: Newest</span>
-          </div>
+          <Select value={sort} onValueChange={setSort}>
+            <SelectTrigger aria-label="Sort projects" className="w-[180px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Newest First</SelectItem>
+              <SelectItem value="oldest">Oldest First</SelectItem>
+              <SelectItem value="budget_high">Budget: High to Low</SelectItem>
+              <SelectItem value="budget_low">Budget: Low to High</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {isLoading ? (

@@ -187,15 +187,32 @@ export class DatabaseStorage implements IStorage {
     return { ...project, client: clientUser };
   }
 
-  async listProjects(filters?: { category?: string; minBudget?: number; maxBudget?: number; search?: string }, token?: string): Promise<(Project & { client: User })[]> {
+  async listProjects(filters?: { category?: string; minBudget?: number; maxBudget?: number; search?: string; sort?: string }, token?: string): Promise<(Project & { client: User })[]> {
     const client = await getClient(token);
     let query = client
       .from("projects")
-      .select("*, client:client_id(*)")
-      .order("created_at", { ascending: false });
+      .select("*, client:client_id(*)");
 
     if (filters?.category) {
       query = query.eq("category", filters.category);
+    }
+    if (filters?.search) {
+      query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+    }
+
+    switch (filters?.sort) {
+      case "oldest":
+        query = query.order("created_at", { ascending: true });
+        break;
+      case "budget_high":
+        query = query.order("budget_max", { ascending: false, nullsFirst: false });
+        break;
+      case "budget_low":
+        query = query.order("budget_min", { ascending: true, nullsFirst: false });
+        break;
+      default:
+        query = query.order("created_at", { ascending: false });
+        break;
     }
 
     const { data, error } = await query;
