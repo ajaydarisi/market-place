@@ -1,0 +1,133 @@
+Build a modern, responsive web platform that connects non-technical users who need a website with developers who can build it.
+
+Core Concept
+
+The platform should act as a two-sided marketplace where:
+
+Clients can post website requirements without needing technical knowledge
+
+Developers can browse these requests, express interest, and communicate directly with clients
+
+User Roles
+
+1. Client (Website Seeker)
+
+Sign up / Login
+
+Create a “Project Post” with:
+
+Project title
+
+Website/business type (portfolio, e-commerce, blog, SaaS, company site, landing page, etc.)
+
+Detailed description of requirements (features, design ideas, reference links)
+
+Budget range (optional)
+
+Timeline / deadline (optional)
+
+View, edit, and manage their posted projects
+
+Receive messages from interested developers
+
+Optionally share contact details with selected developers
+
+2. Developer
+
+Sign up / Login
+
+Create a developer profile with:
+
+Skills / tech stack
+
+Portfolio links
+
+Experience level
+
+Availability status
+
+Browse and search client project posts
+
+Filter projects by category, budget, timeline, or skills required
+
+Express interest in a project
+
+Chat directly with clients inside the platform
+
+Core Features
+
+Role-based authentication (Client vs Developer)
+
+Secure dashboards for both roles
+
+Project posting and management system
+
+Searchable and filterable project listings
+
+Real-time or near real-time chat system
+
+In-app and/or email notifications for messages and project interest
+
+Tech Stack (Required)
+
+Frontend & Backend: Next.js (React + TypeScript)
+
+Database: Supabase (PostgreSQL)
+
+Authentication: Supabase Auth with role-based access control (Client/Developer)
+
+Real-time Chat: Supabase Realtime
+
+Storage: Supabase Storage (profile images, portfolio files, attachments)
+
+App must be production-ready and deployable on Replit
+
+Database Schema (Must Generate & Implement)
+
+Design and implement a full Supabase PostgreSQL schema, including:
+
+users (id, role, name, email, profile_image, created_at)
+
+developer_profiles (user_id, skills, portfolio_links, experience_level, availability_status, bio)
+
+projects (id, client_id, title, category, description, budget_min, budget_max, deadline, status, created_at)
+
+project_interests (id, project_id, developer_id, message, created_at)
+
+messages (id, sender_id, receiver_id, project_id, content, created_at, read_status)
+
+reviews (id, project_id, reviewer_id, reviewee_id, rating, comment, created_at)
+
+Include:
+
+Primary and foreign keys
+
+Indexes for search and filtering
+
+Row Level Security (RLS) policies for secure role-based data access
+
+Supabase Integration
+
+The app should be built so that I can easily provide:
+
+Supabase Project URL
+
+Supabase Public API Key (anon key)
+
+These should be read from environment variables and used to initialize the Supabase client securely.
+
+Extra (Nice to Have)
+
+Admin dashboard for moderating users and projects
+
+Basic analytics (total projects, active developers, completed projects, messages sent)
+
+Email notifications for new messages and project interest
+
+Output Expectations
+
+Provide clean, well-structured Next.js project structure
+
+Provide SQL migration or Supabase setup script for the full database schema
+
+Include setup instructions for adding Supabase URL and API keys into environment variables and running the app

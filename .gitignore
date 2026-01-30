@@ -1,0 +1,9 @@
+node_modules
+.next
+out
+dist
+.DS_Store
+*.tar.gz
+package-lock.json
+.env*.local
+next-env.d.ts
