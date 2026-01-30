@@ -30,11 +30,11 @@ export default function Landing() {
   }
 
   return (
-    <div className="h-screen bg-background overflow-hidden relative">
+    <div className="min-h-screen md:h-screen bg-background overflow-x-hidden md:overflow-hidden relative flex flex-col">
       {/* Decorative background blobs */}
       <div className="absolute top-0 left-0 w-full h-[600px] bg-gradient-to-b from-primary/5 to-transparent -z-10" />
-      <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-accent/5 blur-3xl -z-10" />
-      <div className="absolute bottom-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-primary/5 blur-3xl -z-10" />
+      <div className="hidden md:block absolute top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-accent/5 blur-3xl -z-10" />
+      <div className="hidden md:block absolute bottom-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-primary/5 blur-3xl -z-10" />
 
       <header className="container mx-auto px-4 h-20 flex items-center justify-between">
         <div className="font-display text-2xl font-bold tracking-tight">
@@ -45,8 +45,8 @@ export default function Landing() {
         </Button>
       </header>
 
-      <main className="container mx-auto px-4 pt-16 pb-32">
-        <div className="max-w-4xl mx-auto text-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <main className="container mx-auto px-4 py-8 md:py-0 md:flex-1 md:flex md:items-center">
+        <div className="max-w-4xl mx-auto text-center space-y-6 md:space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700 w-full">
           <h1 className="text-5xl md:text-7xl font-display font-bold leading-[1.1] tracking-tight text-foreground">
             Connecting visionaries with <span className="text-gradient">world-class talent</span>.
           </h1>
@@ -68,7 +68,7 @@ export default function Landing() {
           </div>
 
           {/* Feature Grid */}
-          <div className="grid md:grid-cols-3 gap-8 pt-24 text-left">
+          <div className="grid md:grid-cols-3 gap-8 md:gap-6 pt-12 md:pt-8 text-left">
             {[
               {
                 icon: Shield,
@@ -87,11 +87,11 @@ export default function Landing() {
               }
             ].map((feature, i) => (
               <Card key={i} className="bg-card/50 backdrop-blur-sm border-border/50 shadow-lg hover:border-primary/50 transition-colors rounded-2xl">
-                <CardContent className="p-8">
-                  <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-6 text-primary">
+                <CardContent className="p-8 md:p-6">
+                  <div className="h-12 w-12 md:h-10 md:w-10 rounded-xl bg-primary/10 flex items-center justify-center mb-6 md:mb-4 text-primary">
                     <feature.icon className="h-6 w-6" />
                   </div>
-                  <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
+                  <h3 className="text-xl md:text-lg font-bold mb-3 md:mb-2">{feature.title}</h3>
                   <p className="text-muted-foreground leading-relaxed">{feature.desc}</p>
                 </CardContent>
               </Card>
