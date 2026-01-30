@@ -1,6 +1,7 @@
 "use client";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AvatarUpload } from "@/components/avatar-upload";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,7 +18,24 @@ import { useUser, useUpdateUser } from "@/hooks/use-users";
 import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertProfileSchema, insertUserSchema, experienceLevels, availabilityStatuses } from "@shared/schema";
-import { ArrowLeft, Loader2, Edit2 } from "lucide-react";
+import { ArrowLeft, Loader2, Edit2, Globe, ExternalLink } from "lucide-react";
+
+function GitHubIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2Z" />
+    </svg>
+  );
+}
+
+function LinkedInIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286ZM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065Zm1.782 13.019H3.555V9h3.564v11.452ZM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003Z" />
+    </svg>
+  );
+}
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -71,7 +89,7 @@ export default function Profile() {
       role: "client",
       bio: "",
       skills: [],
-      portfolioLinks: [],
+      portfolioLinks: { github: "", linkedin: "", website: "" },
       experienceLevel: undefined,
       availabilityStatus: "available",
     },
@@ -85,7 +103,11 @@ export default function Profile() {
         role: profile?.role || "client",
         bio: profile?.bio || "",
         skills: profile?.skills || [],
-        portfolioLinks: profile?.portfolioLinks || [],
+        portfolioLinks: {
+          github: profile?.portfolioLinks?.github || "",
+          linkedin: profile?.portfolioLinks?.linkedin || "",
+          website: profile?.portfolioLinks?.website || "",
+        },
         experienceLevel: profile?.experienceLevel,
         availabilityStatus: profile?.availabilityStatus || "available",
       });
@@ -102,7 +124,11 @@ export default function Profile() {
       role: data.role,
       bio: data.bio || undefined,
       skills: data.skills || undefined,
-      portfolioLinks: data.portfolioLinks || undefined,
+      portfolioLinks: data.portfolioLinks ? {
+        github: data.portfolioLinks.github || null,
+        linkedin: data.portfolioLinks.linkedin || null,
+        website: data.portfolioLinks.website || null,
+      } : undefined,
       experienceLevel: data.experienceLevel || undefined,
       availabilityStatus: data.availabilityStatus || undefined,
     };
@@ -148,7 +174,11 @@ export default function Profile() {
       role: profile?.role || "client",
       bio: profile?.bio || "",
       skills: profile?.skills || [],
-      portfolioLinks: profile?.portfolioLinks || [],
+      portfolioLinks: {
+        github: profile?.portfolioLinks?.github || "",
+        linkedin: profile?.portfolioLinks?.linkedin || "",
+        website: profile?.portfolioLinks?.website || "",
+      },
       experienceLevel: profile?.experienceLevel,
       availabilityStatus: profile?.availabilityStatus || "available",
     });
@@ -188,6 +218,9 @@ export default function Profile() {
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                   <Avatar className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 border-2 border-primary/20" aria-label={`${fullName}'s avatar`}>
+                    {userData?.profileImageUrl && (
+                      <AvatarImage src={userData.profileImageUrl} alt={`${fullName}'s profile photo`} />
+                    )}
                     <AvatarFallback className="bg-primary/10 text-primary text-base sm:text-lg font-semibold">
                       {initials}
                     </AvatarFallback>
@@ -267,6 +300,58 @@ export default function Profile() {
 
                 <Separator />
 
+                {/* Portfolio Links */}
+                <div>
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Portfolio Links</h3>
+                  {profile?.portfolioLinks?.github || profile?.portfolioLinks?.linkedin || profile?.portfolioLinks?.website ? (
+                    <div className="space-y-2">
+                      {profile.portfolioLinks.github && (
+                        <a
+                          href={profile.portfolioLinks.github}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-sm text-primary hover:underline truncate"
+                          title={profile.portfolioLinks.github}
+                        >
+                          <GitHubIcon className="h-4 w-4 shrink-0" />
+                          <span className="truncate">{profile.portfolioLinks.github}</span>
+                          <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
+                        </a>
+                      )}
+                      {profile.portfolioLinks.linkedin && (
+                        <a
+                          href={profile.portfolioLinks.linkedin}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-sm text-primary hover:underline truncate"
+                          title={profile.portfolioLinks.linkedin}
+                        >
+                          <LinkedInIcon className="h-4 w-4 shrink-0" />
+                          <span className="truncate">{profile.portfolioLinks.linkedin}</span>
+                          <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
+                        </a>
+                      )}
+                      {profile.portfolioLinks.website && (
+                        <a
+                          href={profile.portfolioLinks.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-sm text-primary hover:underline truncate"
+                          title={profile.portfolioLinks.website}
+                        >
+                          <Globe className="h-4 w-4 shrink-0" />
+                          <span className="truncate">{profile.portfolioLinks.website}</span>
+                          <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
+                        </a>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No links added yet.</p>
+                  )}
+                </div>
+
+                <Separator />
+
                 {/* Professional Details */}
                 <div>
                   <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Professional Details</h3>
@@ -311,6 +396,40 @@ export default function Profile() {
                   })}
                   className="space-y-5"
                 >
+                  {/* Avatar Upload */}
+                  <div className="flex justify-center">
+                    <AvatarUpload
+                      currentImageUrl={userData?.profileImageUrl}
+                      initials={initials}
+                      userId={authUser?.id ?? ""}
+                      size="lg"
+                      onUploadComplete={(url) => {
+                        updateUser({ profileImageUrl: url }, {
+                          onError: (error) => {
+                            toast({
+                              title: "Failed to save photo",
+                              description: error.message,
+                              variant: "destructive",
+                            });
+                          },
+                        });
+                      }}
+                      onRemove={() => {
+                        updateUser({ profileImageUrl: null }, {
+                          onError: (error) => {
+                            toast({
+                              title: "Failed to remove photo",
+                              description: error.message,
+                              variant: "destructive",
+                            });
+                          },
+                        });
+                      }}
+                    />
+                  </div>
+
+                  <Separator />
+
                   {/* Personal Details */}
                   <div>
                     <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Personal Details</h3>
@@ -393,6 +512,78 @@ export default function Profile() {
                                 value={field.value || []}
                                 onChange={field.onChange}
                                 placeholder="Type a skill and press Enter..."
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Portfolio Links */}
+                  <div>
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Portfolio Links</h3>
+                    <div className="space-y-3">
+                      <FormField
+                        control={form.control}
+                        name="portfolioLinks.github"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2">
+                              <GitHubIcon className="h-4 w-4" />
+                              GitHub
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                aria-label="GitHub profile URL"
+                                placeholder="https://github.com/username"
+                                {...field}
+                                value={field.value || ""}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="portfolioLinks.linkedin"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2">
+                              <LinkedInIcon className="h-4 w-4" />
+                              LinkedIn
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                aria-label="LinkedIn profile URL"
+                                placeholder="https://linkedin.com/in/username"
+                                {...field}
+                                value={field.value || ""}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="portfolioLinks.website"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2">
+                              <Globe className="h-4 w-4" />
+                              Website
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                aria-label="Personal website URL"
+                                placeholder="https://yourwebsite.com"
+                                {...field}
+                                value={field.value || ""}
                               />
                             </FormControl>
                             <FormMessage />

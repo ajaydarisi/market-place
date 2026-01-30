@@ -323,6 +323,50 @@ Two roles defined in `shared/schema.ts`:
 
 ---
 
+## File Uploads (Supabase Storage)
+
+### Storage Buckets
+
+| Bucket    | Access | Purpose        |
+| --------- | ------ | -------------- |
+| `avatars` | Public | Profile photos |
+
+### Upload Pattern
+
+File uploads use the **Supabase browser client** directly from Client Components. The upload utility lives in `lib/upload.ts`.
+
+### Rules
+
+1. **Validation first**: Always validate file type and size before uploading
+2. **Storage paths**: Use `{bucket}/{user_id}/{filename}` pattern for user-owned files
+3. **Upsert**: Use `upsert: true` to replace existing files cleanly
+4. **Cache busting**: Append `?t={timestamp}` to public URLs after replacement
+5. **Loading states**: Show `<Loader2>` spinner during upload
+6. **Error handling**: Show destructive toast on upload failure
+7. **File limits**: Max 2MB for images; accepted types: JPEG, PNG, WebP
+8. **Accessibility**: Hidden file inputs must have `aria-label`; upload triggers must be keyboard accessible
+
+### Avatar Display Pattern
+
+Always use `AvatarImage` inside `Avatar` when a `profileImageUrl` exists:
+
+```tsx
+<Avatar aria-label="User's avatar">
+  {user.profileImageUrl && (
+    <AvatarImage src={user.profileImageUrl} alt="Profile photo" />
+  )}
+  <AvatarFallback>{initials}</AvatarFallback>
+</Avatar>
+```
+
+The `AvatarFallback` is always rendered as a fallback when the image fails to load or is absent.
+
+### Upload Component
+
+Use `<AvatarUpload>` from `components/avatar-upload.tsx` for avatar upload interactions. It handles validation, preview, upload, and loading states internally.
+
+---
+
 ## Error Handling
 
 ### Frontend

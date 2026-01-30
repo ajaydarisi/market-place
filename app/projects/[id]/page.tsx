@@ -8,7 +8,7 @@ import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
@@ -104,6 +104,9 @@ export default function ProjectDetail() {
                     <Card key={interest.id} className="overflow-hidden">
                       <CardContent className="p-6 flex items-start gap-4">
                         <Avatar className="h-10 w-10" aria-label={`${interest.developer.firstName} ${interest.developer.lastName}'s avatar`}>
+                          {interest.developer.profileImageUrl && (
+                            <AvatarImage src={interest.developer.profileImageUrl} alt={`${interest.developer.firstName}'s photo`} />
+                          )}
                           <AvatarFallback>{interest.developer.firstName?.[0]}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
@@ -135,6 +138,9 @@ export default function ProjectDetail() {
             <CardContent>
               <div className="flex items-center gap-4">
                 <Avatar className="h-12 w-12 border-2 border-background shadow-sm" aria-label={`${project.client.firstName} ${project.client.lastName}'s avatar`}>
+                  {project.client.profileImageUrl && (
+                    <AvatarImage src={project.client.profileImageUrl} alt={`${project.client.firstName}'s photo`} />
+                  )}
                   <AvatarFallback className="bg-primary/10 text-primary font-bold">{project.client.firstName?.[0]}</AvatarFallback>
                 </Avatar>
                 <div className="min-w-0">

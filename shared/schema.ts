@@ -32,7 +32,11 @@ export const profileSchema = z.object({
   role: z.enum(userRoles).default("client"),
   bio: z.string().nullable().optional(),
   skills: z.array(z.string()).optional(),
-  portfolioLinks: z.any().optional(), // jsonb
+  portfolioLinks: z.object({
+    github: z.string().url().nullable().optional().or(z.literal("")),
+    linkedin: z.string().url().nullable().optional().or(z.literal("")),
+    website: z.string().url().nullable().optional().or(z.literal("")),
+  }).nullable().optional(),
   experienceLevel: z.enum(experienceLevels).nullable().optional(),
   availabilityStatus: z.enum(availabilityStatuses).default("available").optional(),
   updatedAt: z.date().optional(),

@@ -79,14 +79,14 @@ export const api = {
         search: z.string().optional(),
       }).optional(),
       responses: {
-        200: z.array(z.custom<Project & { client: { id: string, email: string, firstName: string | null, lastName: string | null } }>()),
+        200: z.array(z.custom<Project & { client: { id: string, email: string, firstName: string | null, lastName: string | null, profileImageUrl: string | null } }>()),
       },
     },
     get: {
       method: 'GET' as const,
       path: '/api/projects/:id',
       responses: {
-        200: z.custom<Project & { client: { id: string, email: string, firstName: string | null, lastName: string | null } }>(),
+        200: z.custom<Project & { client: { id: string, email: string, firstName: string | null, lastName: string | null, profileImageUrl: string | null } }>(),
         404: errorSchemas.notFound,
       },
     },
@@ -127,7 +127,7 @@ export const api = {
       method: 'GET' as const,
       path: '/api/projects/:projectId/interests',
       responses: {
-        200: z.array(z.custom<ProjectInterest & { developer: { id: string, email: string, firstName: string | null, lastName: string | null } }>()),
+        200: z.array(z.custom<ProjectInterest & { developer: { id: string, email: string, firstName: string | null, lastName: string | null, profileImageUrl: string | null } }>()),
         401: errorSchemas.unauthorized,
       },
     },
