@@ -58,11 +58,11 @@ export default function ProjectDetail() {
       <div className="bg-secondary/30 border-b border-border/50 py-12">
         <div className="container mx-auto px-4">
           <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">{project.category}</Badge>
-          <h1 className="text-3xl md:text-4xl font-display font-bold mb-4">{project.title}</h1>
+          <h1 className="text-3xl md:text-4xl font-display font-bold mb-4 truncate" title={project.title}>{project.title}</h1>
           <div className="flex flex-wrap gap-6 text-muted-foreground">
             <div className="flex items-center gap-2">
               <User className="h-4 w-4" />
-              <span>Posted by {project.client.firstName} {project.client.lastName}</span>
+              <span className="truncate" title={`Posted by ${project.client.firstName} ${project.client.lastName}`}>Posted by {project.client.firstName} {project.client.lastName}</span>
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
@@ -103,18 +103,18 @@ export default function ProjectDetail() {
                   {interests?.map((interest) => (
                     <Card key={interest.id} className="overflow-hidden">
                       <CardContent className="p-6 flex items-start gap-4">
-                        <Avatar className="h-10 w-10">
+                        <Avatar className="h-10 w-10" aria-label={`${interest.developer.firstName} ${interest.developer.lastName}'s avatar`}>
                           <AvatarFallback>{interest.developer.firstName?.[0]}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
                           <div className="flex justify-between items-start mb-2">
                             <div>
-                              <h4 className="font-bold">{interest.developer.firstName} {interest.developer.lastName}</h4>
-                              <span className="text-xs text-muted-foreground">Applied {formatDistanceToNow(new Date(interest.createdAt!), { addSuffix: true })}</span>
+                              <h4 className="font-bold truncate" title={`${interest.developer.firstName} ${interest.developer.lastName}`}>{interest.developer.firstName} {interest.developer.lastName}</h4>
+                              <span className="text-xs text-muted-foreground truncate">Applied {formatDistanceToNow(new Date(interest.createdAt!), { addSuffix: true })}</span>
                             </div>
-                            <Button size="sm" variant="outline">View Profile</Button>
+                            <Button size="sm" variant="outline" aria-label={`View ${interest.developer.firstName}'s profile`}>View Profile</Button>
                           </div>
-                          <p className="text-sm text-muted-foreground bg-secondary/30 p-3 rounded-lg">
+                          <p className="text-sm text-muted-foreground bg-secondary/30 p-3 rounded-lg line-clamp-3" title={interest.message || ""}>
                             &quot;{interest.message}&quot;
                           </p>
                         </div>
@@ -134,11 +134,11 @@ export default function ProjectDetail() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-4">
-                <Avatar className="h-12 w-12 border-2 border-background shadow-sm">
+                <Avatar className="h-12 w-12 border-2 border-background shadow-sm" aria-label={`${project.client.firstName} ${project.client.lastName}'s avatar`}>
                   <AvatarFallback className="bg-primary/10 text-primary font-bold">{project.client.firstName?.[0]}</AvatarFallback>
                 </Avatar>
-                <div>
-                  <div className="font-bold">{project.client.firstName} {project.client.lastName}</div>
+                <div className="min-w-0">
+                  <div className="font-bold truncate" title={`${project.client.firstName} ${project.client.lastName}`}>{project.client.firstName} {project.client.lastName}</div>
                   <div className="text-sm text-muted-foreground">Member since 2024</div>
                 </div>
               </div>
@@ -154,14 +154,14 @@ export default function ProjectDetail() {
             <Card>
               <CardContent className="pt-6">
                 {hasExpressedInterest ? (
-                  <Button className="w-full bg-status-online hover:bg-status-online/90 cursor-default" size="lg">
+                  <Button className="w-full bg-status-online hover:bg-status-online/90 cursor-default" size="lg" aria-label="Already applied">
                     <CheckCircle2 className="mr-2 h-5 w-5" />
                     Applied
                   </Button>
                 ) : (
                   <Dialog open={interestOpen} onOpenChange={setInterestOpen}>
                     <DialogTrigger asChild>
-                      <Button className="w-full shadow-lg shadow-primary/20" size="lg">Apply Now</Button>
+                      <Button className="w-full shadow-lg shadow-primary/20" size="lg" aria-label="Apply for this project">Apply Now</Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
@@ -171,13 +171,14 @@ export default function ProjectDetail() {
                         </DialogDescription>
                       </DialogHeader>
                       <Textarea
+                        aria-label="Application message"
                         placeholder="Hi, I'm a developer with 5 years of experience in..."
                         className="min-h-[150px]"
                         value={interestMessage}
                         onChange={(e) => setInterestMessage(e.target.value)}
                       />
                       <DialogFooter>
-                        <Button onClick={handleInterest} disabled={interestPending || !interestMessage.trim()}>
+                        <Button onClick={handleInterest} aria-label="Submit application" disabled={interestPending || !interestMessage.trim()}>
                           {interestPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                           Submit Application
                         </Button>

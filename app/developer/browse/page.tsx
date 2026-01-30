@@ -29,6 +29,7 @@ export default function BrowseJobs() {
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
+                aria-label="Search projects"
                 placeholder="Search by keywords..."
                 className="pl-12 h-14 rounded-xl text-lg shadow-sm border-transparent focus:border-primary"
                 value={search}
@@ -36,7 +37,7 @@ export default function BrowseJobs() {
               />
             </div>
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="w-full sm:w-[200px] h-14 rounded-xl border-transparent shadow-sm bg-background">
+              <SelectTrigger aria-label="Filter by category" className="w-full sm:w-[200px] h-14 rounded-xl border-transparent shadow-sm bg-background">
                 <SelectValue placeholder="All Categories" />
               </SelectTrigger>
               <SelectContent>

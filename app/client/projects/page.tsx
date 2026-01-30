@@ -27,6 +27,7 @@ export default function MyProjects() {
         <div className="relative mb-8 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
+            aria-label="Search projects"
             placeholder="Search your projects..."
             className="pl-10 h-12 rounded-xl border-muted bg-card"
             value={search}
@@ -67,8 +68,8 @@ export default function MyProjects() {
                   </div>
                   <h3 className="text-xl font-bold">No projects yet</h3>
                   <p className="text-muted-foreground max-w-sm mt-2 mb-6">Create your first project to start receiving proposals from top developers.</p>
-                  <Link href="/client/post">
-                    <Button variant="outline">Post Project</Button>
+                  <Link href="/client/post" aria-label="Post a new project">
+                    <Button aria-label="Post project" variant="outline">Post Project</Button>
                   </Link>
                 </div>
               </Card>

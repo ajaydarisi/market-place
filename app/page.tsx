@@ -40,7 +40,7 @@ export default function Landing() {
         <div className="font-display text-2xl font-bold tracking-tight">
           Market<span className="text-primary">Place</span>
         </div>
-        <Button onClick={() => router.push("/auth")} variant="outline" className="font-semibold">
+        <Button onClick={() => router.push("/auth")} variant="outline" aria-label="Log in" className="font-semibold">
           Log In
         </Button>
       </header>
@@ -59,6 +59,7 @@ export default function Landing() {
             <Button
               size="lg"
               onClick={() => router.push("/auth")}
+              aria-label="Get started"
               className="h-14 px-8 text-lg rounded-xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:scale-105 transition-all duration-300"
             >
               Get Started Now

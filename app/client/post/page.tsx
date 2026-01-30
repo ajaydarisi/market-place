@@ -52,7 +52,7 @@ export default function PostProject() {
     <div className="min-h-screen bg-background pb-12">
       <Navigation />
       <div className="container mx-auto px-4 py-8">
-        <Link href="/client/projects" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-6 transition-colors">
+        <Link href="/client/projects" aria-label="Back to projects" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-6 transition-colors">
           <ArrowLeft className="mr-1 h-4 w-4" />
           Back to Projects
         </Link>
@@ -73,7 +73,7 @@ export default function PostProject() {
                       <FormItem>
                         <FormLabel>Project Title</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g. E-commerce Platform Development" className="h-12 text-lg" {...field} />
+                          <Input aria-label="Project title" placeholder="e.g. E-commerce Platform Development" className="h-12 text-lg" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -89,7 +89,7 @@ export default function PostProject() {
                           <FormLabel>Category</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
-                              <SelectTrigger className="h-12">
+                              <SelectTrigger aria-label="Project category" className="h-12">
                                 <SelectValue placeholder="Select category" />
                               </SelectTrigger>
                             </FormControl>
@@ -115,7 +115,7 @@ export default function PostProject() {
                         <FormItem>
                           <FormLabel>Min Budget ($)</FormLabel>
                           <FormControl>
-                            <Input type="number" placeholder="1000" className="h-12" {...field} />
+                            <Input aria-label="Minimum budget" type="number" placeholder="1000" className="h-12" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -128,7 +128,7 @@ export default function PostProject() {
                         <FormItem>
                           <FormLabel>Max Budget ($)</FormLabel>
                           <FormControl>
-                            <Input type="number" placeholder="5000" className="h-12" {...field} />
+                            <Input aria-label="Maximum budget" type="number" placeholder="5000" className="h-12" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -144,6 +144,7 @@ export default function PostProject() {
                         <FormLabel>Project Description</FormLabel>
                         <FormControl>
                           <Textarea
+                            aria-label="Project description"
                             placeholder="Describe your project requirements in detail..."
                             className="min-h-[200px] resize-none text-base leading-relaxed"
                             {...field}
@@ -155,10 +156,10 @@ export default function PostProject() {
                   />
 
                   <div className="pt-4 flex justify-end gap-4">
-                    <Link href="/client/projects">
-                      <Button type="button" variant="outline" size="lg" className="rounded-xl">Cancel</Button>
+                    <Link href="/client/projects" aria-label="Cancel and go back">
+                      <Button type="button" aria-label="Cancel" variant="outline" size="lg" className="rounded-xl">Cancel</Button>
                     </Link>
-                    <Button type="submit" size="lg" className="rounded-xl px-8" disabled={isPending}>
+                    <Button type="submit" aria-label="Post project" size="lg" className="rounded-xl px-8" disabled={isPending}>
                       {isPending ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
                       Post Project
                     </Button>

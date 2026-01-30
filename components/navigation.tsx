@@ -41,19 +41,19 @@ export function Navigation() {
     <>
       {isClient ? (
         <>
-          <Link href="/client/projects" className={`text-sm font-medium transition-colors hover:text-primary ${pathname === "/client/projects" ? "text-primary font-semibold" : "text-muted-foreground"}`}>
+          <Link href="/client/projects" aria-label="My projects" className={`text-sm font-medium transition-colors hover:text-primary ${pathname === "/client/projects" ? "text-primary font-semibold" : "text-muted-foreground"}`}>
             My Projects
           </Link>
-          <Link href="/client/messages" className={`text-sm font-medium transition-colors hover:text-primary ${pathname === "/client/messages" ? "text-primary font-semibold" : "text-muted-foreground"}`}>
+          <Link href="/client/messages" aria-label="Messages" className={`text-sm font-medium transition-colors hover:text-primary ${pathname === "/client/messages" ? "text-primary font-semibold" : "text-muted-foreground"}`}>
             Messages
           </Link>
         </>
       ) : (
         <>
-          <Link href="/developer/browse" className={`text-sm font-medium transition-colors hover:text-primary ${pathname === "/developer/browse" ? "text-primary font-semibold" : "text-muted-foreground"}`}>
+          <Link href="/developer/browse" aria-label="Browse jobs" className={`text-sm font-medium transition-colors hover:text-primary ${pathname === "/developer/browse" ? "text-primary font-semibold" : "text-muted-foreground"}`}>
             Browse Jobs
           </Link>
-          <Link href="/developer/messages" className={`text-sm font-medium transition-colors hover:text-primary ${pathname === "/developer/messages" ? "text-primary font-semibold" : "text-muted-foreground"}`}>
+          <Link href="/developer/messages" aria-label="My messages" className={`text-sm font-medium transition-colors hover:text-primary ${pathname === "/developer/messages" ? "text-primary font-semibold" : "text-muted-foreground"}`}>
             My Messages
           </Link>
         </>
@@ -65,7 +65,7 @@ export function Navigation() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-16 items-center justify-between px-10">
         <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center space-x-2">
+          <Link href="/" aria-label="Go to homepage" className="flex items-center space-x-2">
             <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
               <Briefcase className="h-5 w-5 text-primary-foreground" />
             </div>
@@ -85,8 +85,8 @@ export function Navigation() {
 
         <div className="flex items-center gap-4">
           {isClient && (
-            <Link href="/client/post">
-              <Button size="sm" className="hidden md:flex bg-gradient-to-r from-primary to-primary/80 hover:to-primary/70 shadow-md hover:shadow-lg transition-all">
+            <Link href="/client/post" aria-label="Post a new project">
+              <Button size="sm" aria-label="Post project" className="hidden md:flex bg-gradient-to-r from-primary to-primary/80 hover:to-primary/70 shadow-md hover:shadow-lg transition-all">
                 <Plus className="mr-2 h-4 w-4" />
                 Post Project
               </Button>
@@ -97,19 +97,19 @@ export function Navigation() {
           <div className="md:hidden">
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" aria-label="Open menu">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[300px] sm:w-[400px]">
                 <nav className="flex flex-col gap-4 mt-8">
-                  <Link href="/" onClick={() => setIsOpen(false)} className="text-lg font-medium">Home</Link>
+                  <Link href="/" aria-label="Home" onClick={() => setIsOpen(false)} className="text-lg font-medium">Home</Link>
                   <NavLinks />
                   {isClient && (
                     <>
                       <Separator />
-                      <Link href="/client/post" onClick={() => setIsOpen(false)}>
-                        <Button className="w-full justify-start">
+                      <Link href="/client/post" aria-label="Post a new project" onClick={() => setIsOpen(false)}>
+                        <Button aria-label="Post project" className="w-full justify-start">
                           <Plus className="mr-2 h-4 w-4" />
                           Post Project
                         </Button>
@@ -123,9 +123,9 @@ export function Navigation() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-auto rounded-full px-2 py-1 gap-2">
-                <span className="hidden sm:inline text-sm font-medium">{userData?.firstName} {userData?.lastName}</span>
-                <Avatar className="h-9 w-9 border border-border">
+              <Button variant="ghost" aria-label="User menu" className="relative h-auto rounded-full px-2 py-1 gap-2">
+                <span className="hidden sm:inline text-sm font-medium truncate max-w-[150px]">{userData?.firstName} {userData?.lastName}</span>
+                <Avatar className="h-9 w-9 border border-border" aria-label={`${userData?.firstName} ${userData?.lastName}'s avatar`}>
                   <AvatarFallback className="bg-primary/10 text-primary font-semibold">{userData?.firstName?.[0]}{userData?.lastName?.[0]}</AvatarFallback>
                 </Avatar>
               </Button>
@@ -133,20 +133,20 @@ export function Navigation() {
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{userData?.firstName} {userData?.lastName}</p>
-                  <p className="text-xs leading-none text-muted-foreground">
+                  <p className="text-sm font-medium leading-none truncate">{userData?.firstName} {userData?.lastName}</p>
+                  <p className="text-xs leading-none text-muted-foreground truncate" title={user.email}>
                     {user.email}
                   </p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild className="hover:!bg-primary/10 hover:!text-primary cursor-pointer">
-                <Link href="/profile" className="w-full flex items-center">
+              <DropdownMenuItem asChild className="cursor-pointer">
+                <Link href="/profile" aria-label="View profile" className="w-full flex items-center">
                   <User className="mr-2 h-4 w-4" />
                   <span>Profile</span>
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => logout()} className="hover:!bg-primary/10 hover:!text-primary cursor-pointer">
+              <DropdownMenuItem onClick={() => logout()} aria-label="Log out" className="cursor-pointer">
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
               </DropdownMenuItem>

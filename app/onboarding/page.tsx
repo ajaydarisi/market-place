@@ -79,6 +79,7 @@ export default function Onboarding() {
                   <FormItem>
                     <FormLabel className="text-base font-semibold">I want to...</FormLabel>
                     <RadioGroup
+                      aria-label="Select your role"
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                       className="grid grid-cols-2 gap-4 mt-2"
@@ -115,6 +116,7 @@ export default function Onboarding() {
                     <FormLabel className="text-base font-semibold">Bio</FormLabel>
                     <FormControl>
                       <Textarea
+                        aria-label="Biography"
                         placeholder="Tell us a bit about yourself..."
                         className="resize-none h-32 text-base"
                         {...field}
@@ -135,6 +137,7 @@ export default function Onboarding() {
                       <FormLabel className="text-base font-semibold">Skills (comma separated)</FormLabel>
                       <FormControl>
                         <Input
+                          aria-label="Skills"
                           placeholder="React, Node.js, TypeScript..."
                           onChange={(e) => field.onChange(e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
                           className="h-12"
@@ -146,7 +149,7 @@ export default function Onboarding() {
                 />
               )}
 
-              <Button type="submit" className="w-full h-12 text-lg font-semibold rounded-xl" disabled={isPending}>
+              <Button type="submit" aria-label="Complete setup" className="w-full h-12 text-lg font-semibold rounded-xl" disabled={isPending}>
                 {isPending ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />

@@ -23,7 +23,7 @@ export default function NotFound() {
             </p>
           </div>
 
-          <Button asChild size="lg">
+          <Button asChild size="lg" aria-label="Go to homepage">
             <Link href="/">Go Home</Link>
           </Button>
         </CardContent>

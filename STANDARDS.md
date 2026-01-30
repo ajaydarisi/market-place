@@ -360,6 +360,60 @@ Two roles defined in `shared/schema.ts`:
 
 ---
 
+## Accessibility
+
+### `aria-label` on Interactive Components
+
+All interactive components must include an `aria-label` attribute for screen reader accessibility.
+
+- `<Button>` — `aria-label="Edit profile"`
+- `<Input>` — `aria-label="First name"`
+- `<SelectTrigger>` — `aria-label="Experience level"`
+- `<Textarea>` — `aria-label="Biography"`
+- `<Link>` (navigation) — `aria-label="Go back"`
+- `<Avatar>` — `aria-label="User's avatar"`
+- Read-only display fields — `aria-label="Email address"`
+
+```tsx
+// Correct
+<Button aria-label="Save profile changes" type="submit">Save</Button>
+<Input aria-label="First name" placeholder="John" />
+<SelectTrigger aria-label="Experience level">
+
+// Incorrect
+<Button type="submit">Save</Button>
+<Input placeholder="John" />
+<SelectTrigger>
+```
+
+---
+
+## Text Overflow
+
+All text values that may overflow their container must use ellipsis truncation.
+
+### Rules
+
+- Use `truncate` (single-line) for short text values (names, emails, roles)
+- Use `line-clamp-{n}` (multi-line) for long text like bios or descriptions
+- Add `title` attribute to truncated text so full content is visible on hover
+- Add `min-w-0` on flex/grid children to allow truncation to work
+
+```tsx
+// Single-line truncation
+<p className="text-sm truncate" title={userData?.email}>{userData?.email}</p>
+
+// Multi-line truncation (3 lines max)
+<p className="text-sm line-clamp-3" title={profile?.bio}>{profile?.bio}</p>
+
+// Flex child needs min-w-0
+<div className="min-w-0">
+  <p className="truncate">{longText}</p>
+</div>
+```
+
+---
+
 ## General Rules
 
 1. **No raw HTML** when a shadcn component exists
@@ -372,3 +426,5 @@ Two roles defined in `shared/schema.ts`:
 8. **Logout**: Must redirect to landing page (`/`) after sign out
 9. **Environment variables**: Client-side vars prefixed with `NEXT_PUBLIC_`
 10. **Route protection**: Handled by `middleware.ts`, not component wrappers
+11. **Accessibility**: All interactive components must have `aria-label` attributes
+12. **Text overflow**: Use `truncate` or `line-clamp-{n}` with `title` attribute on text that may overflow

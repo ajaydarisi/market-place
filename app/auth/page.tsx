@@ -132,8 +132,8 @@ export default function AuthPage() {
         <CardContent>
           <Tabs defaultValue="signin" className="space-y-6">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsTrigger value="signin" aria-label="Sign in tab">Sign In</TabsTrigger>
+              <TabsTrigger value="signup" aria-label="Sign up tab">Sign Up</TabsTrigger>
             </TabsList>
 
             <TabsContent value="signin">
@@ -142,6 +142,7 @@ export default function AuthPage() {
                   <div className="space-y-2">
                     <FormLabel>Email</FormLabel>
                     <Input
+                      aria-label="Email for password reset"
                       type="email"
                       placeholder="you@example.com"
                       value={forgotEmail}
@@ -149,11 +150,11 @@ export default function AuthPage() {
                       className="h-12"
                     />
                   </div>
-                  <Button onClick={handleForgotPassword} className="w-full h-12" disabled={isLoading}>
+                  <Button onClick={handleForgotPassword} aria-label="Send password reset link" className="w-full h-12" disabled={isLoading}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Send Reset Link
                   </Button>
-                  <Button variant="ghost" className="w-full" onClick={() => setShowForgot(false)}>
+                  <Button variant="ghost" aria-label="Back to sign in" className="w-full" onClick={() => setShowForgot(false)}>
                     Back to sign in
                   </Button>
                 </div>
@@ -167,7 +168,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>Email</FormLabel>
                           <FormControl>
-                            <Input type="email" placeholder="you@example.com" className="h-12" {...field} />
+                            <Input aria-label="Email address" type="email" placeholder="you@example.com" className="h-12" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -181,11 +182,12 @@ export default function AuthPage() {
                           <FormLabel>Password</FormLabel>
                           <FormControl>
                             <div className="relative">
-                              <Input type={showPassword ? "text" : "password"} placeholder="Enter your password" className="h-12 pr-10" {...field} />
+                              <Input aria-label="Password" type={showPassword ? "text" : "password"} placeholder="Enter your password" className="h-12 pr-10" {...field} />
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
+                                aria-label="Toggle password visibility"
                                 className="absolute right-0 top-0 h-12 w-12"
                                 onClick={() => setShowPassword(!showPassword)}
                               >
@@ -197,11 +199,11 @@ export default function AuthPage() {
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" className="w-full h-12 text-lg font-semibold" disabled={isLoading}>
+                    <Button type="submit" aria-label="Sign in" className="w-full h-12 text-lg font-semibold" disabled={isLoading}>
                       {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Sign In
                     </Button>
-                    <Button type="button" variant="ghost" className="w-full text-sm text-muted-foreground" onClick={() => setShowForgot(true)}>
+                    <Button type="button" variant="ghost" aria-label="Forgot password" className="w-full text-sm text-muted-foreground" onClick={() => setShowForgot(true)}>
                       Forgot your password?
                     </Button>
                   </form>
@@ -220,7 +222,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>First Name</FormLabel>
                           <FormControl>
-                            <Input placeholder="John" className="h-12" {...field} />
+                            <Input aria-label="First name" placeholder="John" className="h-12" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -233,7 +235,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>Last Name</FormLabel>
                           <FormControl>
-                            <Input placeholder="Doe" className="h-12" {...field} />
+                            <Input aria-label="Last name" placeholder="Doe" className="h-12" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -247,7 +249,7 @@ export default function AuthPage() {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input type="email" placeholder="you@example.com" className="h-12" {...field} />
+                          <Input aria-label="Email address" type="email" placeholder="you@example.com" className="h-12" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -261,11 +263,12 @@ export default function AuthPage() {
                         <FormLabel>Password</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Input type={showPassword ? "text" : "password"} placeholder="Create a password" className="h-12 pr-10" {...field} />
+                            <Input aria-label="Password" type={showPassword ? "text" : "password"} placeholder="Create a password" className="h-12 pr-10" {...field} />
                             <Button
                               type="button"
                               variant="ghost"
                               size="icon"
+                              aria-label="Toggle password visibility"
                               className="absolute right-0 top-0 h-12 w-12"
                               onClick={() => setShowPassword(!showPassword)}
                             >
@@ -277,7 +280,7 @@ export default function AuthPage() {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full h-12 text-lg font-semibold" disabled={isLoading}>
+                  <Button type="submit" aria-label="Create account" className="w-full h-12 text-lg font-semibold" disabled={isLoading}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Create Account
                   </Button>

@@ -40,7 +40,7 @@ export default function NotAuthorized() {
               </p>
             </div>
 
-            <Button onClick={handleGoHome} size="lg">
+            <Button onClick={handleGoHome} aria-label="Go to dashboard" size="lg">
               Go to Dashboard
             </Button>
           </CardContent>

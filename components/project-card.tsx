@@ -24,7 +24,7 @@ export function ProjectCard({ project, isDeveloper }: ProjectCardProps) {
             <Badge variant="outline" className="mb-2 bg-primary/5 text-primary border-primary/20 hover:bg-primary/10 transition-colors">
               {project.category}
             </Badge>
-            <CardTitle className="text-xl font-bold leading-tight group-hover:text-primary transition-colors">
+            <CardTitle className="text-xl font-bold leading-tight group-hover:text-primary transition-colors truncate" title={project.title}>
               {project.title}
             </CardTitle>
           </div>
@@ -41,7 +41,7 @@ export function ProjectCard({ project, isDeveloper }: ProjectCardProps) {
       </CardHeader>
 
       <CardContent className="pb-3">
-        <p className="text-muted-foreground line-clamp-2 text-sm leading-relaxed">
+        <p className="text-muted-foreground line-clamp-2 text-sm leading-relaxed" title={project.description}>
           {project.description}
         </p>
 
@@ -58,8 +58,8 @@ export function ProjectCard({ project, isDeveloper }: ProjectCardProps) {
       </CardContent>
 
       <CardFooter className="pt-3 border-t bg-muted/20">
-        <Link href={`/projects/${project.id}`} className="w-full">
-          <Button className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300" variant="secondary">
+        <Link href={`/projects/${project.id}`} aria-label={`View details for ${project.title}`} className="w-full">
+          <Button aria-label="View project details" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300" variant="secondary">
             View Details
             <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Button>
