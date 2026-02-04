@@ -133,6 +133,14 @@ export const api = {
     },
   },
   messages: {
+    conversations: {
+      method: 'GET' as const,
+      path: '/api/messages',
+      responses: {
+        200: z.array(z.any()),
+        401: errorSchemas.unauthorized,
+      },
+    },
     list: {
       method: 'GET' as const,
       path: '/api/projects/:projectId/messages',

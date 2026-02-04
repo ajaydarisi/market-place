@@ -27,6 +27,7 @@ export interface IStorage {
 
   // Messages
   listMessages(projectId: number, userId: string, token?: string): Promise<(Message & { sender: User })[]>;
+  listUserConversations(userId: string, token?: string): Promise<any[]>;
   createMessage(message: InsertMessage, senderId: string, token?: string): Promise<Message>;
 
   // Users
@@ -321,6 +322,28 @@ export class DatabaseStorage implements IStorage {
     return ((data as any[]) || []).map(row => ({
       ...mapMessage(row),
       sender: mapUser(row.sender)
+    }));
+  }
+
+  async listUserConversations(userId: string, token?: string): Promise<any[]> {
+    const client = await getClient(token);
+    const { data, error } = await client
+      .from("messages")
+      .select("*, project:project_id(id, title), sender:sender_id(id, first_name, last_name, profile_image_url), receiver:receiver_id(id, first_name, last_name, profile_image_url)")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    return ((data as any[]) || []).map(row => ({
+      id: row.id,
+      projectId: row.project_id,
+      senderId: row.sender_id,
+      receiverId: row.receiver_id,
+      content: row.content,
+      createdAt: row.created_at,
+      project: { id: row.project?.id, title: row.project?.title },
+      sender: mapUser(row.sender),
+      receiver: mapUser(row.receiver),
     }));
   }
 

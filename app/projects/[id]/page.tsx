@@ -22,7 +22,7 @@ import { z } from "zod";
 import { formatDistanceToNow } from "date-fns";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { Loader2, Calendar, User, CheckCircle2, Pencil } from "lucide-react";
+import { Loader2, Calendar, User, CheckCircle2, Pencil, MessageSquare } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export default function ProjectDetail() {
@@ -319,9 +319,17 @@ export default function ProjectDetail() {
                               <h4 className="font-bold truncate" title={`${interest.developer.firstName} ${interest.developer.lastName}`}>{interest.developer.firstName} {interest.developer.lastName}</h4>
                               <span className="text-xs text-muted-foreground truncate">Applied {formatDistanceToNow(new Date(interest.createdAt!), { addSuffix: true })}</span>
                             </div>
-                            <Link href={`/profile/${interest.developerId}`}>
-                              <Button size="sm" variant="outline" aria-label={`View ${interest.developer.firstName}'s profile`}>View Profile</Button>
-                            </Link>
+                            <div className="flex gap-2">
+                              <Link href={`/client/messages?projectId=${projectId}&developerId=${interest.developerId}`}>
+                                <Button size="sm" variant="outline" aria-label={`Message ${interest.developer.firstName}`}>
+                                  <MessageSquare className="mr-1 h-3.5 w-3.5" />
+                                  Message
+                                </Button>
+                              </Link>
+                              <Link href={`/profile/${interest.developerId}`}>
+                                <Button size="sm" variant="outline" aria-label={`View ${interest.developer.firstName}'s profile`}>View Profile</Button>
+                              </Link>
+                            </div>
                           </div>
                           <p className="text-sm text-muted-foreground bg-secondary/30 p-3 rounded-lg line-clamp-3" title={interest.message || ""}>
                             &quot;{interest.message}&quot;
