@@ -68,6 +68,9 @@ function mapProfile(row: any): Profile {
     portfolioLinks: row.portfolio_links,
     experienceLevel: row.experience_level,
     availabilityStatus: row.availability_status,
+    companyName: row.company_name,
+    industry: row.industry,
+    companySize: row.company_size,
     updatedAt: row.updated_at ? new Date(row.updated_at) : undefined,
   };
 }
@@ -141,7 +144,10 @@ export class DatabaseStorage implements IStorage {
         skills: insertProfile.skills,
         portfolio_links: insertProfile.portfolioLinks,
         experience_level: insertProfile.experienceLevel,
-        availability_status: insertProfile.availabilityStatus
+        availability_status: insertProfile.availabilityStatus,
+        company_name: insertProfile.companyName,
+        industry: insertProfile.industry,
+        company_size: insertProfile.companySize,
       })
       .select()
       .single();
@@ -159,6 +165,9 @@ export class DatabaseStorage implements IStorage {
     if (updates.portfolioLinks !== undefined) payload.portfolio_links = updates.portfolioLinks;
     if (updates.experienceLevel !== undefined) payload.experience_level = updates.experienceLevel;
     if (updates.availabilityStatus !== undefined) payload.availability_status = updates.availabilityStatus;
+    if (updates.companyName !== undefined) payload.company_name = updates.companyName;
+    if (updates.industry !== undefined) payload.industry = updates.industry;
+    if (updates.companySize !== undefined) payload.company_size = updates.companySize;
 
     const { data, error } = await client
       .from("profiles")

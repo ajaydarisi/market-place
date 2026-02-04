@@ -17,7 +17,7 @@ import { useProfile, useUpdateProfile } from "@/hooks/use-profiles";
 import { useUser, useUpdateUser } from "@/hooks/use-users";
 import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertProfileSchema, insertUserSchema, experienceLevels, availabilityStatuses } from "@shared/schema";
+import { insertProfileSchema, insertUserSchema, experienceLevels, availabilityStatuses, companySizes } from "@shared/schema";
 import { ArrowLeft, Loader2, Edit2, Globe, ExternalLink } from "lucide-react";
 
 function GitHubIcon({ className }: { className?: string }) {
@@ -53,6 +53,9 @@ const profileFormSchema = insertProfileSchema.pick({
   portfolioLinks: true,
   experienceLevel: true,
   availabilityStatus: true,
+  companyName: true,
+  industry: true,
+  companySize: true,
 });
 
 const combinedFormSchema = userFormSchema.merge(profileFormSchema);
@@ -70,6 +73,13 @@ const availabilityLabels: Record<string, string> = {
   available: "Available",
   busy: "Busy",
   open_to_offers: "Open to Offers",
+};
+
+const companySizeLabels: Record<string, string> = {
+  solo: "Solo / Freelancer",
+  small: "Small (2–10)",
+  medium: "Medium (11–50)",
+  enterprise: "Enterprise (50+)",
 };
 
 export default function Profile() {
@@ -92,6 +102,9 @@ export default function Profile() {
       portfolioLinks: { github: "", linkedin: "", website: "" },
       experienceLevel: undefined,
       availabilityStatus: "available",
+      companyName: "",
+      industry: "",
+      companySize: undefined,
     },
   });
 
@@ -110,6 +123,9 @@ export default function Profile() {
         },
         experienceLevel: profile?.experienceLevel,
         availabilityStatus: profile?.availabilityStatus || "available",
+        companyName: profile?.companyName || "",
+        industry: profile?.industry || "",
+        companySize: profile?.companySize,
       });
     }
   }, [userData, profile, form]);
@@ -131,6 +147,9 @@ export default function Profile() {
       } : undefined,
       experienceLevel: data.experienceLevel || undefined,
       availabilityStatus: data.availabilityStatus || undefined,
+      companyName: data.companyName || undefined,
+      industry: data.industry || undefined,
+      companySize: data.companySize || undefined,
     };
 
     updateUser(userUpdates, {
@@ -181,6 +200,9 @@ export default function Profile() {
       },
       experienceLevel: profile?.experienceLevel,
       availabilityStatus: profile?.availabilityStatus || "available",
+      companyName: profile?.companyName || "",
+      industry: profile?.industry || "",
+      companySize: profile?.companySize,
     });
     setIsEditing(false);
   };
@@ -274,15 +296,21 @@ export default function Profile() {
                 {/* About */}
                 <div>
                   <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">About</h3>
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="space-y-1 min-w-0">
-                      <p className="text-xs text-muted-foreground">Bio</p>
-                      <p className="text-sm line-clamp-3" title={profile?.bio || undefined}>
-                        {profile?.bio || <span className="text-muted-foreground">No bio added yet.</span>}
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground">Skills</p>
+                  <div className="space-y-1 min-w-0">
+                    <p className="text-xs text-muted-foreground">Bio</p>
+                    <p className="text-sm line-clamp-3" title={profile?.bio || undefined}>
+                      {profile?.bio || <span className="text-muted-foreground">No bio added yet.</span>}
+                    </p>
+                  </div>
+                </div>
+
+                {profile?.role === "developer" && (
+                  <>
+                    <Separator />
+
+                    {/* Skills (Developer only) */}
+                    <div>
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Skills</h3>
                       {profile?.skills && profile.skills.length > 0 ? (
                         <div className="flex flex-wrap gap-1.5">
                           {profile.skills.map((skill, index) => (
@@ -295,94 +323,129 @@ export default function Profile() {
                         <p className="text-sm text-muted-foreground">No skills added yet.</p>
                       )}
                     </div>
-                  </div>
-                </div>
 
-                <Separator />
+                    <Separator />
 
-                {/* Portfolio Links */}
-                <div>
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Portfolio Links</h3>
-                  {profile?.portfolioLinks?.github || profile?.portfolioLinks?.linkedin || profile?.portfolioLinks?.website ? (
-                    <div className="space-y-2">
-                      {profile.portfolioLinks.github && (
-                        <a
-                          href={profile.portfolioLinks.github}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-sm text-primary hover:underline truncate"
-                          title={profile.portfolioLinks.github}
-                        >
-                          <GitHubIcon className="h-4 w-4 shrink-0" />
-                          <span className="truncate">{profile.portfolioLinks.github}</span>
-                          <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
-                        </a>
-                      )}
-                      {profile.portfolioLinks.linkedin && (
-                        <a
-                          href={profile.portfolioLinks.linkedin}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-sm text-primary hover:underline truncate"
-                          title={profile.portfolioLinks.linkedin}
-                        >
-                          <LinkedInIcon className="h-4 w-4 shrink-0" />
-                          <span className="truncate">{profile.portfolioLinks.linkedin}</span>
-                          <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
-                        </a>
-                      )}
-                      {profile.portfolioLinks.website && (
-                        <a
-                          href={profile.portfolioLinks.website}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-sm text-primary hover:underline truncate"
-                          title={profile.portfolioLinks.website}
-                        >
-                          <Globe className="h-4 w-4 shrink-0" />
-                          <span className="truncate">{profile.portfolioLinks.website}</span>
-                          <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
-                        </a>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">No links added yet.</p>
-                  )}
-                </div>
-
-                <Separator />
-
-                {/* Professional Details */}
-                <div>
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Professional Details</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground">Experience Level</p>
-                      {profile?.experienceLevel ? (
-                        <Badge variant="outline" className="text-sm">
-                          {experienceLevelLabels[profile.experienceLevel] || profile.experienceLevel}
-                        </Badge>
+                    {/* Portfolio Links (Developer only) */}
+                    <div>
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Portfolio Links</h3>
+                      {profile?.portfolioLinks?.github || profile?.portfolioLinks?.linkedin || profile?.portfolioLinks?.website ? (
+                        <div className="space-y-2">
+                          {profile.portfolioLinks.github && (
+                            <a
+                              href={profile.portfolioLinks.github}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 text-sm text-primary hover:underline truncate"
+                              title={profile.portfolioLinks.github}
+                            >
+                              <GitHubIcon className="h-4 w-4 shrink-0" />
+                              <span className="truncate">{profile.portfolioLinks.github}</span>
+                              <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
+                            </a>
+                          )}
+                          {profile.portfolioLinks.linkedin && (
+                            <a
+                              href={profile.portfolioLinks.linkedin}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 text-sm text-primary hover:underline truncate"
+                              title={profile.portfolioLinks.linkedin}
+                            >
+                              <LinkedInIcon className="h-4 w-4 shrink-0" />
+                              <span className="truncate">{profile.portfolioLinks.linkedin}</span>
+                              <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
+                            </a>
+                          )}
+                          {profile.portfolioLinks.website && (
+                            <a
+                              href={profile.portfolioLinks.website}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 text-sm text-primary hover:underline truncate"
+                              title={profile.portfolioLinks.website}
+                            >
+                              <Globe className="h-4 w-4 shrink-0" />
+                              <span className="truncate">{profile.portfolioLinks.website}</span>
+                              <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
+                            </a>
+                          )}
+                        </div>
                       ) : (
-                        <p className="text-sm text-muted-foreground">Not set</p>
+                        <p className="text-sm text-muted-foreground">No links added yet.</p>
                       )}
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground">Availability</p>
-                      <Badge
-                        variant={
-                          profile?.availabilityStatus === "available"
-                            ? "default"
-                            : profile?.availabilityStatus === "busy"
-                              ? "destructive"
-                              : "secondary"
-                        }
-                        className="text-sm"
-                      >
-                        {availabilityLabels[profile?.availabilityStatus || "available"]}
-                      </Badge>
+
+                    <Separator />
+
+                    {/* Professional Details (Developer only) */}
+                    <div>
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Professional Details</h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <p className="text-xs text-muted-foreground">Experience Level</p>
+                          {profile?.experienceLevel ? (
+                            <Badge variant="outline" className="text-sm">
+                              {experienceLevelLabels[profile.experienceLevel] || profile.experienceLevel}
+                            </Badge>
+                          ) : (
+                            <p className="text-sm text-muted-foreground">Not set</p>
+                          )}
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs text-muted-foreground">Availability</p>
+                          <Badge
+                            variant={
+                              profile?.availabilityStatus === "available"
+                                ? "default"
+                                : profile?.availabilityStatus === "busy"
+                                  ? "destructive"
+                                  : "secondary"
+                            }
+                            className="text-sm"
+                          >
+                            {availabilityLabels[profile?.availabilityStatus || "available"]}
+                          </Badge>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  </>
+                )}
+
+                {profile?.role === "client" && (
+                  <>
+                    <Separator />
+
+                    {/* Company Details (Client only) */}
+                    <div>
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Company Details</h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        <div className="space-y-1 min-w-0">
+                          <p className="text-xs text-muted-foreground">Company Name</p>
+                          <p className="text-sm font-medium truncate" title={profile?.companyName || "Not set"}>
+                            {profile?.companyName || <span className="text-muted-foreground">Not set</span>}
+                          </p>
+                        </div>
+                        <div className="space-y-1 min-w-0">
+                          <p className="text-xs text-muted-foreground">Industry</p>
+                          <p className="text-sm font-medium truncate" title={profile?.industry || "Not set"}>
+                            {profile?.industry || <span className="text-muted-foreground">Not set</span>}
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs text-muted-foreground">Company Size</p>
+                          {profile?.companySize ? (
+                            <Badge variant="outline" className="text-sm">
+                              {companySizeLabels[profile.companySize] || profile.companySize}
+                            </Badge>
+                          ) : (
+                            <p className="text-sm text-muted-foreground">Not set</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             ) : (
               <Form {...form}>
@@ -480,181 +543,265 @@ export default function Profile() {
                   {/* About */}
                   <div>
                     <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">About</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="bio"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Bio</FormLabel>
-                            <FormControl>
-                              <Textarea
-                                aria-label="Biography"
-                                placeholder="Tell us about yourself..."
-                                className="min-h-[80px] resize-none text-sm"
-                                {...field}
-                                value={field.value || ""}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="skills"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Skills</FormLabel>
-                            <FormControl>
-                              <TagInput
-                                aria-label="Skills"
-                                value={field.value || []}
-                                onChange={field.onChange}
-                                placeholder="Type a skill and press Enter..."
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+                    <FormField
+                      control={form.control}
+                      name="bio"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Bio</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              aria-label="Biography"
+                              placeholder="Tell us about yourself..."
+                              className="min-h-[80px] resize-none text-sm"
+                              {...field}
+                              value={field.value || ""}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
 
-                  <Separator />
+                  {profile?.role === "developer" && (
+                    <>
+                      <Separator />
 
-                  {/* Portfolio Links */}
-                  <div>
-                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Portfolio Links</h3>
-                    <div className="space-y-3">
-                      <FormField
-                        control={form.control}
-                        name="portfolioLinks.github"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center gap-2">
-                              <GitHubIcon className="h-4 w-4" />
-                              GitHub
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                aria-label="GitHub profile URL"
-                                placeholder="https://github.com/username"
-                                {...field}
-                                value={field.value || ""}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="portfolioLinks.linkedin"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center gap-2">
-                              <LinkedInIcon className="h-4 w-4" />
-                              LinkedIn
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                aria-label="LinkedIn profile URL"
-                                placeholder="https://linkedin.com/in/username"
-                                {...field}
-                                value={field.value || ""}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="portfolioLinks.website"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center gap-2">
-                              <Globe className="h-4 w-4" />
-                              Website
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                aria-label="Personal website URL"
-                                placeholder="https://yourwebsite.com"
-                                {...field}
-                                value={field.value || ""}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Professional Details */}
-                  <div>
-                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Professional Details</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="experienceLevel"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Experience Level</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              value={field.value || undefined}
-                            >
+                      {/* Skills (Developer only) */}
+                      <div>
+                        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Skills</h3>
+                        <FormField
+                          control={form.control}
+                          name="skills"
+                          render={({ field }) => (
+                            <FormItem>
                               <FormControl>
-                                <SelectTrigger aria-label="Experience level">
-                                  <SelectValue placeholder="Select level" />
-                                </SelectTrigger>
+                                <TagInput
+                                  aria-label="Skills"
+                                  value={field.value || []}
+                                  onChange={field.onChange}
+                                  placeholder="Type a skill and press Enter..."
+                                />
                               </FormControl>
-                              <SelectContent>
-                                {experienceLevels.map((level) => (
-                                  <SelectItem key={level} value={level}>
-                                    {experienceLevelLabels[level]}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="availabilityStatus"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Availability</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              value={field.value || "available"}
-                            >
-                              <FormControl>
-                                <SelectTrigger aria-label="Availability status">
-                                  <SelectValue placeholder="Select status" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {availabilityStatuses.map((status) => (
-                                  <SelectItem key={status} value={status}>
-                                    {availabilityLabels[status]}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <Separator />
+
+                      {/* Portfolio Links (Developer only) */}
+                      <div>
+                        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Portfolio Links</h3>
+                        <div className="space-y-3">
+                          <FormField
+                            control={form.control}
+                            name="portfolioLinks.github"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="flex items-center gap-2">
+                                  <GitHubIcon className="h-4 w-4" />
+                                  GitHub
+                                </FormLabel>
+                                <FormControl>
+                                  <Input
+                                    aria-label="GitHub profile URL"
+                                    placeholder="https://github.com/username"
+                                    {...field}
+                                    value={field.value || ""}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="portfolioLinks.linkedin"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="flex items-center gap-2">
+                                  <LinkedInIcon className="h-4 w-4" />
+                                  LinkedIn
+                                </FormLabel>
+                                <FormControl>
+                                  <Input
+                                    aria-label="LinkedIn profile URL"
+                                    placeholder="https://linkedin.com/in/username"
+                                    {...field}
+                                    value={field.value || ""}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="portfolioLinks.website"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="flex items-center gap-2">
+                                  <Globe className="h-4 w-4" />
+                                  Website
+                                </FormLabel>
+                                <FormControl>
+                                  <Input
+                                    aria-label="Personal website URL"
+                                    placeholder="https://yourwebsite.com"
+                                    {...field}
+                                    value={field.value || ""}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      {/* Professional Details (Developer only) */}
+                      <div>
+                        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Professional Details</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="experienceLevel"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Experience Level</FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  value={field.value || undefined}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger aria-label="Experience level">
+                                      <SelectValue placeholder="Select level" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {experienceLevels.map((level) => (
+                                      <SelectItem key={level} value={level}>
+                                        {experienceLevelLabels[level]}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="availabilityStatus"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Availability</FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  value={field.value || "available"}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger aria-label="Availability status">
+                                      <SelectValue placeholder="Select status" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {availabilityStatuses.map((status) => (
+                                      <SelectItem key={status} value={status}>
+                                        {availabilityLabels[status]}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {profile?.role === "client" && (
+                    <>
+                      <Separator />
+
+                      {/* Company Details (Client only) */}
+                      <div>
+                        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Company Details</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="companyName"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Company Name</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    aria-label="Company name"
+                                    placeholder="Acme Inc."
+                                    {...field}
+                                    value={field.value || ""}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="industry"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Industry</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    aria-label="Industry"
+                                    placeholder="e.g. Technology, Healthcare..."
+                                    {...field}
+                                    value={field.value || ""}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="companySize"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Company Size</FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  value={field.value || undefined}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger aria-label="Company size">
+                                      <SelectValue placeholder="Select size" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {companySizes.map((size) => (
+                                      <SelectItem key={size} value={size}>
+                                        {companySizeLabels[size]}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
 
                   {/* Actions */}
                   <div className="flex justify-center gap-3 pt-2">

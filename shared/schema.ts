@@ -7,6 +7,7 @@ export * from "./models/auth";
 export const userRoles = ["client", "developer"] as const;
 export const experienceLevels = ["junior", "mid", "senior", "lead"] as const;
 export const availabilityStatuses = ["available", "busy", "open_to_offers"] as const;
+export const companySizes = ["solo", "small", "medium", "enterprise"] as const;
 export const projectStatuses = ["open", "in_progress", "completed", "cancelled"] as const;
 
 // === TYPES ===
@@ -39,6 +40,10 @@ export const profileSchema = z.object({
   }).nullable().optional(),
   experienceLevel: z.enum(experienceLevels).nullable().optional(),
   availabilityStatus: z.enum(availabilityStatuses).default("available").optional(),
+  // Client-specific fields
+  companyName: z.string().nullable().optional(),
+  industry: z.string().nullable().optional(),
+  companySize: z.enum(companySizes).nullable().optional(),
   updatedAt: z.date().optional(),
 });
 
