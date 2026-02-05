@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfile } from "@/hooks/use-profiles";
 import { useUser } from "@/hooks/use-users";
@@ -102,6 +102,7 @@ export function Navigation() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                <SheetTitle className="sr-only">Navigation menu</SheetTitle>
                 <nav className="flex flex-col gap-4 mt-8">
                   <Link href="/" aria-label="Home" onClick={() => setIsOpen(false)} className="text-lg font-medium">Home</Link>
                   <NavLinks />

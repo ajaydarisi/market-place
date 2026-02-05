@@ -78,3 +78,23 @@ export function useUpdateProject() {
     },
   });
 }
+
+export function useDeleteProject() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const url = buildUrl(api.projects.delete.path, { id });
+      const headers = await getAuthHeaders();
+      const res = await fetch(url, {
+        method: api.projects.delete.method,
+        headers,
+      });
+      if (!res.ok) throw new Error("Failed to delete project");
+      return api.projects.delete.responses[200].parse(await res.json());
+    },
+    onSuccess: (_, id) => {
+      queryClient.removeQueries({ queryKey: [api.projects.list.path] });
+      queryClient.removeQueries({ queryKey: [api.projects.get.path, id] });
+    },
+  });
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useProject, useUpdateProject } from "@/hooks/use-projects";
+import { useProject, useUpdateProject, useDeleteProject } from "@/hooks/use-projects";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfile } from "@/hooks/use-profiles";
 import { useProjectInterests, useExpressInterest } from "@/hooks/use-interests";
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProfileAvatar } from "@/components/profile-avatar";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -20,9 +21,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { formatDistanceToNow } from "date-fns";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Loader2, Calendar, User, CheckCircle2, Pencil, MessageSquare } from "lucide-react";
+import { Loader2, Calendar, User, CheckCircle2, Pencil, MessageSquare, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export default function ProjectDetail() {
@@ -36,8 +37,10 @@ export default function ProjectDetail() {
   const isClient = profile?.role === "client";
   const isOwner = isClient && project?.client.id === user?.id;
 
+  const router = useRouter();
   const { mutate: expressInterest, isPending: interestPending } = useExpressInterest();
   const { mutate: updateProject, isPending: updatePending } = useUpdateProject();
+  const { mutate: deleteProject, isPending: deletePending } = useDeleteProject();
   const [interestMessage, setInterestMessage] = useState("");
   const [interestOpen, setInterestOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -97,6 +100,12 @@ export default function ProjectDetail() {
     });
   };
 
+  const handleDelete = () => {
+    deleteProject(projectId, {
+      onSuccess: () => router.push("/client/projects"),
+    });
+  };
+
   const handleInterest = () => {
     expressInterest({ projectId, message: interestMessage }, {
       onSuccess: () => setInterestOpen(false)
@@ -128,6 +137,7 @@ export default function ProjectDetail() {
           <div className="flex items-center gap-3 mb-4">
             <h1 className="text-3xl md:text-4xl font-display font-bold truncate" title={project.title}>{project.title}</h1>
             {isOwner && (
+              <>
               <Dialog open={editOpen} onOpenChange={setEditOpen}>
                 <DialogTrigger asChild>
                   <Button variant="outline" size="sm" aria-label="Edit project">
@@ -262,6 +272,30 @@ export default function ProjectDetail() {
                   </Form>
                 </DialogContent>
               </Dialog>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm" aria-label="Delete project">
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete this project?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete your project and remove all associated data.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete} disabled={deletePending}>
+                      {deletePending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              </>
             )}
           </div>
           <div className="flex flex-wrap gap-6 text-muted-foreground">

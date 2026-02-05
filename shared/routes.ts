@@ -111,6 +111,16 @@ export const api = {
         404: errorSchemas.notFound,
       },
     },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/projects/:id',
+      responses: {
+        200: z.object({ message: z.string() }),
+        401: errorSchemas.unauthorized,
+        403: z.object({ message: z.string() }),
+        404: errorSchemas.notFound,
+      },
+    },
   },
   interests: {
     create: {

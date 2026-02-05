@@ -17,6 +17,35 @@ export async function GET(
   return NextResponse.json(project);
 }
 
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const user = await getAuthUser();
+  if (!user) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const token = await getAuthToken();
+  const projectId = Number(id);
+
+  const project = await storage.getProject(projectId, token ?? undefined);
+  if (!project) {
+    return NextResponse.json({ message: "Project not found" }, { status: 404 });
+  }
+
+  if (project.clientId !== user.id) {
+    return NextResponse.json(
+      { message: "You can only delete your own projects" },
+      { status: 403 }
+    );
+  }
+
+  await storage.deleteProject(projectId, token ?? undefined);
+  return NextResponse.json({ message: "Project deleted" });
+}
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

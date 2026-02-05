@@ -29,9 +29,14 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch {
+    // Fetch to Supabase auth can fail on cold starts or network issues;
+    // treat as unauthenticated so the middleware can still proceed.
+  }
 
   return { user, supabaseResponse, supabase };
 }

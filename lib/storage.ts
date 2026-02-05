@@ -20,6 +20,7 @@ export interface IStorage {
   listProjects(filters?: { category?: string; minBudget?: number; maxBudget?: number; search?: string; clientId?: string }, token?: string): Promise<(Project & { client: User })[]>;
   createProject(project: InsertProject, clientId: string, token?: string): Promise<Project>;
   updateProject(id: number, updates: UpdateProjectRequest, token?: string): Promise<Project>;
+  deleteProject(id: number, token?: string): Promise<void>;
 
   // Interests
   createInterest(interest: InsertInterest, developerId: string, token?: string): Promise<ProjectInterest>;
@@ -188,6 +189,7 @@ export class DatabaseStorage implements IStorage {
       .from("projects")
       .select("*, client:client_id(*)")
       .eq("id", id)
+      .eq("is_deleted", false)
       .single();
 
     if (error || !data) return undefined;
@@ -201,7 +203,8 @@ export class DatabaseStorage implements IStorage {
     const client = await getClient(token);
     let query = client
       .from("projects")
-      .select("*, client:client_id(*)");
+      .select("*, client:client_id(*)")
+      .eq("is_deleted", false);
 
     if (filters?.clientId) {
       query = query.eq("client_id", filters.clientId);
@@ -278,6 +281,16 @@ export class DatabaseStorage implements IStorage {
 
     if (error) throw error;
     return mapProject(data);
+  }
+
+  async deleteProject(id: number, token?: string): Promise<void> {
+    const client = await getClient(token);
+    const { error } = await client
+      .from("projects")
+      .update({ is_deleted: true })
+      .eq("id", id);
+
+    if (error) throw error;
   }
 
   // Interests
