@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ProfileAvatar } from "@/components/profile-avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { useConversations, useProjectMessages, useSendMessage, useMessagesRealtime, type Conversation } from "@/hooks/use-messages";
 import { useUser } from "@/hooks/use-users";
 import { useProject } from "@/hooks/use-projects";
-import { MessageSquare, Send, Loader2 } from "lucide-react";
+import { MessageSquare, Send, Loader2, ArrowLeft } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useSearchParams } from "next/navigation";
 import { useState, useEffect, useRef, Suspense } from "react";
@@ -44,6 +44,7 @@ function MessagesContent() {
   const [messageText, setMessageText] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const initializedRef = useRef(false);
+  const [mobileShowChat, setMobileShowChat] = useState(false);
 
   // Set selected from URL params on mount
   useEffect(() => {
@@ -53,6 +54,7 @@ function MessagesContent() {
         return { projectId: Number(paramProjectId), developerId: paramDeveloperId };
       });
       initializedRef.current = true;
+      setMobileShowChat(true);
     }
   }, [paramProjectId, paramDeveloperId]);
 
@@ -116,15 +118,17 @@ function MessagesContent() {
     ...(conversations || []),
   ];
 
+  console.log(allConversations, "allConversations")
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       <div className="container mx-auto px-4 py-8 h-[calc(100vh-64px)]">
         <h1 className="text-3xl font-display font-bold mb-6">Messages</h1>
 
-        <div className="grid md:grid-cols-3 gap-6 h-[calc(100%-80px)]">
+        <div className="grid grid-rows-1 md:grid-cols-3 gap-6 h-[calc(100%-80px)]">
           {/* Conversation List */}
-          <Card className="col-span-1 flex flex-col overflow-hidden">
+          <Card className={`flex flex-col overflow-hidden md:col-span-1 ${mobileShowChat ? "hidden md:flex" : ""}`}>
             <CardHeader className="bg-secondary/20 py-4 px-4">
               <CardTitle className="text-base font-semibold">Conversations</CardTitle>
             </CardHeader>
@@ -151,12 +155,12 @@ function MessagesContent() {
                         className={`w-full text-left p-3 rounded-lg transition-colors flex items-start gap-3 ${
                           isActive ? "bg-primary/10" : "hover:bg-secondary/50"
                         }`}
-                        onClick={() => setSelected({ projectId: conv.projectId, developerId: conv.otherUserId })}
+                        onClick={() => {
+                          setSelected({ projectId: conv.projectId, developerId: conv.otherUserId });
+                          setMobileShowChat(true);
+                        }}
                       >
-                        <Avatar className="h-9 w-9 shrink-0">
-                          {conv.otherUserAvatar && <AvatarImage src={conv.otherUserAvatar} alt={conv.otherUserName} />}
-                          <AvatarFallback className="text-xs">{conv.otherUserName[0]}</AvatarFallback>
-                        </Avatar>
+                        <ProfileAvatar name={conv.otherUserName} imageUrl={conv.otherUserAvatar} size="md" />
                         <div className="min-w-0 flex-1">
                           <div className="flex justify-between items-baseline gap-2">
                             <p className="text-sm font-medium truncate">{conv.otherUserName}</p>
@@ -180,7 +184,7 @@ function MessagesContent() {
           </Card>
 
           {/* Chat Thread */}
-          <Card className="col-span-2 flex flex-col overflow-hidden">
+          <Card className={`flex flex-col overflow-hidden md:col-span-2 ${mobileShowChat ? "" : "hidden md:flex"}`}>
             {!selected ? (
               <CardContent className="flex-1 flex items-center justify-center text-muted-foreground bg-secondary/10">
                 <div className="text-center space-y-2">
@@ -192,15 +196,20 @@ function MessagesContent() {
               <>
                 {/* Chat Header */}
                 <CardHeader className="bg-secondary/20 py-3 px-4 flex-row items-center gap-3 space-y-0">
-                  <Avatar className="h-8 w-8">
-                    {(() => {
-                      const conv = allConversations.find(c => c.projectId === selected.projectId && c.otherUserId === selected.developerId);
-                      return conv?.otherUserAvatar ? <AvatarImage src={conv.otherUserAvatar} /> : null;
-                    })()}
-                    <AvatarFallback className="text-xs">
-                      {allConversations.find(c => c.projectId === selected.projectId && c.otherUserId === selected.developerId)?.otherUserName[0] || "?"}
-                    </AvatarFallback>
-                  </Avatar>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="md:hidden shrink-0"
+                    aria-label="Back to conversations"
+                    onClick={() => setMobileShowChat(false)}
+                  >
+                    <ArrowLeft className="h-5 w-5" />
+                  </Button>
+                  <ProfileAvatar
+                    name={allConversations.find(c => c.projectId === selected.projectId && c.otherUserId === selected.developerId)?.otherUserName || "User"}
+                    imageUrl={allConversations.find(c => c.projectId === selected.projectId && c.otherUserId === selected.developerId)?.otherUserAvatar}
+                    size="sm"
+                  />
                   <div className="min-w-0">
                     <CardTitle className="text-sm font-semibold truncate">
                       {allConversations.find(c => c.projectId === selected.projectId && c.otherUserId === selected.developerId)?.otherUserName || "User"}
@@ -226,8 +235,12 @@ function MessagesContent() {
                     <div className="space-y-3">
                       {filteredMessages.map((msg) => {
                         const isOwn = msg.senderId === user?.id;
+                        const conv = allConversations.find(c => c.projectId === selected.projectId && c.otherUserId === selected.developerId);
                         return (
-                          <div key={msg.id} className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
+                          <div key={msg.id} className={`flex items-end gap-2 ${isOwn ? "justify-end" : "justify-start"}`}>
+                            {!isOwn && (
+                              <ProfileAvatar name={conv?.otherUserName || "?"} imageUrl={conv?.otherUserAvatar} size="xs" />
+                            )}
                             <div className={`max-w-[75%] rounded-2xl px-4 py-2 ${
                               isOwn
                                 ? "bg-primary text-primary-foreground rounded-br-md"

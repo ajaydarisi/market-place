@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ProfileAvatar } from "@/components/profile-avatar";
 import { AvatarUpload } from "@/components/avatar-upload";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -239,14 +239,12 @@ export default function Profile() {
             {!isEditing ? (
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                  <Avatar className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 border-2 border-primary/20" aria-label={`${fullName}'s avatar`}>
-                    {userData?.profileImageUrl && (
-                      <AvatarImage src={userData.profileImageUrl} alt={`${fullName}'s profile photo`} />
-                    )}
-                    <AvatarFallback className="bg-primary/10 text-primary text-base sm:text-lg font-semibold">
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
+                  <ProfileAvatar
+                    name={fullName}
+                    imageUrl={userData?.profileImageUrl}
+                    size="xl"
+                    className="border-2 border-primary/20"
+                  />
                   <div className="min-w-0">
                     <CardTitle className="text-lg sm:text-xl font-display truncate">{fullName}</CardTitle>
                     <p className="text-xs sm:text-sm text-muted-foreground truncate mt-1">{userData?.email}</p>

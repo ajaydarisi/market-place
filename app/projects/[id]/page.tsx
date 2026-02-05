@@ -8,7 +8,7 @@ import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ProfileAvatar } from "@/components/profile-avatar";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -309,12 +309,11 @@ export default function ProjectDetail() {
                       <CardContent className="p-6 space-y-3">
                         <div className="flex items-center justify-between gap-4">
                           <div className="flex items-center gap-3 min-w-0">
-                            <Avatar className="h-10 w-10 shrink-0" aria-label={`${interest.developer.firstName} ${interest.developer.lastName}'s avatar`}>
-                              {interest.developer.profileImageUrl && (
-                                <AvatarImage src={interest.developer.profileImageUrl} alt={`${interest.developer.firstName}'s photo`} />
-                              )}
-                              <AvatarFallback>{interest.developer.firstName?.[0]}</AvatarFallback>
-                            </Avatar>
+                            <ProfileAvatar
+                              name={`${interest.developer.firstName} ${interest.developer.lastName}`}
+                              imageUrl={interest.developer.profileImageUrl}
+                              size="lg"
+                            />
                             <div className="min-w-0">
                               <h4 className="font-bold truncate" title={`${interest.developer.firstName} ${interest.developer.lastName}`}>{interest.developer.firstName} {interest.developer.lastName}</h4>
                               <span className="text-xs text-muted-foreground">Applied {formatDistanceToNow(new Date(interest.createdAt!), { addSuffix: true })}</span>
@@ -362,12 +361,12 @@ export default function ProjectDetail() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-4">
-                <Avatar className="h-12 w-12 border-2 border-background shadow-sm" aria-label={`${project.client.firstName} ${project.client.lastName}'s avatar`}>
-                  {project.client.profileImageUrl && (
-                    <AvatarImage src={project.client.profileImageUrl} alt={`${project.client.firstName}'s photo`} />
-                  )}
-                  <AvatarFallback className="bg-primary/10 text-primary font-bold">{project.client.firstName?.[0]}</AvatarFallback>
-                </Avatar>
+                <ProfileAvatar
+                  name={`${project.client.firstName} ${project.client.lastName}`}
+                  imageUrl={project.client.profileImageUrl}
+                  size="xl"
+                  className="border-2 border-background shadow-sm"
+                />
                 <div className="min-w-0">
                   <div className="font-bold truncate" title={`${project.client.firstName} ${project.client.lastName}`}>{project.client.firstName} {project.client.lastName}</div>
                   <div className="text-sm text-muted-foreground">Member since 2024</div>

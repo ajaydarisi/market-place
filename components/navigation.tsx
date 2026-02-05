@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ProfileAvatar } from "@/components/profile-avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -125,12 +125,12 @@ export function Navigation() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" aria-label="User menu" className="relative h-auto rounded-full px-2 py-1 gap-2">
                 <span className="hidden sm:inline text-sm font-medium truncate max-w-[150px]">{userData?.firstName} {userData?.lastName}</span>
-                <Avatar className="h-9 w-9 border border-border" aria-label={`${userData?.firstName} ${userData?.lastName}'s avatar`}>
-                  {userData?.profileImageUrl && (
-                    <AvatarImage src={userData.profileImageUrl} alt={`${userData?.firstName}'s photo`} />
-                  )}
-                  <AvatarFallback className="bg-primary/10 text-primary font-semibold">{userData?.firstName?.[0]}{userData?.lastName?.[0]}</AvatarFallback>
-                </Avatar>
+                <ProfileAvatar
+                  name={`${userData?.firstName ?? ""} ${userData?.lastName ?? ""}`}
+                  imageUrl={userData?.profileImageUrl}
+                  size="md"
+                  className="border border-border"
+                />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>

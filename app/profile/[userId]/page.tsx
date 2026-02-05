@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ProfileAvatar } from "@/components/profile-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -95,14 +95,12 @@ export default function PublicProfile() {
           <Card className="shadow-xl border-primary/10 w-full md:w-[50%] md:min-w-[600px] max-w-[800px] mx-auto">
             <CardHeader className="border-b bg-secondary/20 py-4">
               <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                <Avatar className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 border-2 border-primary/20" aria-label={`${fullName}'s avatar`}>
-                  {userData.profileImageUrl && (
-                    <AvatarImage src={userData.profileImageUrl} alt={`${fullName}'s profile photo`} />
-                  )}
-                  <AvatarFallback className="bg-primary/10 text-primary text-base sm:text-lg font-semibold">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
+                <ProfileAvatar
+                  name={fullName}
+                  imageUrl={userData.profileImageUrl}
+                  size="xl"
+                  className="border-2 border-primary/20"
+                />
                 <div className="min-w-0">
                   <CardTitle className="text-lg sm:text-xl font-display truncate">{fullName}</CardTitle>
                   <p className="text-xs sm:text-sm text-muted-foreground capitalize mt-1">{profile.role}</p>
