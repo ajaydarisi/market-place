@@ -10,10 +10,12 @@ import { Input } from "@/components/ui/input";
 import { Plus, Search } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function MyProjects() {
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
-  const { data: projects, isLoading } = useProjects({ search });
+  const { data: projects, isLoading } = useProjects({ search, clientId: user?.id });
 
   return (
     <div className="min-h-screen bg-background">

@@ -17,7 +17,7 @@ export interface IStorage {
 
   // Projects
   getProject(id: number, token?: string): Promise<(Project & { client: User }) | undefined>;
-  listProjects(filters?: { category?: string; minBudget?: number; maxBudget?: number; search?: string }, token?: string): Promise<(Project & { client: User })[]>;
+  listProjects(filters?: { category?: string; minBudget?: number; maxBudget?: number; search?: string; clientId?: string }, token?: string): Promise<(Project & { client: User })[]>;
   createProject(project: InsertProject, clientId: string, token?: string): Promise<Project>;
   updateProject(id: number, updates: UpdateProjectRequest, token?: string): Promise<Project>;
 
@@ -197,12 +197,15 @@ export class DatabaseStorage implements IStorage {
     return { ...project, client: clientUser };
   }
 
-  async listProjects(filters?: { category?: string; minBudget?: number; maxBudget?: number; search?: string; sort?: string }, token?: string): Promise<(Project & { client: User })[]> {
+  async listProjects(filters?: { category?: string; minBudget?: number; maxBudget?: number; search?: string; sort?: string; clientId?: string }, token?: string): Promise<(Project & { client: User })[]> {
     const client = await getClient(token);
     let query = client
       .from("projects")
       .select("*, client:client_id(*)");
 
+    if (filters?.clientId) {
+      query = query.eq("client_id", filters.clientId);
+    }
     if (filters?.category) {
       query = query.eq("category", filters.category);
     }

@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAuthHeaders } from "@/lib/api";
 
 // List projects with optional filters
-export function useProjects(filters?: { category?: string; search?: string; sort?: string }) {
+export function useProjects(filters?: { category?: string; search?: string; sort?: string; clientId?: string }) {
   return useQuery({
     queryKey: [api.projects.list.path, filters],
     queryFn: async () => {
@@ -13,6 +13,9 @@ export function useProjects(filters?: { category?: string; search?: string; sort
       if (filters?.category) url.searchParams.set("category", filters.category);
       if (filters?.search) url.searchParams.set("search", filters.search);
       if (filters?.sort) url.searchParams.set("sort", filters.sort);
+      if (filters?.clientId) url.searchParams.set("clientId", filters.clientId);
+
+      console.log(filters, "filters")
 
       const headers = await getAuthHeaders();
       const res = await fetch(url.toString(), { headers });

@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
   if (searchParams.get("maxBudget")) filters.maxBudget = Number(searchParams.get("maxBudget"));
   if (searchParams.get("search")) filters.search = searchParams.get("search");
   if (searchParams.get("sort")) filters.sort = searchParams.get("sort");
+  if (searchParams.get("clientId")) filters.clientId = searchParams.get("clientId");
 
   const token = await getAuthToken();
   const projects = await storage.listProjects(filters, token ?? undefined);
