@@ -1,6 +1,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
+import { queryClient } from "@/lib/query-client";
 import { User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -33,6 +34,7 @@ export function useAuth() {
   const logout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
+    queryClient.clear();
     router.push("/");
     router.refresh();
   };
