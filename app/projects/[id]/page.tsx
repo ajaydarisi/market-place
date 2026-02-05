@@ -306,34 +306,45 @@ export default function ProjectDetail() {
                 <div className="grid gap-4">
                   {interests?.map((interest) => (
                     <Card key={interest.id} className="overflow-hidden">
-                      <CardContent className="p-6 flex items-start gap-4">
-                        <Avatar className="h-10 w-10" aria-label={`${interest.developer.firstName} ${interest.developer.lastName}'s avatar`}>
-                          {interest.developer.profileImageUrl && (
-                            <AvatarImage src={interest.developer.profileImageUrl} alt={`${interest.developer.firstName}'s photo`} />
-                          )}
-                          <AvatarFallback>{interest.developer.firstName?.[0]}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="flex justify-between items-start mb-2">
-                            <div>
+                      <CardContent className="p-6 space-y-3">
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <Avatar className="h-10 w-10 shrink-0" aria-label={`${interest.developer.firstName} ${interest.developer.lastName}'s avatar`}>
+                              {interest.developer.profileImageUrl && (
+                                <AvatarImage src={interest.developer.profileImageUrl} alt={`${interest.developer.firstName}'s photo`} />
+                              )}
+                              <AvatarFallback>{interest.developer.firstName?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <div className="min-w-0">
                               <h4 className="font-bold truncate" title={`${interest.developer.firstName} ${interest.developer.lastName}`}>{interest.developer.firstName} {interest.developer.lastName}</h4>
-                              <span className="text-xs text-muted-foreground truncate">Applied {formatDistanceToNow(new Date(interest.createdAt!), { addSuffix: true })}</span>
-                            </div>
-                            <div className="flex gap-2">
-                              <Link href={`/client/messages?projectId=${projectId}&developerId=${interest.developerId}`}>
-                                <Button size="sm" variant="outline" aria-label={`Message ${interest.developer.firstName}`}>
-                                  <MessageSquare className="mr-1 h-3.5 w-3.5" />
-                                  Message
-                                </Button>
-                              </Link>
-                              <Link href={`/profile/${interest.developerId}`}>
-                                <Button size="sm" variant="outline" aria-label={`View ${interest.developer.firstName}'s profile`}>View Profile</Button>
-                              </Link>
+                              <span className="text-xs text-muted-foreground">Applied {formatDistanceToNow(new Date(interest.createdAt!), { addSuffix: true })}</span>
                             </div>
                           </div>
-                          <p className="text-sm text-muted-foreground bg-secondary/30 p-3 rounded-lg line-clamp-3" title={interest.message || ""}>
-                            &quot;{interest.message}&quot;
-                          </p>
+                          <div className="hidden sm:flex gap-2 shrink-0">
+                            <Link href={`/client/messages?projectId=${projectId}&developerId=${interest.developerId}`}>
+                              <Button size="sm" variant="outline" aria-label={`Message ${interest.developer.firstName}`}>
+                                <MessageSquare className="mr-1 h-3.5 w-3.5" />
+                                Message
+                              </Button>
+                            </Link>
+                            <Link href={`/profile/${interest.developerId}`}>
+                              <Button size="sm" variant="outline" aria-label={`View ${interest.developer.firstName}'s profile`}>View Profile</Button>
+                            </Link>
+                          </div>
+                        </div>
+                        <p className="text-sm text-muted-foreground bg-secondary/30 p-3 rounded-lg line-clamp-3" title={interest.message || ""}>
+                          &quot;{interest.message}&quot;
+                        </p>
+                        <div className="grid grid-cols-2 gap-2 pt-1 sm:hidden">
+                          <Link href={`/client/messages?projectId=${projectId}&developerId=${interest.developerId}`}>
+                            <Button size="sm" variant="outline" className="w-full" aria-label={`Message ${interest.developer.firstName}`}>
+                              <MessageSquare className="mr-1 h-3.5 w-3.5" />
+                              Message
+                            </Button>
+                          </Link>
+                          <Link href={`/profile/${interest.developerId}`}>
+                            <Button size="sm" variant="outline" className="w-full" aria-label={`View ${interest.developer.firstName}'s profile`}>View Profile</Button>
+                          </Link>
                         </div>
                       </CardContent>
                     </Card>
