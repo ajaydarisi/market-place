@@ -83,6 +83,7 @@ export default function AuthPage() {
       email: data.email,
       password: data.password,
       options: {
+        emailRedirectTo: `${window.location.origin}/api/auth/callback`,
         data: {
           first_name: data.firstName,
           last_name: data.lastName,
