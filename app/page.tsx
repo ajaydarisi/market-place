@@ -86,7 +86,7 @@ export default function Landing() {
                 desc: "Milestone-based payments ensure you only pay for results."
               }
             ].map((feature, i) => (
-              <Card key={i} className="bg-card/50 backdrop-blur-sm border-border/50 shadow-lg hover:border-primary/50 transition-colors rounded-2xl">
+              <Card key={i} className="bg-card/50 backdrop-blur-sm border-border shadow-lg hover:border-primary/50 transition-colors rounded-2xl">
                 <CardContent className="p-8 md:p-6">
                   <div className="h-12 w-12 md:h-10 md:w-10 rounded-xl bg-primary/10 flex items-center justify-center mb-6 md:mb-4 text-primary">
                     <feature.icon className="h-6 w-6" />

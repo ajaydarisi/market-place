@@ -19,9 +19,12 @@ import {
   Briefcase,
   LogOut,
   Menu,
+  Moon,
   Plus,
+  Sun,
   User
 } from "lucide-react";
+import { useTheme } from "next-themes";
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -31,6 +34,7 @@ export function Navigation() {
   const { data: userData } = useUser(user?.id ?? "");
   const { data: profile } = useProfile(user?.id ?? "");
   const pathname = usePathname();
+  const { theme, setTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
 
   const isClient = profile?.role === "client";
@@ -117,6 +121,11 @@ export function Navigation() {
                       </Link>
                     </>
                   )}
+                  <Separator />
+                  <Button variant="ghost" aria-label="Toggle theme" className="justify-start" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+                    {theme === "dark" ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
+                    {theme === "dark" ? "Light Mode" : "Dark Mode"}
+                  </Button>
                 </nav>
               </SheetContent>
             </Sheet>
@@ -150,6 +159,11 @@ export function Navigation() {
                   <span>Profile</span>
                 </Link>
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label="Toggle theme" className="cursor-pointer">
+                {theme === "dark" ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
+                <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => logout()} aria-label="Log out" className="cursor-pointer">
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
