@@ -14,6 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertProfileSchema } from "@shared/schema";
 import { Code2, Loader2, UserCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -41,8 +42,13 @@ export default function Onboarding() {
     },
   });
 
+  useEffect(() => {
+    if (profile) {
+      router.push("/dashboard");
+    }
+  }, [profile, router]);
+
   if (profile) {
-    router.push("/dashboard");
     return null;
   }
 
