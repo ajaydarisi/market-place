@@ -9,6 +9,8 @@ export const experienceLevels = ["junior", "mid", "senior", "lead"] as const;
 export const availabilityStatuses = ["available", "busy", "open_to_offers"] as const;
 export const companySizes = ["solo", "small", "medium", "enterprise"] as const;
 export const projectStatuses = ["open", "in_progress", "completed", "cancelled"] as const;
+export const logTypes = ["update", "milestone", "blocker", "completed"] as const;
+export const interestStatuses = ["pending", "accepted", "rejected"] as const;
 
 // === TYPES ===
 // Define interfaces via Zod
@@ -52,6 +54,7 @@ export type Profile = z.infer<typeof profileSchema>;
 export const projectSchema = z.object({
   id: z.number().optional(),
   clientId: z.string().uuid(),
+  assignedDeveloperId: z.string().uuid().nullable().optional(),
   title: z.string(),
   category: z.string(),
   description: z.string(),
@@ -69,11 +72,22 @@ export const projectInterestSchema = z.object({
   projectId: z.number(),
   developerId: z.string().uuid(),
   message: z.string(),
-  status: z.enum(["pending", "accepted", "rejected"]).default("pending"),
+  status: z.enum(interestStatuses).default("pending"),
   createdAt: z.date().optional(),
 });
 
 export type ProjectInterest = z.infer<typeof projectInterestSchema>;
+
+export const projectLogSchema = z.object({
+  id: z.number().optional(),
+  projectId: z.number(),
+  authorId: z.string().uuid(),
+  content: z.string().min(1, "Log content is required"),
+  logType: z.enum(logTypes).default("update"),
+  createdAt: z.date().optional(),
+});
+
+export type ProjectLog = z.infer<typeof projectLogSchema>;
 
 export const messageSchema = z.object({
   id: z.number().optional(),
@@ -106,6 +120,7 @@ export const insertProjectSchema = projectSchema.omit({ id: true, clientId: true
 export const insertInterestSchema = projectInterestSchema.omit({ id: true, developerId: true, createdAt: true, status: true });
 export const insertMessageSchema = messageSchema.omit({ id: true, senderId: true, createdAt: true, read: true });
 export const insertReviewSchema = reviewSchema.omit({ id: true, reviewerId: true, createdAt: true });
+export const insertProjectLogSchema = projectLogSchema.omit({ id: true, authorId: true, createdAt: true });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertProfile = z.infer<typeof insertProfileSchema>;
@@ -113,6 +128,7 @@ export type InsertProject = z.infer<typeof insertProjectSchema>;
 export type InsertInterest = z.infer<typeof insertInterestSchema>;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type InsertReview = z.infer<typeof insertReviewSchema>;
+export type InsertProjectLog = z.infer<typeof insertProjectLogSchema>;
 
 // API Types
 export type UpdateUserRequest = Partial<InsertUser>;

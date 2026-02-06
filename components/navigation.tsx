@@ -75,6 +75,9 @@ export function Navigation() {
           <Link href="/developer/browse" aria-label="Browse jobs" className={`text-sm font-medium transition-colors hover:text-primary ${pathname === "/developer/browse" ? "text-primary font-semibold" : "text-muted-foreground"}`}>
             Browse Jobs
           </Link>
+          <Link href="/developer/projects" aria-label="My projects" className={`text-sm font-medium transition-colors hover:text-primary ${pathname === "/developer/projects" ? "text-primary font-semibold" : "text-muted-foreground"}`}>
+            My Projects
+          </Link>
           <Link href="/developer/messages" aria-label="My messages" className={`text-sm font-medium transition-colors hover:text-primary ${pathname === "/developer/messages" ? "text-primary font-semibold" : "text-muted-foreground"}`}>
             My Messages
           </Link>

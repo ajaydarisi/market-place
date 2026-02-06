@@ -3,7 +3,8 @@
 import { useProject, useUpdateProject, useDeleteProject } from "@/hooks/use-projects";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfile } from "@/hooks/use-profiles";
-import { useProjectInterests, useExpressInterest } from "@/hooks/use-interests";
+import { useProjectInterests, useExpressInterest, useUpdateInterestStatus } from "@/hooks/use-interests";
+import { useProjectLogs, useCreateProjectLog } from "@/hooks/use-project-logs";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,7 +24,8 @@ import { z } from "zod";
 import { formatDistanceToNow } from "date-fns";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Loader2, Calendar, User, CheckCircle2, Pencil, MessageSquare, Trash2 } from "lucide-react";
+import { Loader2, Calendar, User, CheckCircle2, Pencil, MessageSquare, Trash2, UserCheck, Clock, AlertTriangle, Flag, Send } from "lucide-react";
+import { logTypes } from "@shared/schema";
 import { useState, useEffect } from "react";
 
 export default function ProjectDetail() {
@@ -33,17 +35,27 @@ export default function ProjectDetail() {
   const { data: profile } = useProfile(user?.id || "");
   const { data: project, isLoading } = useProject(projectId);
   const { data: interests } = useProjectInterests(projectId);
+  const { data: logs } = useProjectLogs(projectId);
 
   const isClient = profile?.role === "client";
+  const isDeveloper = profile?.role === "developer";
   const isOwner = isClient && project?.client.id === user?.id;
+  const isAssignedDev = isDeveloper && project?.assignedDeveloperId === user?.id;
+  const canViewLogs = isOwner || isAssignedDev;
 
   const router = useRouter();
   const { mutate: expressInterest, isPending: interestPending } = useExpressInterest();
   const { mutate: updateProject, isPending: updatePending } = useUpdateProject();
   const { mutate: deleteProject, isPending: deletePending } = useDeleteProject();
+  const { mutate: updateInterestStatus, isPending: assignPending } = useUpdateInterestStatus();
+  const { mutate: createLog, isPending: logPending } = useCreateProjectLog();
   const [interestMessage, setInterestMessage] = useState("");
   const [interestOpen, setInterestOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [selectedInterestId, setSelectedInterestId] = useState<number | null>(null);
+  const [logContent, setLogContent] = useState("");
+  const [logType, setLogType] = useState<typeof logTypes[number]>("update");
   const hasExpressedInterest = interests?.some(i => i.developerId === user?.id);
 
   const editFormSchema = insertProjectSchema.extend({
@@ -112,6 +124,50 @@ export default function ProjectDetail() {
     });
   };
 
+  const handleAssign = (interestId: number) => {
+    setSelectedInterestId(interestId);
+    setAssignDialogOpen(true);
+  };
+
+  const confirmAssign = () => {
+    if (!selectedInterestId) return;
+    updateInterestStatus(
+      { projectId, interestId: selectedInterestId, status: "accepted" },
+      {
+        onSuccess: () => {
+          setAssignDialogOpen(false);
+          setSelectedInterestId(null);
+        },
+      }
+    );
+  };
+
+  const handleCreateLog = () => {
+    if (!logContent.trim()) return;
+    createLog(
+      { projectId, content: logContent, logType },
+      {
+        onSuccess: () => {
+          setLogContent("");
+          setLogType("update");
+        },
+      }
+    );
+  };
+
+  const logTypeLabels: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
+    update: { label: "Update", icon: <Clock className="h-3 w-3" />, color: "bg-primary/10 text-primary" },
+    milestone: { label: "Milestone", icon: <Flag className="h-3 w-3" />, color: "bg-green-500/10 text-green-600" },
+    blocker: { label: "Blocker", icon: <AlertTriangle className="h-3 w-3" />, color: "bg-destructive/10 text-destructive" },
+    completed: { label: "Completed", icon: <CheckCircle2 className="h-3 w-3" />, color: "bg-accent/10 text-accent" },
+  };
+
+  const interestStatusLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+    pending: { label: "Pending", variant: "secondary" },
+    accepted: { label: "Accepted", variant: "default" },
+    rejected: { label: "Rejected", variant: "destructive" },
+  };
+
   if (isLoading || !project) {
     return (
       <div className="min-h-screen bg-background">
@@ -128,7 +184,7 @@ export default function ProjectDetail() {
       <Navigation />
 
       {/* Header */}
-      <div className="bg-secondary/30 border-b border-border/50 py-12">
+      <div className="bg-secondary/30 border-b border-slate-500 py-12">
         <div className="container mx-auto px-4">
           <div className="flex items-center gap-2 mb-4">
             <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">{project.category}</Badge>
@@ -339,7 +395,7 @@ export default function ProjectDetail() {
               ) : (
                 <div className="grid gap-4">
                   {interests?.map((interest) => (
-                    <Card key={interest.id} className="overflow-hidden">
+                    <Card key={interest.id} className={`overflow-hidden ${interest.status === "accepted" ? "border-primary/50" : ""}`}>
                       <CardContent className="p-6 space-y-3">
                         <div className="flex items-center justify-between gap-4">
                           <div className="flex items-center gap-3 min-w-0">
@@ -349,11 +405,27 @@ export default function ProjectDetail() {
                               size="lg"
                             />
                             <div className="min-w-0">
-                              <h4 className="font-bold truncate" title={`${interest.developer.firstName} ${interest.developer.lastName}`}>{interest.developer.firstName} {interest.developer.lastName}</h4>
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-bold truncate" title={`${interest.developer.firstName} ${interest.developer.lastName}`}>{interest.developer.firstName} {interest.developer.lastName}</h4>
+                                <Badge variant={interestStatusLabels[interest.status]?.variant || "secondary"} className="text-xs">
+                                  {interestStatusLabels[interest.status]?.label || interest.status}
+                                </Badge>
+                              </div>
                               <span className="text-xs text-muted-foreground">Applied {formatDistanceToNow(new Date(interest.createdAt!), { addSuffix: true })}</span>
                             </div>
                           </div>
                           <div className="hidden sm:flex gap-2 shrink-0">
+                            {project.status === "open" && interest.status === "pending" && (
+                              <Button
+                                size="sm"
+                                aria-label={`Assign project to ${interest.developer.firstName}`}
+                                onClick={() => handleAssign(interest.id!)}
+                                disabled={assignPending}
+                              >
+                                <UserCheck className="mr-1 h-3.5 w-3.5" />
+                                Assign
+                              </Button>
+                            )}
                             <Link href={`/client/messages?projectId=${projectId}&developerId=${interest.developerId}`}>
                               <Button size="sm" variant="outline" aria-label={`Message ${interest.developer.firstName}`}>
                                 <MessageSquare className="mr-1 h-3.5 w-3.5" />
@@ -368,7 +440,19 @@ export default function ProjectDetail() {
                         <p className="text-sm text-muted-foreground bg-secondary/30 p-3 rounded-lg line-clamp-3" title={interest.message || ""}>
                           &quot;{interest.message}&quot;
                         </p>
-                        <div className="grid grid-cols-2 gap-2 pt-1 sm:hidden">
+                        <div className="grid grid-cols-3 gap-2 pt-1 sm:hidden">
+                          {project.status === "open" && interest.status === "pending" && (
+                            <Button
+                              size="sm"
+                              className="w-full"
+                              aria-label={`Assign project to ${interest.developer.firstName}`}
+                              onClick={() => handleAssign(interest.id!)}
+                              disabled={assignPending}
+                            >
+                              <UserCheck className="mr-1 h-3.5 w-3.5" />
+                              Assign
+                            </Button>
+                          )}
                           <Link href={`/client/messages?projectId=${projectId}&developerId=${interest.developerId}`}>
                             <Button size="sm" variant="outline" className="w-full" aria-label={`Message ${interest.developer.firstName}`}>
                               <MessageSquare className="mr-1 h-3.5 w-3.5" />
@@ -383,6 +467,110 @@ export default function ProjectDetail() {
                     </Card>
                   ))}
                 </div>
+              )}
+            </div>
+          )}
+
+          {/* Assign Confirmation Dialog */}
+          <AlertDialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Assign this developer?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will assign the project to the selected developer. The project status will change to &quot;In Progress&quot; and all other pending proposals will be rejected.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={confirmAssign} disabled={assignPending}>
+                  {assignPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Confirm Assignment
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          {/* Project Activity / Logs Section */}
+          {canViewLogs && (
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold font-display">Project Activity</h2>
+
+              {/* Add Log Form */}
+              <Card>
+                <CardContent className="p-4">
+                  <div className="space-y-3">
+                    <Textarea
+                      aria-label="Log content"
+                      placeholder="Add a project update..."
+                      className="min-h-[80px] resize-none"
+                      value={logContent}
+                      onChange={(e) => setLogContent(e.target.value)}
+                    />
+                    <div className="flex items-center justify-between gap-4">
+                      <Select value={logType} onValueChange={(val: typeof logTypes[number]) => setLogType(val)}>
+                        <SelectTrigger aria-label="Log type" className="w-[140px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {logTypes.map((type) => (
+                            <SelectItem key={type} value={type}>
+                              <div className="flex items-center gap-2">
+                                {logTypeLabels[type]?.icon}
+                                {logTypeLabels[type]?.label}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        onClick={handleCreateLog}
+                        disabled={logPending || !logContent.trim()}
+                        aria-label="Post update"
+                      >
+                        {logPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                        Post Update
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Logs Timeline */}
+              {logs && logs.length > 0 ? (
+                <div className="space-y-3">
+                  {logs.map((log) => (
+                    <Card key={log.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <ProfileAvatar
+                            name={`${log.author.firstName} ${log.author.lastName}`}
+                            imageUrl={log.author.profileImageUrl}
+                            size="sm"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-medium text-sm">{log.author.firstName} {log.author.lastName}</span>
+                              <Badge className={`text-xs ${logTypeLabels[log.logType]?.color || ""}`}>
+                                {logTypeLabels[log.logType]?.icon}
+                                <span className="ml-1">{logTypeLabels[log.logType]?.label}</span>
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">
+                                {formatDistanceToNow(new Date(log.createdAt!), { addSuffix: true })}
+                              </span>
+                            </div>
+                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{log.content}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <Card className="border-dashed">
+                  <CardContent className="p-8 text-center">
+                    <p className="text-muted-foreground">No activity yet. Post the first update!</p>
+                  </CardContent>
+                </Card>
               )}
             </div>
           )}

@@ -3,6 +3,7 @@ import {
     insertProfileSchema,
     insertProjectSchema,
     insertUserSchema,
+    logTypes,
     projectStatuses,
     type AdminAuditLog,
     type AdminStats,
@@ -10,6 +11,7 @@ import {
     type Profile,
     type Project,
     type ProjectInterest,
+    type ProjectLog,
     type User,
     type UserWithProfile
 } from './schema';
@@ -142,6 +144,51 @@ export const api = {
       path: '/api/projects/:projectId/interests',
       responses: {
         200: z.array(z.custom<ProjectInterest & { developer: { id: string, email: string, firstName: string | null, lastName: string | null, profileImageUrl: string | null } }>()),
+        401: errorSchemas.unauthorized,
+      },
+    },
+    updateStatus: {
+      method: 'PATCH' as const,
+      path: '/api/projects/:projectId/interests/:interestId',
+      input: z.object({ status: z.enum(["accepted", "rejected"]) }),
+      responses: {
+        200: z.custom<ProjectInterest>(),
+        401: errorSchemas.unauthorized,
+        403: z.object({ message: z.string() }),
+        404: errorSchemas.notFound,
+      },
+    },
+  },
+  projectLogs: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/projects/:projectId/logs',
+      responses: {
+        200: z.array(z.custom<ProjectLog & { author: User }>()),
+        401: errorSchemas.unauthorized,
+        403: z.object({ message: z.string() }),
+      },
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/projects/:projectId/logs',
+      input: z.object({
+        content: z.string().min(1),
+        logType: z.enum(logTypes).optional(),
+      }),
+      responses: {
+        201: z.custom<ProjectLog>(),
+        401: errorSchemas.unauthorized,
+        403: z.object({ message: z.string() }),
+      },
+    },
+  },
+  developer: {
+    assignedProjects: {
+      method: 'GET' as const,
+      path: '/api/developer/projects',
+      responses: {
+        200: z.array(z.custom<Project & { client: User }>()),
         401: errorSchemas.unauthorized,
       },
     },

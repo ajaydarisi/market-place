@@ -37,3 +37,32 @@ export function useExpressInterest() {
     },
   });
 }
+
+export function useUpdateInterestStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      projectId,
+      interestId,
+      status,
+    }: {
+      projectId: number;
+      interestId: number;
+      status: "accepted" | "rejected";
+    }) => {
+      const url = buildUrl(api.interests.updateStatus.path, { projectId, interestId });
+      const headers = await getAuthHeaders();
+      const res = await fetch(url, {
+        method: api.interests.updateStatus.method,
+        headers: { "Content-Type": "application/json", ...headers },
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) throw new Error("Failed to update interest status");
+      return api.interests.updateStatus.responses[200].parse(await res.json());
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: [api.interests.listByProject.path, variables.projectId] });
+      queryClient.invalidateQueries({ queryKey: [api.projects.get.path, variables.projectId] });
+    },
+  });
+}

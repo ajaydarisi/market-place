@@ -2,9 +2,9 @@ import {
   type AdminAuditLog,
   type AdminStats,
   type InsertInterest, type InsertMessage,
-  type InsertProfile, type InsertProject,
+  type InsertProfile, type InsertProject, type InsertProjectLog,
   type Message,
-  type Profile, type Project, type ProjectInterest,
+  type Profile, type Project, type ProjectInterest, type ProjectLog,
   type UpdateProfileRequest, type UpdateProjectRequest,
   type UpdateUserRequest,
   type User,
@@ -28,6 +28,16 @@ export interface IStorage {
   // Interests
   createInterest(interest: InsertInterest, developerId: string, token?: string): Promise<ProjectInterest>;
   listInterests(projectId: number, token?: string): Promise<(ProjectInterest & { developer: User })[]>;
+  updateInterestStatus(interestId: number, status: "accepted" | "rejected", token?: string): Promise<ProjectInterest>;
+  rejectOtherInterests(projectId: number, exceptInterestId: number, token?: string): Promise<void>;
+
+  // Project Assignment
+  assignDeveloper(projectId: number, developerId: string, token?: string): Promise<Project>;
+  listAssignedProjects(developerId: string, token?: string): Promise<(Project & { client: User })[]>;
+
+  // Project Logs
+  listProjectLogs(projectId: number, token?: string): Promise<(ProjectLog & { author: User })[]>;
+  createProjectLog(log: InsertProjectLog, authorId: string, token?: string): Promise<ProjectLog>;
 
   // Messages
   listMessages(projectId: number, userId: string, token?: string): Promise<(Message & { sender: User })[]>;
@@ -129,6 +139,7 @@ function mapProject(row: any): Project {
   return {
     id: row.id,
     clientId: row.client_id,
+    assignedDeveloperId: row.assigned_developer_id,
     title: row.title,
     category: row.category,
     description: row.description,
@@ -136,6 +147,19 @@ function mapProject(row: any): Project {
     budgetMax: row.budget_max,
     deadline: row.deadline,
     status: row.status,
+    createdAt: row.created_at ? new Date(row.created_at) : undefined,
+  };
+}
+
+// Helper to map DB project log to ProjectLog
+function mapProjectLog(row: any): ProjectLog {
+  if (!row) return row;
+  return {
+    id: row.id,
+    projectId: row.project_id,
+    authorId: row.author_id,
+    content: row.content,
+    logType: row.log_type,
     createdAt: row.created_at ? new Date(row.created_at) : undefined,
   };
 }
@@ -382,6 +406,97 @@ export class DatabaseStorage implements IStorage {
       ...mapInterest(row),
       developer: mapUser(row.developer)
     }));
+  }
+
+  async updateInterestStatus(interestId: number, status: "accepted" | "rejected", token?: string): Promise<ProjectInterest> {
+    const client = await getClient(token);
+    const { data, error } = await client
+      .from("project_interests")
+      .update({ status })
+      .eq("id", interestId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return mapInterest(data);
+  }
+
+  async rejectOtherInterests(projectId: number, exceptInterestId: number, token?: string): Promise<void> {
+    const client = await getClient(token);
+    const { error } = await client
+      .from("project_interests")
+      .update({ status: "rejected" })
+      .eq("project_id", projectId)
+      .eq("status", "pending")
+      .neq("id", exceptInterestId);
+
+    if (error) throw error;
+  }
+
+  // Project Assignment
+  async assignDeveloper(projectId: number, developerId: string, token?: string): Promise<Project> {
+    const client = await getClient(token);
+    const { data, error } = await client
+      .from("projects")
+      .update({
+        assigned_developer_id: developerId,
+        status: "in_progress"
+      })
+      .eq("id", projectId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return mapProject(data);
+  }
+
+  async listAssignedProjects(developerId: string, token?: string): Promise<(Project & { client: User })[]> {
+    const client = await getClient(token);
+    const { data, error } = await client
+      .from("projects")
+      .select("*, client:client_id(*)")
+      .eq("assigned_developer_id", developerId)
+      .eq("is_deleted", false)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return ((data as any[]) || []).map(row => ({
+      ...mapProject(row),
+      client: mapUser(row.client)
+    }));
+  }
+
+  // Project Logs
+  async listProjectLogs(projectId: number, token?: string): Promise<(ProjectLog & { author: User })[]> {
+    const client = await getClient(token);
+    const { data, error } = await client
+      .from("project_logs")
+      .select("*, author:author_id(*)")
+      .eq("project_id", projectId)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return ((data as any[]) || []).map(row => ({
+      ...mapProjectLog(row),
+      author: mapUser(row.author)
+    }));
+  }
+
+  async createProjectLog(log: InsertProjectLog, authorId: string, token?: string): Promise<ProjectLog> {
+    const client = await getClient(token);
+    const { data, error } = await client
+      .from("project_logs")
+      .insert({
+        project_id: log.projectId,
+        author_id: authorId,
+        content: log.content,
+        log_type: log.logType || "update",
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return mapProjectLog(data);
   }
 
   // Messages
