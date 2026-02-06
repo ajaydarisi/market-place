@@ -3,11 +3,15 @@ import {
     insertProfileSchema,
     insertProjectSchema,
     insertUserSchema,
+    projectStatuses,
+    type AdminAuditLog,
+    type AdminStats,
     type Message,
     type Profile,
     type Project,
     type ProjectInterest,
-    type User
+    type User,
+    type UserWithProfile
 } from './schema';
 
 // Export all types from schema for client usage
@@ -166,6 +170,171 @@ export const api = {
       responses: {
         201: z.custom<Message>(),
         401: errorSchemas.unauthorized,
+      },
+    },
+  },
+  // Admin routes
+  admin: {
+    stats: {
+      method: 'GET' as const,
+      path: '/api/admin/stats',
+      responses: {
+        200: z.custom<AdminStats>(),
+        401: errorSchemas.unauthorized,
+        403: z.object({ message: z.string() }),
+      },
+    },
+    users: {
+      list: {
+        method: 'GET' as const,
+        path: '/api/admin/users',
+        input: z.object({
+          role: z.string().optional(),
+          search: z.string().optional(),
+          page: z.number().optional(),
+          pageSize: z.number().optional(),
+          includeDeleted: z.boolean().optional(),
+        }).optional(),
+        responses: {
+          200: z.object({
+            items: z.array(z.custom<UserWithProfile>()),
+            total: z.number(),
+          }),
+          401: errorSchemas.unauthorized,
+          403: z.object({ message: z.string() }),
+        },
+      },
+      get: {
+        method: 'GET' as const,
+        path: '/api/admin/users/:userId',
+        responses: {
+          200: z.custom<UserWithProfile>(),
+          401: errorSchemas.unauthorized,
+          403: z.object({ message: z.string() }),
+          404: errorSchemas.notFound,
+        },
+      },
+      update: {
+        method: 'PATCH' as const,
+        path: '/api/admin/users/:userId',
+        input: insertUserSchema.partial(),
+        responses: {
+          200: z.custom<User>(),
+          400: errorSchemas.validation,
+          401: errorSchemas.unauthorized,
+          403: z.object({ message: z.string() }),
+          404: errorSchemas.notFound,
+        },
+      },
+      delete: {
+        method: 'DELETE' as const,
+        path: '/api/admin/users/:userId',
+        responses: {
+          200: z.object({ message: z.string() }),
+          400: errorSchemas.validation,
+          401: errorSchemas.unauthorized,
+          403: z.object({ message: z.string() }),
+          404: errorSchemas.notFound,
+        },
+      },
+    },
+    profiles: {
+      get: {
+        method: 'GET' as const,
+        path: '/api/admin/profiles/:userId',
+        responses: {
+          200: z.custom<Profile>(),
+          401: errorSchemas.unauthorized,
+          403: z.object({ message: z.string() }),
+          404: errorSchemas.notFound,
+        },
+      },
+      update: {
+        method: 'PATCH' as const,
+        path: '/api/admin/profiles/:userId',
+        input: insertProfileSchema.partial(),
+        responses: {
+          200: z.custom<Profile>(),
+          400: errorSchemas.validation,
+          401: errorSchemas.unauthorized,
+          403: z.object({ message: z.string() }),
+          404: errorSchemas.notFound,
+        },
+      },
+    },
+    projects: {
+      list: {
+        method: 'GET' as const,
+        path: '/api/admin/projects',
+        input: z.object({
+          status: z.string().optional(),
+          search: z.string().optional(),
+          page: z.number().optional(),
+          pageSize: z.number().optional(),
+          includeDeleted: z.boolean().optional(),
+        }).optional(),
+        responses: {
+          200: z.object({
+            items: z.array(z.custom<Project & { client: User }>()),
+            total: z.number(),
+          }),
+          401: errorSchemas.unauthorized,
+          403: z.object({ message: z.string() }),
+        },
+      },
+      get: {
+        method: 'GET' as const,
+        path: '/api/admin/projects/:id',
+        responses: {
+          200: z.custom<Project & { client: User }>(),
+          401: errorSchemas.unauthorized,
+          403: z.object({ message: z.string() }),
+          404: errorSchemas.notFound,
+        },
+      },
+      update: {
+        method: 'PATCH' as const,
+        path: '/api/admin/projects/:id',
+        input: insertProjectSchema.partial().extend({
+          status: z.enum(projectStatuses).optional(),
+        }),
+        responses: {
+          200: z.custom<Project>(),
+          400: errorSchemas.validation,
+          401: errorSchemas.unauthorized,
+          403: z.object({ message: z.string() }),
+          404: errorSchemas.notFound,
+        },
+      },
+      delete: {
+        method: 'DELETE' as const,
+        path: '/api/admin/projects/:id',
+        responses: {
+          200: z.object({ message: z.string() }),
+          401: errorSchemas.unauthorized,
+          403: z.object({ message: z.string() }),
+          404: errorSchemas.notFound,
+        },
+      },
+    },
+    auditLogs: {
+      list: {
+        method: 'GET' as const,
+        path: '/api/admin/audit-logs',
+        input: z.object({
+          adminId: z.string().optional(),
+          action: z.string().optional(),
+          page: z.number().optional(),
+          pageSize: z.number().optional(),
+        }).optional(),
+        responses: {
+          200: z.object({
+            items: z.array(z.custom<AdminAuditLog>()),
+            total: z.number(),
+          }),
+          401: errorSchemas.unauthorized,
+          403: z.object({ message: z.string() }),
+        },
       },
     },
   },

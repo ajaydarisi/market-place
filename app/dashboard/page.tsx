@@ -24,7 +24,9 @@ export default function Dashboard() {
       return;
     }
 
-    if (profile.role === "client") {
+    if (profile.role === "admin") {
+      router.push("/admin");
+    } else if (profile.role === "client") {
       router.push("/client/projects");
     } else {
       router.push("/developer/browse");

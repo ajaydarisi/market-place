@@ -21,6 +21,7 @@ import {
   Menu,
   Moon,
   Plus,
+  Shield,
   Sun,
   User
 } from "lucide-react";
@@ -38,12 +39,29 @@ export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
 
   const isClient = profile?.role === "client";
+  const isAdmin = profile?.role === "admin";
+  const isDeveloper = profile?.role === "developer";
 
   if (!user) return null;
 
   const NavLinks = () => (
     <>
-      {isClient ? (
+      {isAdmin ? (
+        <>
+          <Link href="/admin" aria-label="Admin dashboard" className={`text-sm font-medium transition-colors hover:text-primary ${pathname === "/admin" && !pathname.includes("/admin/") ? "text-primary font-semibold" : "text-muted-foreground"}`}>
+            Dashboard
+          </Link>
+          <Link href="/admin/users" aria-label="Manage users" className={`text-sm font-medium transition-colors hover:text-primary ${pathname.startsWith("/admin/users") ? "text-primary font-semibold" : "text-muted-foreground"}`}>
+            Users
+          </Link>
+          <Link href="/admin/projects" aria-label="Manage projects" className={`text-sm font-medium transition-colors hover:text-primary ${pathname.startsWith("/admin/projects") ? "text-primary font-semibold" : "text-muted-foreground"}`}>
+            Projects
+          </Link>
+          <Link href="/admin/audit-logs" aria-label="Audit logs" className={`text-sm font-medium transition-colors hover:text-primary ${pathname.startsWith("/admin/audit-logs") ? "text-primary font-semibold" : "text-muted-foreground"}`}>
+            Audit Logs
+          </Link>
+        </>
+      ) : isClient ? (
         <>
           <Link href="/client/projects" aria-label="My projects" className={`text-sm font-medium transition-colors hover:text-primary ${pathname === "/client/projects" ? "text-primary font-semibold" : "text-muted-foreground"}`}>
             My Projects
@@ -52,7 +70,7 @@ export function Navigation() {
             Messages
           </Link>
         </>
-      ) : (
+      ) : isDeveloper ? (
         <>
           <Link href="/developer/browse" aria-label="Browse jobs" className={`text-sm font-medium transition-colors hover:text-primary ${pathname === "/developer/browse" ? "text-primary font-semibold" : "text-muted-foreground"}`}>
             Browse Jobs
@@ -61,7 +79,7 @@ export function Navigation() {
             My Messages
           </Link>
         </>
-      )}
+      ) : null}
     </>
   );
 
@@ -76,7 +94,10 @@ export function Navigation() {
             <div className="flex flex-col">
               <span className="font-display text-xl font-bold tracking-tight leading-tight">Market<span className="text-primary">Place</span></span>
               {profile?.role && (
-                <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-medium">{profile.role}</span>
+                <span className={`text-[10px] uppercase tracking-widest font-medium ${isAdmin ? "text-primary" : "text-muted-foreground"}`}>
+                  {isAdmin && <Shield className="inline h-3 w-3 mr-0.5" />}
+                  {profile.role}
+                </span>
               )}
             </div>
           </Link>

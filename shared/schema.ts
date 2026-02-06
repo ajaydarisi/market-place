@@ -4,7 +4,7 @@ import { z } from "zod";
 export * from "./models/auth";
 
 // === ENUMS ===
-export const userRoles = ["client", "developer"] as const;
+export const userRoles = ["client", "developer", "admin"] as const;
 export const experienceLevels = ["junior", "mid", "senior", "lead"] as const;
 export const availabilityStatuses = ["available", "busy", "open_to_offers"] as const;
 export const companySizes = ["solo", "small", "medium", "enterprise"] as const;
@@ -118,3 +118,37 @@ export type InsertReview = z.infer<typeof insertReviewSchema>;
 export type UpdateUserRequest = Partial<InsertUser>;
 export type UpdateProfileRequest = Partial<InsertProfile>;
 export type UpdateProjectRequest = Partial<InsertProject> & { status?: typeof projectStatuses[number] };
+
+// Admin-specific types
+export const adminAuditLogSchema = z.object({
+  id: z.number().optional(),
+  adminId: z.string().uuid(),
+  action: z.string(),
+  targetType: z.enum(["user", "profile", "project"]),
+  targetId: z.string(),
+  details: z.any().optional(),
+  createdAt: z.date().optional(),
+});
+
+export type AdminAuditLog = z.infer<typeof adminAuditLogSchema>;
+
+// User with profile combined (for admin views)
+export const userWithProfileSchema = userSchema.extend({
+  profile: profileSchema.nullable().optional(),
+  isDeleted: z.boolean().optional(),
+});
+
+export type UserWithProfile = z.infer<typeof userWithProfileSchema>;
+
+// Admin stats
+export const adminStatsSchema = z.object({
+  totalUsers: z.number(),
+  totalDevelopers: z.number(),
+  totalClients: z.number(),
+  totalAdmins: z.number(),
+  totalProjects: z.number(),
+  openProjects: z.number(),
+  completedProjects: z.number(),
+});
+
+export type AdminStats = z.infer<typeof adminStatsSchema>;

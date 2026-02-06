@@ -6,13 +6,14 @@ const protectedRoutes = ["/dashboard", "/onboarding", "/profile", "/projects"];
 // Routes that require specific roles
 const clientRoutes = ["/client"];
 const developerRoutes = ["/developer"];
+const adminRoutes = ["/admin"];
 
 export async function middleware(request: NextRequest) {
   const { user, supabaseResponse, supabase } = await updateSession(request);
   const pathname = request.nextUrl.pathname;
 
   // Check if the route requires authentication
-  const isProtected = [...protectedRoutes, ...clientRoutes, ...developerRoutes].some(
+  const isProtected = [...protectedRoutes, ...clientRoutes, ...developerRoutes, ...adminRoutes].some(
     (route) => pathname.startsWith(route)
   );
 
@@ -30,8 +31,9 @@ export async function middleware(request: NextRequest) {
   // Check role-based routes
   const isClientRoute = clientRoutes.some((route) => pathname.startsWith(route));
   const isDeveloperRoute = developerRoutes.some((route) => pathname.startsWith(route));
+  const isAdminRoute = adminRoutes.some((route) => pathname.startsWith(route));
 
-  if (isClientRoute || isDeveloperRoute) {
+  if (isClientRoute || isDeveloperRoute || isAdminRoute) {
     // Fetch the user's profile to check role
     const { data: profile } = await supabase
       .from("profiles")
@@ -53,6 +55,12 @@ export async function middleware(request: NextRequest) {
     }
 
     if (isDeveloperRoute && profile.role !== "developer") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/not-authorized";
+      return NextResponse.redirect(url);
+    }
+
+    if (isAdminRoute && profile.role !== "admin") {
       const url = request.nextUrl.clone();
       url.pathname = "/not-authorized";
       return NextResponse.redirect(url);

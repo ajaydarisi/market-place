@@ -1,11 +1,14 @@
 import {
+  type AdminAuditLog,
+  type AdminStats,
   type InsertInterest, type InsertMessage,
   type InsertProfile, type InsertProject,
   type Message,
   type Profile, type Project, type ProjectInterest,
   type UpdateProfileRequest, type UpdateProjectRequest,
   type UpdateUserRequest,
-  type User
+  type User,
+  type UserWithProfile
 } from "@shared/schema";
 import { createClient as createServerClient, createAuthenticatedClient } from "@/lib/supabase/server";
 
@@ -34,6 +37,49 @@ export interface IStorage {
   // Users
   getUser(id: string, token?: string): Promise<User | undefined>;
   updateUser(id: string, updates: UpdateUserRequest, token?: string): Promise<User>;
+
+  // Admin: Users
+  listAllUsers(filters?: {
+    role?: string;
+    search?: string;
+    page?: number;
+    pageSize?: number;
+    includeDeleted?: boolean;
+  }, token?: string): Promise<{ items: UserWithProfile[]; total: number }>;
+  adminUpdateUser(userId: string, updates: UpdateUserRequest, token?: string): Promise<User>;
+  softDeleteUser(userId: string, adminId: string, token?: string): Promise<void>;
+
+  // Admin: Profiles
+  adminUpdateProfile(userId: string, updates: UpdateProfileRequest, token?: string): Promise<Profile>;
+
+  // Admin: Projects
+  listAllProjectsAdmin(filters?: {
+    status?: string;
+    search?: string;
+    page?: number;
+    pageSize?: number;
+    includeDeleted?: boolean;
+  }, token?: string): Promise<{ items: (Project & { client: User })[]; total: number }>;
+  adminUpdateProject(projectId: number, updates: UpdateProjectRequest, token?: string): Promise<Project>;
+  adminDeleteProject(projectId: number, token?: string): Promise<void>;
+
+  // Admin: Statistics
+  getAdminStats(token?: string): Promise<AdminStats>;
+
+  // Admin: Audit Log
+  createAuditLog(log: {
+    adminId: string;
+    action: string;
+    targetType: "user" | "profile" | "project";
+    targetId: string;
+    details?: any;
+  }, token?: string): Promise<void>;
+  listAuditLogs(filters?: {
+    adminId?: string;
+    action?: string;
+    page?: number;
+    pageSize?: number;
+  }, token?: string): Promise<{ items: AdminAuditLog[]; total: number }>;
 }
 
 // Helper to get the correct client (authenticated or anon)
@@ -117,6 +163,20 @@ function mapMessage(row: any): Message {
     receiverId: row.receiver_id,
     content: row.content,
     read: row.read,
+    createdAt: row.created_at ? new Date(row.created_at) : undefined,
+  };
+}
+
+// Helper to map DB audit log to AdminAuditLog
+function mapAuditLog(row: any): AdminAuditLog {
+  if (!row) return row;
+  return {
+    id: row.id,
+    adminId: row.admin_id,
+    action: row.action,
+    targetType: row.target_type,
+    targetId: row.target_id,
+    details: row.details,
     createdAt: row.created_at ? new Date(row.created_at) : undefined,
   };
 }
@@ -409,6 +469,369 @@ export class DatabaseStorage implements IStorage {
 
     if (error) throw error;
     return mapUser(data);
+  }
+
+  // ==================== ADMIN METHODS ====================
+
+  // Admin: List all users with profiles
+  async listAllUsers(
+    filters?: {
+      role?: string;
+      search?: string;
+      page?: number;
+      pageSize?: number;
+      includeDeleted?: boolean;
+    },
+    token?: string
+  ): Promise<{ items: UserWithProfile[]; total: number }> {
+    const client = await getClient(token);
+    const page = filters?.page || 1;
+    const pageSize = filters?.pageSize || 20;
+    const offset = (page - 1) * pageSize;
+
+    // First, get users with count
+    let usersQuery = client
+      .from("users")
+      .select("*", { count: "exact" });
+
+    if (!filters?.includeDeleted) {
+      usersQuery = usersQuery.or("is_deleted.is.null,is_deleted.eq.false");
+    }
+
+    if (filters?.search) {
+      usersQuery = usersQuery.or(
+        `first_name.ilike.%${filters.search}%,last_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%`
+      );
+    }
+
+    usersQuery = usersQuery
+      .order("created_at", { ascending: false })
+      .range(offset, offset + pageSize - 1);
+
+    const { data: usersData, error: usersError, count } = await usersQuery;
+    if (usersError) throw usersError;
+
+    // Get profiles for these users
+    const userIds = (usersData || []).map((u: any) => u.id);
+    let profilesData: any[] = [];
+
+    if (userIds.length > 0) {
+      let profilesQuery = client
+        .from("profiles")
+        .select("*")
+        .in("user_id", userIds);
+
+      if (filters?.role) {
+        profilesQuery = profilesQuery.eq("role", filters.role);
+      }
+
+      const { data, error } = await profilesQuery;
+      if (error) throw error;
+      profilesData = data || [];
+    }
+
+    // Create a map of profiles by user_id
+    const profilesByUserId = new Map<string, any>();
+    profilesData.forEach((p: any) => {
+      profilesByUserId.set(p.user_id, p);
+    });
+
+    // Combine users with their profiles
+    let items = (usersData || []).map((row: any) => {
+      const profile = profilesByUserId.get(row.id);
+      return {
+        ...mapUser(row),
+        profile: profile ? mapProfile(profile) : null,
+        isDeleted: row.is_deleted || false,
+      };
+    });
+
+    // Filter by role if specified (post-filter since we need the join)
+    if (filters?.role) {
+      items = items.filter((u: UserWithProfile) => u.profile?.role === filters.role);
+    }
+
+    return { items, total: count || 0 };
+  }
+
+  // Admin: Update any user
+  async adminUpdateUser(userId: string, updates: UpdateUserRequest, token?: string): Promise<User> {
+    const client = await getClient(token);
+    const payload: any = {};
+    if (updates.firstName !== undefined) payload.first_name = updates.firstName;
+    if (updates.lastName !== undefined) payload.last_name = updates.lastName;
+    if (updates.profileImageUrl !== undefined) payload.profile_image_url = updates.profileImageUrl;
+
+    const { data, error } = await client
+      .from("users")
+      .update({ ...payload, updated_at: new Date() })
+      .eq("id", userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return mapUser(data);
+  }
+
+  // Admin: Soft delete user and their projects
+  async softDeleteUser(userId: string, adminId: string, token?: string): Promise<void> {
+    const client = await getClient(token);
+
+    // Soft delete the user
+    const { error: userError } = await client
+      .from("users")
+      .update({
+        is_deleted: true,
+        deleted_at: new Date().toISOString(),
+        deleted_by: adminId,
+      })
+      .eq("id", userId);
+
+    if (userError) throw userError;
+
+    // Also soft-delete all their projects
+    await client
+      .from("projects")
+      .update({ is_deleted: true })
+      .eq("client_id", userId);
+
+    // Log the action
+    await this.createAuditLog(
+      {
+        adminId,
+        action: "user_delete",
+        targetType: "user",
+        targetId: userId,
+        details: { deletedAt: new Date().toISOString() },
+      },
+      token
+    );
+  }
+
+  // Admin: Update any profile
+  async adminUpdateProfile(userId: string, updates: UpdateProfileRequest, token?: string): Promise<Profile> {
+    const client = await getClient(token);
+    const payload: any = {};
+    if (updates.role) payload.role = updates.role;
+    if (updates.bio !== undefined) payload.bio = updates.bio;
+    if (updates.skills !== undefined) payload.skills = updates.skills;
+    if (updates.portfolioLinks !== undefined) payload.portfolio_links = updates.portfolioLinks;
+    if (updates.experienceLevel !== undefined) payload.experience_level = updates.experienceLevel;
+    if (updates.availabilityStatus !== undefined) payload.availability_status = updates.availabilityStatus;
+    if (updates.companyName !== undefined) payload.company_name = updates.companyName;
+    if (updates.industry !== undefined) payload.industry = updates.industry;
+    if (updates.companySize !== undefined) payload.company_size = updates.companySize;
+
+    const { data, error } = await client
+      .from("profiles")
+      .update({ ...payload, updated_at: new Date() })
+      .eq("user_id", userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return mapProfile(data);
+  }
+
+  // Admin: List all projects
+  async listAllProjectsAdmin(
+    filters?: {
+      status?: string;
+      search?: string;
+      page?: number;
+      pageSize?: number;
+      includeDeleted?: boolean;
+    },
+    token?: string
+  ): Promise<{ items: (Project & { client: User })[]; total: number }> {
+    const client = await getClient(token);
+    const page = filters?.page || 1;
+    const pageSize = filters?.pageSize || 20;
+    const offset = (page - 1) * pageSize;
+
+    let query = client
+      .from("projects")
+      .select("*, client:client_id(*)", { count: "exact" });
+
+    if (!filters?.includeDeleted) {
+      query = query.eq("is_deleted", false);
+    }
+
+    if (filters?.status) {
+      query = query.eq("status", filters.status);
+    }
+
+    if (filters?.search) {
+      query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+    }
+
+    query = query
+      .order("created_at", { ascending: false })
+      .range(offset, offset + pageSize - 1);
+
+    const { data, error, count } = await query;
+    if (error) throw error;
+
+    const items = ((data as any[]) || []).map((row) => ({
+      ...mapProject(row),
+      client: mapUser(row.client),
+    }));
+
+    return { items, total: count || 0 };
+  }
+
+  // Admin: Update any project
+  async adminUpdateProject(projectId: number, updates: UpdateProjectRequest, token?: string): Promise<Project> {
+    const client = await getClient(token);
+    const payload: any = {};
+    if (updates.title) payload.title = updates.title;
+    if (updates.category) payload.category = updates.category;
+    if (updates.description) payload.description = updates.description;
+    if (updates.budgetMin !== undefined) payload.budget_min = updates.budgetMin;
+    if (updates.budgetMax !== undefined) payload.budget_max = updates.budgetMax;
+    if (updates.deadline) payload.deadline = updates.deadline;
+    if (updates.status) payload.status = updates.status;
+
+    const { data, error } = await client
+      .from("projects")
+      .update(payload)
+      .eq("id", projectId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return mapProject(data);
+  }
+
+  // Admin: Delete any project (soft delete)
+  async adminDeleteProject(projectId: number, token?: string): Promise<void> {
+    const client = await getClient(token);
+    const { error } = await client
+      .from("projects")
+      .update({ is_deleted: true })
+      .eq("id", projectId);
+
+    if (error) throw error;
+  }
+
+  // Admin: Get statistics
+  async getAdminStats(token?: string): Promise<AdminStats> {
+    const client = await getClient(token);
+
+    const [
+      usersResult,
+      developersResult,
+      clientsResult,
+      adminsResult,
+      projectsResult,
+      openProjectsResult,
+      completedProjectsResult,
+    ] = await Promise.all([
+      client
+        .from("users")
+        .select("*", { count: "exact", head: true })
+        .or("is_deleted.is.null,is_deleted.eq.false"),
+      client
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .eq("role", "developer"),
+      client
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .eq("role", "client"),
+      client
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .eq("role", "admin"),
+      client
+        .from("projects")
+        .select("*", { count: "exact", head: true })
+        .eq("is_deleted", false),
+      client
+        .from("projects")
+        .select("*", { count: "exact", head: true })
+        .eq("is_deleted", false)
+        .eq("status", "open"),
+      client
+        .from("projects")
+        .select("*", { count: "exact", head: true })
+        .eq("is_deleted", false)
+        .eq("status", "completed"),
+    ]);
+
+    return {
+      totalUsers: usersResult.count || 0,
+      totalDevelopers: developersResult.count || 0,
+      totalClients: clientsResult.count || 0,
+      totalAdmins: adminsResult.count || 0,
+      totalProjects: projectsResult.count || 0,
+      openProjects: openProjectsResult.count || 0,
+      completedProjects: completedProjectsResult.count || 0,
+    };
+  }
+
+  // Admin: Create audit log entry
+  async createAuditLog(
+    log: {
+      adminId: string;
+      action: string;
+      targetType: "user" | "profile" | "project";
+      targetId: string;
+      details?: any;
+    },
+    token?: string
+  ): Promise<void> {
+    const client = await getClient(token);
+    const { error } = await client.from("admin_audit_log").insert({
+      admin_id: log.adminId,
+      action: log.action,
+      target_type: log.targetType,
+      target_id: log.targetId,
+      details: log.details,
+    });
+
+    if (error) {
+      // Log error but don't throw - audit logging shouldn't break operations
+      console.error("Failed to create audit log:", error);
+    }
+  }
+
+  // Admin: List audit logs
+  async listAuditLogs(
+    filters?: {
+      adminId?: string;
+      action?: string;
+      page?: number;
+      pageSize?: number;
+    },
+    token?: string
+  ): Promise<{ items: AdminAuditLog[]; total: number }> {
+    const client = await getClient(token);
+    const page = filters?.page || 1;
+    const pageSize = filters?.pageSize || 50;
+    const offset = (page - 1) * pageSize;
+
+    let query = client
+      .from("admin_audit_log")
+      .select("*", { count: "exact" });
+
+    if (filters?.adminId) {
+      query = query.eq("admin_id", filters.adminId);
+    }
+
+    if (filters?.action) {
+      query = query.eq("action", filters.action);
+    }
+
+    query = query
+      .order("created_at", { ascending: false })
+      .range(offset, offset + pageSize - 1);
+
+    const { data, error, count } = await query;
+    if (error) throw error;
+
+    const items = ((data as any[]) || []).map(mapAuditLog);
+    return { items, total: count || 0 };
   }
 }
 
