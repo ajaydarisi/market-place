@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { queryClient } from "@/lib/query-client";
 import { User } from "@supabase/supabase-js";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export function useAuth() {
@@ -11,14 +11,18 @@ export function useAuth() {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
+  const refreshSession = useCallback(async () => {
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    setUser(session?.user ?? null);
+    setIsLoading(false);
+  }, []);
+
   useEffect(() => {
     const supabase = createClient();
 
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-    });
+    refreshSession();
 
     // Listen for changes
     const {
@@ -28,8 +32,19 @@ export function useAuth() {
       setIsLoading(false);
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    // Refresh session when user returns to the tab
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        refreshSession();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      subscription.unsubscribe();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [refreshSession]);
 
   const logout = async () => {
     const supabase = createClient();

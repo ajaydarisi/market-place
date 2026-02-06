@@ -133,8 +133,8 @@ export function Navigation() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" aria-label="User menu" className="relative h-auto rounded-full px-2 py-1 gap-2">
-                <span className="hidden sm:inline text-sm font-medium truncate max-w-[150px]">{userData?.firstName} {userData?.lastName}</span>
+              <Button variant="ghost" aria-label="User menu" className="relative h-auto rounded-full px-2 py-1 gap-2 min-w-0">
+                <span className="hidden sm:inline text-sm font-medium truncate max-w-[300px]" title={`${userData?.firstName ?? ""} ${userData?.lastName ?? ""}`.trim()}>{userData?.firstName} {userData?.lastName}</span>
                 <ProfileAvatar
                   name={`${userData?.firstName ?? ""} ${userData?.lastName ?? ""}`}
                   imageUrl={userData?.profileImageUrl}

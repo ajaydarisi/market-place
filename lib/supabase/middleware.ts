@@ -31,8 +31,16 @@ export async function updateSession(request: NextRequest) {
 
   let user = null;
   try {
-    const { data } = await supabase.auth.getUser();
-    user = data.user;
+    // First try to get/refresh the session - this handles token refresh
+    const { data: sessionData } = await supabase.auth.getSession();
+
+    if (sessionData.session) {
+      // Session exists, now validate with getUser() for security
+      const { data: userData, error } = await supabase.auth.getUser();
+      if (!error && userData.user) {
+        user = userData.user;
+      }
+    }
   } catch {
     // Fetch to Supabase auth can fail on cold starts or network issues;
     // treat as unauthenticated so the middleware can still proceed.
