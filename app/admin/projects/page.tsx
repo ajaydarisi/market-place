@@ -38,9 +38,42 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Search, Edit, Trash2, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 
 export default function AdminProjects() {
+  return (
+    <Suspense fallback={<AdminProjectsFallback />}>
+      <AdminProjectsContent />
+    </Suspense>
+  );
+}
+
+function AdminProjectsFallback() {
+  return (
+    <div className="min-h-screen bg-background">
+      <Navigation />
+      <main className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-display font-bold">Projects</h1>
+          <p className="text-muted-foreground mt-1">Loading projects...</p>
+        </div>
+        <Card className="mb-6 p-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Skeleton className="h-10 flex-1" />
+            <Skeleton className="h-10 w-[180px]" />
+          </div>
+        </Card>
+        <Card className="p-6 space-y-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Skeleton key={i} className="h-16 w-full" />
+          ))}
+        </Card>
+      </main>
+    </div>
+  );
+}
+
+function AdminProjectsContent() {
   const searchParams = useSearchParams();
   const { toast } = useToast();
 
