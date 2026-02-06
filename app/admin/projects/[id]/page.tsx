@@ -212,7 +212,7 @@ export default function AdminProjectDetail() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="budgetMin">Min Budget ($)</Label>
+                  <Label htmlFor="budgetMin">Min Budget (₹)</Label>
                   <Input
                     id="budgetMin"
                     type="number"
@@ -222,7 +222,7 @@ export default function AdminProjectDetail() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="budgetMax">Max Budget ($)</Label>
+                  <Label htmlFor="budgetMax">Max Budget (₹)</Label>
                   <Input
                     id="budgetMax"
                     type="number"

@@ -18,8 +18,8 @@ import { Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 const formSchema = insertProjectSchema.extend({
-  budgetMin: z.coerce.number().min(1, "Budget must be at least $1"),
-  budgetMax: z.coerce.number().min(1, "Budget must be at least $1"),
+  budgetMin: z.coerce.number().min(1, "Budget must be at least ₹1"),
+  budgetMax: z.coerce.number().min(1, "Budget must be at least ₹1"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -113,7 +113,7 @@ export default function PostProject() {
                       name="budgetMin"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Min Budget ($)</FormLabel>
+                          <FormLabel>Min Budget (₹)</FormLabel>
                           <FormControl>
                             <Input aria-label="Minimum budget" type="number" placeholder="1000" className="h-12" {...field} />
                           </FormControl>
@@ -126,7 +126,7 @@ export default function PostProject() {
                       name="budgetMax"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Max Budget ($)</FormLabel>
+                          <FormLabel>Max Budget (₹)</FormLabel>
                           <FormControl>
                             <Input aria-label="Maximum budget" type="number" placeholder="5000" className="h-12" {...field} />
                           </FormControl>

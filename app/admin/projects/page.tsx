@@ -130,9 +130,9 @@ function AdminProjectsContent() {
 
   const formatBudget = (min?: number, max?: number) => {
     if (!min && !max) return "Not specified";
-    if (min && max) return `$${min.toLocaleString()} - $${max.toLocaleString()}`;
-    if (min) return `From $${min.toLocaleString()}`;
-    if (max) return `Up to $${max.toLocaleString()}`;
+    if (min && max) return `₹${min.toLocaleString('en-IN')} - ₹${max.toLocaleString('en-IN')}`;
+    if (min) return `From ₹${min.toLocaleString('en-IN')}`;
+    if (max) return `Up to ₹${max.toLocaleString('en-IN')}`;
     return "Not specified";
   };
 

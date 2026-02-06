@@ -27,7 +27,6 @@ import {
   CheckCircle2,
   Github,
   Linkedin,
-  DollarSign,
   Send,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -383,8 +382,7 @@ export default function Landing() {
                   </p>
                   <div className="flex items-center gap-4 pt-2">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <DollarSign className="h-4 w-4" />
-                      <span>$5,000 - $10,000</span>
+                      <span>₹50,000 - ₹1,00,000</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Users className="h-4 w-4" />
@@ -422,10 +420,10 @@ export default function Landing() {
                 <div className="space-y-4">
                   <div className="flex items-center gap-4">
                     <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xl">
-                      JD
+                      AD
                     </div>
                     <div>
-                      <h3 className="font-bold text-xl">Jane Developer</h3>
+                      <h3 className="font-bold text-xl">Ajay Darisi</h3>
                       <p className="text-muted-foreground text-sm">Senior Full-Stack Developer</p>
                     </div>
                   </div>
@@ -436,23 +434,23 @@ export default function Landing() {
                     <Badge variant="secondary">PostgreSQL</Badge>
                   </div>
                   <p className="text-muted-foreground text-sm">
-                    5+ years building scalable web applications. Passionate about clean code and great user experiences.
+                    3+ years building scalable web applications. Passionate about clean code and great user experiences.
                   </p>
                   <div className="flex items-center gap-4 pt-2 border-t border-border">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Github className="h-4 w-4" />
-                      <span>github.com/jane</span>
+                      <span>github.com/ajaydarisi</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Linkedin className="h-4 w-4" />
-                      <span>linkedin.com/in/jane</span>
+                      <span>linkedin.com/in/ajaydarisi</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <Badge className="bg-status-online/20 text-status-online border-status-online/30">
                       Available
                     </Badge>
-                    <span className="text-sm text-muted-foreground">15 projects completed</span>
+                    <span className="text-sm text-muted-foreground">4 projects completed</span>
                   </div>
                 </div>
               </Card>
@@ -512,7 +510,7 @@ export default function Landing() {
             {PROJECT_CATEGORIES.map((category) => (
               <Card
                 key={category.id}
-                className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer border-border hover:border-primary/50"
+                className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border-border hover:border-primary/50"
               >
                 <CardContent className="p-6 text-center">
                   <div className="h-14 w-14 mx-auto rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">

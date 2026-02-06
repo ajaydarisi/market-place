@@ -31,8 +31,8 @@ export function ProjectCard({ project, isDeveloper }: ProjectCardProps) {
           {project.budgetMin && (
             <div className="flex flex-col items-end">
               <span className="text-lg font-bold text-foreground">
-                ${project.budgetMin.toLocaleString()}
-                {project.budgetMax ? ` - $${project.budgetMax.toLocaleString()}` : '+'}
+                ₹{project.budgetMin.toLocaleString('en-IN')}
+                {project.budgetMax ? ` - ₹${project.budgetMax.toLocaleString('en-IN')}` : '+'}
               </span>
               <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Budget</span>
             </div>

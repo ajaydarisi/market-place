@@ -47,8 +47,8 @@ export default function ProjectDetail() {
   const hasExpressedInterest = interests?.some(i => i.developerId === user?.id);
 
   const editFormSchema = insertProjectSchema.extend({
-    budgetMin: z.coerce.number().min(1, "Budget must be at least $1"),
-    budgetMax: z.coerce.number().min(1, "Budget must be at least $1"),
+    budgetMin: z.coerce.number().min(1, "Budget must be at least ₹1"),
+    budgetMax: z.coerce.number().min(1, "Budget must be at least ₹1"),
     status: z.enum(projectStatuses),
   });
 
@@ -221,7 +221,7 @@ export default function ProjectDetail() {
                           name="budgetMin"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Min Budget ($)</FormLabel>
+                              <FormLabel>Min Budget (₹)</FormLabel>
                               <FormControl>
                                 <Input aria-label="Minimum budget" type="number" placeholder="1000" {...field} />
                               </FormControl>
@@ -234,7 +234,7 @@ export default function ProjectDetail() {
                           name="budgetMax"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Max Budget ($)</FormLabel>
+                              <FormLabel>Max Budget (₹)</FormLabel>
                               <FormControl>
                                 <Input aria-label="Maximum budget" type="number" placeholder="5000" {...field} />
                               </FormControl>
@@ -308,7 +308,7 @@ export default function ProjectDetail() {
               <span>Posted {formatDistanceToNow(new Date(project.createdAt!), { addSuffix: true })}</span>
             </div>
             <div className="flex items-center gap-2 text-foreground font-medium">
-              <span>${project.budgetMin?.toLocaleString()} - ${project.budgetMax?.toLocaleString()}</span>
+              <span>₹{project.budgetMin?.toLocaleString('en-IN')} - ₹{project.budgetMax?.toLocaleString('en-IN')}</span>
             </div>
           </div>
         </div>
