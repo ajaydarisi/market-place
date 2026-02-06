@@ -11,9 +11,10 @@ import { createClient } from "@/lib/supabase/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { Captcha, type CaptchaRef } from "@/components/captcha";
 
 const signInSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -38,6 +39,8 @@ export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [showForgot, setShowForgot] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const captchaRef = useRef<CaptchaRef>(null);
 
   const signInForm = useForm<SignInValues>({
     resolver: zodResolver(signInSchema),
@@ -77,6 +80,13 @@ export default function AuthPage() {
   };
 
   const handleSignUp = async (data: SignUpValues) => {
+    const hasCaptchaEnabled = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+
+    if (hasCaptchaEnabled && !captchaToken) {
+      toast({ title: "Please complete the CAPTCHA", variant: "destructive" });
+      return;
+    }
+
     setIsLoading(true);
     const supabase = createClient();
     const { error } = await supabase.auth.signUp({
@@ -84,6 +94,7 @@ export default function AuthPage() {
       password: data.password,
       options: {
         emailRedirectTo: `${window.location.origin}/api/auth/callback`,
+        captchaToken: captchaToken ?? undefined,
         data: {
           first_name: data.firstName,
           last_name: data.lastName,
@@ -93,6 +104,8 @@ export default function AuthPage() {
 
     if (error) {
       toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
+      captchaRef.current?.reset();
+      setCaptchaToken(null);
     } else {
       toast({ title: "Account created!", description: "You can now sign in." });
       router.push("/dashboard");
@@ -280,6 +293,12 @@ export default function AuthPage() {
                         <FormMessage />
                       </FormItem>
                     )}
+                  />
+                  <Captcha
+                    ref={captchaRef}
+                    onSuccess={(token) => setCaptchaToken(token)}
+                    onExpire={() => setCaptchaToken(null)}
+                    onError={() => setCaptchaToken(null)}
                   />
                   <Button type="submit" aria-label="Create account" className="w-full h-12 text-lg font-semibold" disabled={isLoading}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
