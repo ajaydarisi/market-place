@@ -184,21 +184,21 @@ export default function ProjectDetail() {
       <Navigation />
 
       {/* Header */}
-      <div className="bg-secondary/30 border-b border-slate-500 py-12">
+      <div className="bg-secondary/30 border-b dark:border-slate-500 border-slate-300 py-12">
         <div className="container mx-auto px-4">
           <div className="flex items-center gap-2 mb-4">
             <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">{project.category}</Badge>
             <Badge variant={statusVariant(project.status)}>{statusLabels[project.status] || project.status}</Badge>
           </div>
           <div className="flex items-center gap-3 mb-4">
-            <h1 className="text-3xl md:text-4xl font-display font-bold truncate" title={project.title}>{project.title}</h1>
+            <h1 className="text-3xl md:text-4xl font-display font-bold line-clamp-3 md:truncate md:line-clamp-none" title={project.title}>{project.title}</h1>
             {isOwner && (
               <>
               <Dialog open={editOpen} onOpenChange={setEditOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" aria-label="Edit project">
-                    <Pencil className="mr-2 h-4 w-4" />
-                    Edit
+                  <Button size="sm" aria-label="Edit project">
+                    <Pencil className="h-4 w-4" />
+                    <span className="hidden sm:inline">Edit</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[600px]">
@@ -331,8 +331,8 @@ export default function ProjectDetail() {
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive" size="sm" aria-label="Delete project">
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete
+                    <Trash2 className="h-4 w-4" />
+                    <span className="hidden sm:inline">Delete</span>
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -591,13 +591,8 @@ export default function ProjectDetail() {
                 />
                 <div className="min-w-0">
                   <div className="font-bold truncate" title={`${project.client.firstName} ${project.client.lastName}`}>{project.client.firstName} {project.client.lastName}</div>
-                  <div className="text-sm text-muted-foreground">Member since 2024</div>
+                  <div className="text-sm text-muted-foreground">Member since {project.client.createdAt ? new Date(project.client.createdAt).getFullYear() : new Date().getFullYear()}</div>
                 </div>
-              </div>
-              <Separator className="my-4" />
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CheckCircle2 className="h-4 w-4 text-status-online" />
-                <span>Payment Verified</span>
               </div>
             </CardContent>
           </Card>

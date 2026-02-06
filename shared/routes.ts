@@ -85,14 +85,14 @@ export const api = {
         search: z.string().optional(),
       }).optional(),
       responses: {
-        200: z.array(z.custom<Project & { client: { id: string, email: string, firstName: string | null, lastName: string | null, profileImageUrl: string | null } }>()),
+        200: z.array(z.custom<Project & { client: { id: string, email: string, firstName: string | null, lastName: string | null, profileImageUrl: string | null, createdAt?: Date } }>()),
       },
     },
     get: {
       method: 'GET' as const,
       path: '/api/projects/:id',
       responses: {
-        200: z.custom<Project & { client: { id: string, email: string, firstName: string | null, lastName: string | null, profileImageUrl: string | null } }>(),
+        200: z.custom<Project & { client: { id: string, email: string, firstName: string | null, lastName: string | null, profileImageUrl: string | null, createdAt?: Date } }>(),
         404: errorSchemas.notFound,
       },
     },
