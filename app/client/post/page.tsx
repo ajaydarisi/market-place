@@ -73,7 +73,7 @@ export default function PostProject() {
                       <FormItem>
                         <FormLabel>Project Title</FormLabel>
                         <FormControl>
-                          <Input aria-label="Project title" placeholder="e.g. E-commerce Platform Development" className="h-12 text-lg" {...field} />
+                          <Input aria-label="Project title" placeholder="e.g. E-commerce Platform Development" className="h-12 text-lg" data-testid="create-project-title-input" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -89,7 +89,7 @@ export default function PostProject() {
                           <FormLabel>Category</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
-                              <SelectTrigger aria-label="Project category" className="h-12">
+                              <SelectTrigger aria-label="Project category" className="h-12" data-testid="create-project-category-select">
                                 <SelectValue placeholder="Select category" />
                               </SelectTrigger>
                             </FormControl>
@@ -115,7 +115,7 @@ export default function PostProject() {
                         <FormItem>
                           <FormLabel>Min Budget (₹)</FormLabel>
                           <FormControl>
-                            <Input aria-label="Minimum budget" type="number" placeholder="1000" className="h-12" {...field} />
+                            <Input aria-label="Minimum budget" type="number" placeholder="1000" className="h-12" data-testid="create-project-budget-min-input" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -128,7 +128,7 @@ export default function PostProject() {
                         <FormItem>
                           <FormLabel>Max Budget (₹)</FormLabel>
                           <FormControl>
-                            <Input aria-label="Maximum budget" type="number" placeholder="5000" className="h-12" {...field} />
+                            <Input aria-label="Maximum budget" type="number" placeholder="5000" className="h-12" data-testid="create-project-budget-max-input" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -147,6 +147,7 @@ export default function PostProject() {
                             aria-label="Project description"
                             placeholder="Describe your project requirements in detail..."
                             className="min-h-[200px] resize-none text-base leading-relaxed"
+                            data-testid="create-project-description-textarea"
                             {...field}
                           />
                         </FormControl>
@@ -157,9 +158,9 @@ export default function PostProject() {
 
                   <div className="pt-4 flex justify-end gap-4">
                     <Link href="/client/projects" aria-label="Cancel and go back">
-                      <Button type="button" aria-label="Cancel" variant="outline" size="lg" className="rounded-xl">Cancel</Button>
+                      <Button type="button" aria-label="Cancel" variant="outline" size="lg" className="rounded-xl" data-testid="create-project-cancel-button">Cancel</Button>
                     </Link>
-                    <Button type="submit" aria-label="Post project" size="lg" className="rounded-xl px-8" disabled={isPending}>
+                    <Button type="submit" aria-label="Post project" size="lg" className="rounded-xl px-8" disabled={isPending} data-testid="create-project-submit-button">
                       {isPending ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
                       Post Project
                     </Button>

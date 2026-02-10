@@ -16,6 +16,7 @@ const Avatar = React.forwardRef<
       relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full`,
       className
     )}
+    data-testid="avatar"
     {...props}
   />
 ))
@@ -28,6 +29,7 @@ const AvatarImage = React.forwardRef<
   <AvatarPrimitive.Image
     ref={ref}
     className={cn("aspect-square h-full w-full", className)}
+    data-testid="avatar-image"
     {...props}
   />
 ))
@@ -43,6 +45,7 @@ const AvatarFallback = React.forwardRef<
       "flex h-full w-full items-center justify-center rounded-full bg-muted",
       className
     )}
+    data-testid="avatar-fallback"
     {...props}
   />
 ))

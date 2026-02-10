@@ -87,10 +87,10 @@ export function Navigation() {
   );
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header data-testid="navigation" className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-16 items-center justify-between px-10">
         <div className="flex items-center gap-8">
-          <Link href="/" aria-label="Go to homepage" className="flex items-center space-x-2">
+          <Link href="/" aria-label="Go to homepage" className="flex items-center space-x-2" data-testid="nav-logo-link">
             <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
               <Briefcase className="h-5 w-5 text-primary-foreground" />
             </div>
@@ -114,7 +114,7 @@ export function Navigation() {
         <div className="flex items-center gap-4">
           {isClient && (
             <Link href="/client/post" aria-label="Post a new project">
-              <Button size="sm" aria-label="Post project" className="hidden md:flex bg-gradient-to-r from-primary to-primary/80 hover:to-primary/70 shadow-md hover:shadow-lg transition-all">
+              <Button size="sm" aria-label="Post project" className="hidden md:flex bg-gradient-to-r from-primary to-primary/80 hover:to-primary/70 shadow-md hover:shadow-lg transition-all" data-testid="nav-post-project-button">
                 <Plus className="mr-2 h-4 w-4" />
                 Post Project
               </Button>
@@ -125,7 +125,7 @@ export function Navigation() {
           <div className="md:hidden">
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label="Open menu">
+                <Button variant="ghost" size="icon" aria-label="Open menu" data-testid="nav-mobile-toggle">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
@@ -138,7 +138,7 @@ export function Navigation() {
                     <>
                       <Separator />
                       <Link href="/client/post" aria-label="Post a new project" onClick={() => setIsOpen(false)}>
-                        <Button aria-label="Post project" className="w-full justify-start">
+                        <Button aria-label="Post project" className="w-full justify-start" data-testid="nav-post-project-button-mobile">
                           <Plus className="mr-2 h-4 w-4" />
                           Post Project
                         </Button>
@@ -157,7 +157,7 @@ export function Navigation() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" aria-label="User menu" className="relative h-auto rounded-full px-2 py-1 gap-2 min-w-0">
+              <Button variant="ghost" aria-label="User menu" className="relative h-auto rounded-full px-2 py-1 gap-2 min-w-0" data-testid="nav-user-menu-trigger">
                 <span className="hidden sm:inline text-sm font-medium truncate max-w-[300px]" title={`${userData?.firstName ?? ""} ${userData?.lastName ?? ""}`.trim()}>{userData?.firstName} {userData?.lastName}</span>
                 <ProfileAvatar
                   name={`${userData?.firstName ?? ""} ${userData?.lastName ?? ""}`}
@@ -177,18 +177,18 @@ export function Navigation() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild className="cursor-pointer">
+              <DropdownMenuItem asChild className="cursor-pointer" data-testid="nav-profile-link">
                 <Link href="/profile" aria-label="View profile" className="w-full flex items-center">
                   <User className="mr-2 h-4 w-4" />
                   <span>Profile</span>
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label="Toggle theme" className="cursor-pointer">
+              <DropdownMenuItem onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label="Toggle theme" className="cursor-pointer" data-testid="nav-theme-toggle">
                 {theme === "dark" ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
                 <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => logout()} aria-label="Log out" className="cursor-pointer">
+              <DropdownMenuItem onClick={() => logout()} aria-label="Log out" className="cursor-pointer" data-testid="nav-logout-button">
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
               </DropdownMenuItem>

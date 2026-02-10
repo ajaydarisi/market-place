@@ -11,11 +11,12 @@ import Link from "next/link";
 interface ProjectCardProps {
   project: Project & { client: { firstName: string | null; lastName: string | null } };
   isDeveloper?: boolean;
+  testIdPrefix?: string;
 }
 
-export function ProjectCard({ project, isDeveloper }: ProjectCardProps) {
+export function ProjectCard({ project, isDeveloper, testIdPrefix = "project-card" }: ProjectCardProps) {
   return (
-    <Card className="group relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border-border bg-card/50 backdrop-blur-sm">
+    <Card data-testid={`${testIdPrefix}-${project.id}`} className="group relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border-border bg-card/50 backdrop-blur-sm">
       <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-primary to-accent opacity-0 transition-opacity group-hover:opacity-100" />
 
       <CardHeader className="pb-3">
@@ -59,7 +60,7 @@ export function ProjectCard({ project, isDeveloper }: ProjectCardProps) {
 
       <CardFooter className="py-4 mt-3 border-t border-t-border bg-muted/20">
         <Link href={`/projects/${project.id}`} aria-label={`View details for ${project.title}`} className="w-full">
-          <Button aria-label="View project details" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300" variant="secondary">
+          <Button aria-label="View project details" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300" variant="secondary" data-testid={`${testIdPrefix}-${project.id}-view-button`}>
             View Details
             <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Button>

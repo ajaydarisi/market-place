@@ -15,6 +15,7 @@ const InputOTP = React.forwardRef<
       containerClassName
     )}
     className={cn("disabled:cursor-not-allowed", className)}
+    data-testid="input-otp"
     {...props}
   />
 ))
@@ -24,7 +25,7 @@ const InputOTPGroup = React.forwardRef<
   React.ElementRef<"div">,
   React.ComponentPropsWithoutRef<"div">
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("flex items-center", className)} {...props} />
+  <div ref={ref} className={cn("flex items-center", className)} data-testid="input-otp-group" {...props} />
 ))
 InputOTPGroup.displayName = "InputOTPGroup"
 
@@ -43,6 +44,7 @@ const InputOTPSlot = React.forwardRef<
         isActive && "z-10 ring-2 ring-ring ring-offset-background",
         className
       )}
+      data-testid="input-otp-slot"
       {...props}
     >
       {char}
@@ -60,7 +62,7 @@ const InputOTPSeparator = React.forwardRef<
   React.ElementRef<"div">,
   React.ComponentPropsWithoutRef<"div">
 >(({ ...props }, ref) => (
-  <div ref={ref} role="separator" {...props}>
+  <div ref={ref} role="separator" data-testid="input-otp-separator" {...props}>
     <Dot />
   </div>
 ))

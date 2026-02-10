@@ -34,6 +34,7 @@ export default function MyProjects() {
             className="pl-10 h-12 rounded-xl border-muted bg-card"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            data-testid="client-projects-search-input"
           />
         </div>
 
@@ -58,9 +59,9 @@ export default function MyProjects() {
             ))}
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="client-projects-list">
             {projects?.map((project) => (
-              <ProjectCard key={project.id} project={project} />
+              <ProjectCard key={project.id} project={project} testIdPrefix="client-project-card" />
             ))}
             {projects?.length === 0 && (
               <Card className="col-span-full border-2 border-dashed bg-secondary/20 rounded-2xl">
@@ -71,7 +72,7 @@ export default function MyProjects() {
                   <h3 className="text-xl font-bold">No projects yet</h3>
                   <p className="text-muted-foreground max-w-sm mt-2 mb-6">Create your first project to start receiving proposals from top developers.</p>
                   <Link href="/client/post" aria-label="Post a new project">
-                    <Button aria-label="Post project" variant="outline">Post Project</Button>
+                    <Button aria-label="Post project" variant="outline" data-testid="client-projects-create-button">Post Project</Button>
                   </Link>
                 </div>
               </Card>

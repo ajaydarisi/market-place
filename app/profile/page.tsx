@@ -250,7 +250,7 @@ export default function Profile() {
                     <p className="text-xs sm:text-sm text-muted-foreground truncate mt-1">{userData?.email}</p>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" aria-label="Edit profile" className="shrink-0" onClick={() => setIsEditing(true)}>
+                <Button variant="outline" size="sm" aria-label="Edit profile" className="shrink-0" onClick={() => setIsEditing(true)} data-testid="profile-edit-button">
                   <Edit2 className="mr-2 h-4 w-4" />
                   Edit
                 </Button>
@@ -464,6 +464,7 @@ export default function Profile() {
                       initials={initials}
                       userId={authUser?.id ?? ""}
                       size="lg"
+                      data-testid="profile-edit-avatar-upload"
                       onUploadComplete={(url) => {
                         updateUser({ profileImageUrl: url }, {
                           onError: (error) => {
@@ -502,7 +503,7 @@ export default function Profile() {
                           <FormItem>
                             <FormLabel>First Name</FormLabel>
                             <FormControl>
-                              <Input aria-label="First name" placeholder="John" {...field} value={field.value || ""} />
+                              <Input aria-label="First name" placeholder="John" data-testid="profile-edit-firstname-input" {...field} value={field.value || ""} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -515,7 +516,7 @@ export default function Profile() {
                           <FormItem>
                             <FormLabel>Last Name</FormLabel>
                             <FormControl>
-                              <Input aria-label="Last name" placeholder="Doe" {...field} value={field.value || ""} />
+                              <Input aria-label="Last name" placeholder="Doe" data-testid="profile-edit-lastname-input" {...field} value={field.value || ""} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -552,6 +553,7 @@ export default function Profile() {
                               aria-label="Biography"
                               placeholder="Tell us about yourself..."
                               className="min-h-[80px] resize-none text-sm"
+                              data-testid="profile-edit-bio-textarea"
                               {...field}
                               value={field.value || ""}
                             />
@@ -580,6 +582,7 @@ export default function Profile() {
                                   value={field.value || []}
                                   onChange={field.onChange}
                                   placeholder="Type a skill and press Enter..."
+                                  data-testid="profile-edit-skills-input"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -607,6 +610,7 @@ export default function Profile() {
                                   <Input
                                     aria-label="GitHub profile URL"
                                     placeholder="https://github.com/username"
+                                    data-testid="profile-edit-github-input"
                                     {...field}
                                     value={field.value || ""}
                                   />
@@ -628,6 +632,7 @@ export default function Profile() {
                                   <Input
                                     aria-label="LinkedIn profile URL"
                                     placeholder="https://linkedin.com/in/username"
+                                    data-testid="profile-edit-linkedin-input"
                                     {...field}
                                     value={field.value || ""}
                                   />
@@ -649,6 +654,7 @@ export default function Profile() {
                                   <Input
                                     aria-label="Personal website URL"
                                     placeholder="https://yourwebsite.com"
+                                    data-testid="profile-edit-website-input"
                                     {...field}
                                     value={field.value || ""}
                                   />
@@ -677,7 +683,7 @@ export default function Profile() {
                                   value={field.value || undefined}
                                 >
                                   <FormControl>
-                                    <SelectTrigger aria-label="Experience level">
+                                    <SelectTrigger aria-label="Experience level" data-testid="profile-edit-experience-select">
                                       <SelectValue placeholder="Select level" />
                                     </SelectTrigger>
                                   </FormControl>
@@ -704,7 +710,7 @@ export default function Profile() {
                                   value={field.value || "available"}
                                 >
                                   <FormControl>
-                                    <SelectTrigger aria-label="Availability status">
+                                    <SelectTrigger aria-label="Availability status" data-testid="profile-edit-availability-select">
                                       <SelectValue placeholder="Select status" />
                                     </SelectTrigger>
                                   </FormControl>
@@ -743,6 +749,7 @@ export default function Profile() {
                                   <Input
                                     aria-label="Company name"
                                     placeholder="Acme Inc."
+                                    data-testid="profile-edit-company-name-input"
                                     {...field}
                                     value={field.value || ""}
                                   />
@@ -761,6 +768,7 @@ export default function Profile() {
                                   <Input
                                     aria-label="Industry"
                                     placeholder="e.g. Technology, Healthcare..."
+                                    data-testid="profile-edit-industry-input"
                                     {...field}
                                     value={field.value || ""}
                                   />
@@ -780,7 +788,7 @@ export default function Profile() {
                                   value={field.value || undefined}
                                 >
                                   <FormControl>
-                                    <SelectTrigger aria-label="Company size">
+                                    <SelectTrigger aria-label="Company size" data-testid="profile-edit-company-size-select">
                                       <SelectValue placeholder="Select size" />
                                     </SelectTrigger>
                                   </FormControl>
@@ -810,10 +818,11 @@ export default function Profile() {
                       className="rounded-xl"
                       onClick={handleCancel}
                       disabled={isPending}
+                      data-testid="profile-edit-cancel-button"
                     >
                       Cancel
                     </Button>
-                    <Button type="submit" aria-label="Save profile changes" className="rounded-xl px-6" disabled={isPending}>
+                    <Button type="submit" aria-label="Save profile changes" className="rounded-xl px-6" disabled={isPending} data-testid="profile-edit-save-button">
                       {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Save Changes
                     </Button>

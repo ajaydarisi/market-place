@@ -93,6 +93,7 @@ export default function Onboarding() {
                       <Label
                         htmlFor="role-client"
                         className={`cursor-pointer rounded-xl border-2 p-4 transition-all duration-200 hover:border-primary/50 hover:bg-primary/5 ${field.value === 'client' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border'}`}
+                        data-testid="onboarding-role-client-radio"
                       >
                         <RadioGroupItem value="client" id="role-client" className="sr-only" />
                         <UserCircle className="w-8 h-8 mb-3 text-primary" />
@@ -102,6 +103,7 @@ export default function Onboarding() {
                       <Label
                         htmlFor="role-developer"
                         className={`cursor-pointer rounded-xl border-2 p-4 transition-all duration-200 hover:border-primary/50 hover:bg-primary/5 ${field.value === 'developer' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border'}`}
+                        data-testid="onboarding-role-developer-radio"
                       >
                         <RadioGroupItem value="developer" id="role-developer" className="sr-only" />
                         <Code2 className="w-8 h-8 mb-3 text-primary" />
@@ -125,6 +127,7 @@ export default function Onboarding() {
                         aria-label="Biography"
                         placeholder="Tell us a bit about yourself..."
                         className="resize-none h-32 text-base"
+                        data-testid="onboarding-bio-textarea"
                         {...field}
                         value={field.value || ""}
                       />
@@ -147,6 +150,7 @@ export default function Onboarding() {
                           placeholder="React, Node.js, TypeScript..."
                           onChange={(e) => field.onChange(e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
                           className="h-12"
+                          data-testid="onboarding-skills-input"
                         />
                       </FormControl>
                       <FormMessage />
@@ -155,7 +159,7 @@ export default function Onboarding() {
                 />
               )}
 
-              <Button type="submit" aria-label="Complete setup" className="w-full h-12 text-lg font-semibold rounded-xl" disabled={isPending}>
+              <Button type="submit" aria-label="Complete setup" className="w-full h-12 text-lg font-semibold rounded-xl" disabled={isPending} data-testid="onboarding-submit-button">
                 {isPending ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />

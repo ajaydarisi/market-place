@@ -35,7 +35,7 @@ export const Captcha = forwardRef<CaptchaRef, CaptchaProps>(
     }
 
     return (
-      <div className="flex justify-center">
+      <div data-testid="captcha" className="flex justify-center">
         <Turnstile
           ref={turnstileRef}
           siteKey={siteKey}

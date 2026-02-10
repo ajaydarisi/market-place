@@ -24,6 +24,7 @@ const SheetOverlay = React.forwardRef<
       "fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className
     )}
+    data-testid="sheet-overlay"
     {...props}
     ref={ref}
   />
@@ -62,6 +63,7 @@ const SheetContent = React.forwardRef<
     <SheetPrimitive.Content
       ref={ref}
       className={cn(sheetVariants({ side }), className)}
+      data-testid="sheet-content"
       {...props}
     >
       {children}
@@ -83,6 +85,7 @@ const SheetHeader = ({
       "flex flex-col space-y-2 text-center sm:text-left",
       className
     )}
+    data-testid="sheet-header"
     {...props}
   />
 )
@@ -97,6 +100,7 @@ const SheetFooter = ({
       "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
       className
     )}
+    data-testid="sheet-footer"
     {...props}
   />
 )
@@ -109,6 +113,7 @@ const SheetTitle = React.forwardRef<
   <SheetPrimitive.Title
     ref={ref}
     className={cn("text-lg font-semibold text-foreground", className)}
+    data-testid="sheet-title"
     {...props}
   />
 ))
@@ -121,6 +126,7 @@ const SheetDescription = React.forwardRef<
   <SheetPrimitive.Description
     ref={ref}
     className={cn("text-sm text-muted-foreground", className)}
+    data-testid="sheet-description"
     {...props}
   />
 ))

@@ -146,8 +146,8 @@ export default function AuthPage() {
         <CardContent>
           <Tabs defaultValue="signin" className="space-y-6">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin" aria-label="Sign in tab">Sign In</TabsTrigger>
-              <TabsTrigger value="signup" aria-label="Sign up tab">Sign Up</TabsTrigger>
+              <TabsTrigger value="signin" aria-label="Sign in tab" data-testid="signin-tab">Sign In</TabsTrigger>
+              <TabsTrigger value="signup" aria-label="Sign up tab" data-testid="signup-tab">Sign Up</TabsTrigger>
             </TabsList>
 
             <TabsContent value="signin">
@@ -162,13 +162,14 @@ export default function AuthPage() {
                       value={forgotEmail}
                       onChange={(e) => setForgotEmail(e.target.value)}
                       className="h-12"
+                      data-testid="forgot-email-input"
                     />
                   </div>
-                  <Button onClick={handleForgotPassword} aria-label="Send password reset link" className="w-full h-12" disabled={isLoading}>
+                  <Button onClick={handleForgotPassword} aria-label="Send password reset link" className="w-full h-12" disabled={isLoading} data-testid="forgot-send-reset-button">
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Send Reset Link
                   </Button>
-                  <Button variant="ghost" aria-label="Back to sign in" className="w-full" onClick={() => setShowForgot(false)}>
+                  <Button variant="ghost" aria-label="Back to sign in" className="w-full" onClick={() => setShowForgot(false)} data-testid="forgot-back-button">
                     Back to sign in
                   </Button>
                 </div>
@@ -182,7 +183,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>Email</FormLabel>
                           <FormControl>
-                            <Input aria-label="Email address" type="email" placeholder="you@example.com" className="h-12" {...field} />
+                            <Input aria-label="Email address" type="email" placeholder="you@example.com" className="h-12" data-testid="signin-email-input" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -196,7 +197,7 @@ export default function AuthPage() {
                           <FormLabel>Password</FormLabel>
                           <FormControl>
                             <div className="relative">
-                              <Input aria-label="Password" type={showPassword ? "text" : "password"} placeholder="Enter your password" className="h-12 pr-10" {...field} />
+                              <Input aria-label="Password" type={showPassword ? "text" : "password"} placeholder="Enter your password" className="h-12 pr-10" data-testid="signin-password-input" {...field} />
                               <Button
                                 type="button"
                                 variant="ghost"
@@ -204,6 +205,7 @@ export default function AuthPage() {
                                 aria-label="Toggle password visibility"
                                 className="absolute right-0 top-0 h-12 w-12"
                                 onClick={() => setShowPassword(!showPassword)}
+                                data-testid="signin-password-toggle-button"
                               >
                                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                               </Button>
@@ -213,11 +215,11 @@ export default function AuthPage() {
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" aria-label="Sign in" className="w-full h-12 text-lg font-semibold" disabled={isLoading}>
+                    <Button type="submit" aria-label="Sign in" className="w-full h-12 text-lg font-semibold" disabled={isLoading} data-testid="signin-submit-button">
                       {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Sign In
                     </Button>
-                    <Button type="button" variant="ghost" aria-label="Forgot password" className="w-full text-sm text-muted-foreground" onClick={() => setShowForgot(true)}>
+                    <Button type="button" variant="ghost" aria-label="Forgot password" className="w-full text-sm text-muted-foreground" onClick={() => setShowForgot(true)} data-testid="signin-forgot-password-link">
                       Forgot your password?
                     </Button>
                   </form>
@@ -236,7 +238,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>First Name</FormLabel>
                           <FormControl>
-                            <Input aria-label="First name" placeholder="John" className="h-12" {...field} />
+                            <Input aria-label="First name" placeholder="John" className="h-12" data-testid="signup-firstname-input" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -249,7 +251,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>Last Name</FormLabel>
                           <FormControl>
-                            <Input aria-label="Last name" placeholder="Doe" className="h-12" {...field} />
+                            <Input aria-label="Last name" placeholder="Doe" className="h-12" data-testid="signup-lastname-input" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -263,7 +265,7 @@ export default function AuthPage() {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input aria-label="Email address" type="email" placeholder="you@example.com" className="h-12" {...field} />
+                          <Input aria-label="Email address" type="email" placeholder="you@example.com" className="h-12" data-testid="signup-email-input" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -277,7 +279,7 @@ export default function AuthPage() {
                         <FormLabel>Password</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Input aria-label="Password" type={showPassword ? "text" : "password"} placeholder="Create a password" className="h-12 pr-10" {...field} />
+                            <Input aria-label="Password" type={showPassword ? "text" : "password"} placeholder="Create a password" className="h-12 pr-10" data-testid="signup-password-input" {...field} />
                             <Button
                               type="button"
                               variant="ghost"
@@ -285,6 +287,7 @@ export default function AuthPage() {
                               aria-label="Toggle password visibility"
                               className="absolute right-0 top-0 h-12 w-12"
                               onClick={() => setShowPassword(!showPassword)}
+                              data-testid="signup-password-toggle-button"
                             >
                               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                             </Button>
@@ -299,8 +302,9 @@ export default function AuthPage() {
                     onSuccess={(token) => setCaptchaToken(token)}
                     onExpire={() => setCaptchaToken(null)}
                     onError={() => setCaptchaToken(null)}
+                    data-testid="signup-captcha"
                   />
-                  <Button type="submit" aria-label="Create account" className="w-full h-12 text-lg font-semibold" disabled={isLoading}>
+                  <Button type="submit" aria-label="Create account" className="w-full h-12 text-lg font-semibold" disabled={isLoading} data-testid="signup-submit-button">
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Create Account
                   </Button>

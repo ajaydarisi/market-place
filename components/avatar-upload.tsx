@@ -113,6 +113,7 @@ export function AvatarUpload({
 
   return (
     <div
+      data-testid="avatar-upload"
       className={cn(
         "relative inline-flex flex-col items-center gap-2",
         className

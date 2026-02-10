@@ -46,6 +46,7 @@ export function ProfileAvatar({
 
   return (
     <Avatar
+      data-testid="profile-avatar"
       key={`${name}-${imageUrl || "no-img"}`}
       className={cn(sizeClasses[size], className)}
       aria-label={`${name}'s avatar`}

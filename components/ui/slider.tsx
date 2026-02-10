@@ -13,6 +13,7 @@ const Slider = React.forwardRef<
       "relative flex w-full touch-none select-none items-center",
       className
     )}
+    data-testid="slider"
     {...props}
   >
     <SliderPrimitive.Track className="relative h-2 w-full grow overflow-hidden rounded-full bg-secondary">

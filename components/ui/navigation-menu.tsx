@@ -15,6 +15,7 @@ const NavigationMenu = React.forwardRef<
       "relative z-10 flex max-w-max flex-1 items-center justify-center",
       className
     )}
+    data-testid="navigation-menu"
     {...props}
   >
     {children}
@@ -33,6 +34,7 @@ const NavigationMenuList = React.forwardRef<
       "group flex flex-1 list-none items-center justify-center space-x-1",
       className
     )}
+    data-testid="navigation-menu-list"
     {...props}
   />
 ))
@@ -51,6 +53,7 @@ const NavigationMenuTrigger = React.forwardRef<
   <NavigationMenuPrimitive.Trigger
     ref={ref}
     className={cn(navigationMenuTriggerStyle(), "group", className)}
+    data-testid="navigation-menu-trigger"
     {...props}
   >
     {children}{" "}
@@ -72,6 +75,7 @@ const NavigationMenuContent = React.forwardRef<
       "left-0 top-0 w-full data-[motion^=from-]:animate-in data-[motion^=to-]:animate-out data-[motion^=from-]:fade-in data-[motion^=to-]:fade-out data-[motion=from-end]:slide-in-from-right-52 data-[motion=from-start]:slide-in-from-left-52 data-[motion=to-end]:slide-out-to-right-52 data-[motion=to-start]:slide-out-to-left-52 md:absolute md:w-auto ",
       className
     )}
+    data-testid="navigation-menu-content"
     {...props}
   />
 ))
@@ -90,6 +94,7 @@ const NavigationMenuViewport = React.forwardRef<
         className
       )}
       ref={ref}
+      data-testid="navigation-menu-viewport"
       {...props}
     />
   </div>
@@ -107,6 +112,7 @@ const NavigationMenuIndicator = React.forwardRef<
       "top-full z-[1] flex h-1.5 items-end justify-center overflow-hidden data-[state=visible]:animate-in data-[state=hidden]:animate-out data-[state=hidden]:fade-out data-[state=visible]:fade-in",
       className
     )}
+    data-testid="navigation-menu-indicator"
     {...props}
   >
     <div className="relative top-[60%] h-2 w-2 rotate-45 rounded-tl-sm bg-border shadow-md" />

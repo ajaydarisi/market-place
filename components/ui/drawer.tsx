@@ -29,6 +29,7 @@ const DrawerOverlay = React.forwardRef<
   <DrawerPrimitive.Overlay
     ref={ref}
     className={cn("fixed inset-0 z-50 bg-black/80", className)}
+    data-testid="drawer-overlay"
     {...props}
   />
 ))
@@ -46,6 +47,7 @@ const DrawerContent = React.forwardRef<
         "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background",
         className
       )}
+      data-testid="drawer-content"
       {...props}
     >
       <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
@@ -61,6 +63,7 @@ const DrawerHeader = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn("grid gap-1.5 p-4 text-center sm:text-left", className)}
+    data-testid="drawer-header"
     {...props}
   />
 )
@@ -72,6 +75,7 @@ const DrawerFooter = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn("mt-auto flex flex-col gap-2 p-4", className)}
+    data-testid="drawer-footer"
     {...props}
   />
 )
@@ -87,6 +91,7 @@ const DrawerTitle = React.forwardRef<
       "text-lg font-semibold leading-none tracking-tight",
       className
     )}
+    data-testid="drawer-title"
     {...props}
   />
 ))
@@ -99,6 +104,7 @@ const DrawerDescription = React.forwardRef<
   <DrawerPrimitive.Description
     ref={ref}
     className={cn("text-sm text-muted-foreground", className)}
+    data-testid="drawer-description"
     {...props}
   />
 ))

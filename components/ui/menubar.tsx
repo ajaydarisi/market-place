@@ -46,6 +46,7 @@ const Menubar = React.forwardRef<
       "flex h-10 items-center space-x-1 rounded-md border bg-background p-1",
       className
     )}
+    data-testid="menubar"
     {...props}
   />
 ))
@@ -61,6 +62,7 @@ const MenubarTrigger = React.forwardRef<
       "flex cursor-default select-none items-center rounded-sm px-3 py-1.5 text-sm font-medium outline-none focus:bg-primary/10 focus:text-primary data-[state=open]:bg-primary/10 data-[state=open]:text-primary",
       className
     )}
+    data-testid="menubar-trigger"
     {...props}
   />
 ))
@@ -79,6 +81,7 @@ const MenubarSubTrigger = React.forwardRef<
       inset && "pl-8",
       className
     )}
+    data-testid="menubar-sub-trigger"
     {...props}
   >
     {children}
@@ -97,6 +100,7 @@ const MenubarSubContent = React.forwardRef<
       "z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-[--radix-menubar-content-transform-origin]",
       className
     )}
+    data-testid="menubar-sub-content"
     {...props}
   />
 ))
@@ -120,6 +124,7 @@ const MenubarContent = React.forwardRef<
           "z-50 min-w-[12rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-[--radix-menubar-content-transform-origin]",
           className
         )}
+        data-testid="menubar-content"
         {...props}
       />
     </MenubarPrimitive.Portal>
@@ -140,6 +145,7 @@ const MenubarItem = React.forwardRef<
       inset && "pl-8",
       className
     )}
+    data-testid="menubar-item"
     {...props}
   />
 ))
@@ -156,6 +162,7 @@ const MenubarCheckboxItem = React.forwardRef<
       className
     )}
     checked={checked}
+    data-testid="menubar-checkbox-item"
     {...props}
   >
     <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
@@ -178,6 +185,7 @@ const MenubarRadioItem = React.forwardRef<
       "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-primary/10 focus:text-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
     )}
+    data-testid="menubar-radio-item"
     {...props}
   >
     <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
@@ -203,6 +211,7 @@ const MenubarLabel = React.forwardRef<
       inset && "pl-8",
       className
     )}
+    data-testid="menubar-label"
     {...props}
   />
 ))
@@ -215,6 +224,7 @@ const MenubarSeparator = React.forwardRef<
   <MenubarPrimitive.Separator
     ref={ref}
     className={cn("-mx-1 my-1 h-px bg-muted", className)}
+    data-testid="menubar-separator"
     {...props}
   />
 ))
@@ -230,6 +240,7 @@ const MenubarShortcut = ({
         "ml-auto text-xs tracking-widest text-muted-foreground",
         className
       )}
+      data-testid="menubar-shortcut"
       {...props}
     />
   )

@@ -187,16 +187,16 @@ export default function ProjectDetail() {
       <div className="bg-secondary/30 border-b dark:border-slate-500 border-slate-300 py-12">
         <div className="container mx-auto px-4">
           <div className="flex items-center gap-2 mb-4">
-            <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">{project.category}</Badge>
-            <Badge variant={statusVariant(project.status)}>{statusLabels[project.status] || project.status}</Badge>
+            <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20" data-testid="project-detail-category">{project.category}</Badge>
+            <Badge variant={statusVariant(project.status)} data-testid="project-detail-status">{statusLabels[project.status] || project.status}</Badge>
           </div>
           <div className="flex items-center gap-3 mb-4">
-            <h1 className="text-3xl md:text-4xl font-display font-bold line-clamp-3 md:truncate md:line-clamp-none" title={project.title}>{project.title}</h1>
+            <h1 className="text-3xl md:text-4xl font-display font-bold line-clamp-3 md:truncate md:line-clamp-none" title={project.title} data-testid="project-detail-title">{project.title}</h1>
             {isOwner && (
               <>
               <Dialog open={editOpen} onOpenChange={setEditOpen}>
                 <DialogTrigger asChild>
-                  <Button size="sm" aria-label="Edit project">
+                  <Button size="sm" aria-label="Edit project" data-testid="project-detail-edit-button">
                     <Pencil className="h-4 w-4" />
                     <span className="hidden sm:inline">Edit</span>
                   </Button>
@@ -215,7 +215,7 @@ export default function ProjectDetail() {
                           <FormItem>
                             <FormLabel>Project Title</FormLabel>
                             <FormControl>
-                              <Input aria-label="Project title" placeholder="e.g. E-commerce Platform Development" {...field} />
+                              <Input aria-label="Project title" placeholder="e.g. E-commerce Platform Development" data-testid="project-detail-edit-title-input" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -230,7 +230,7 @@ export default function ProjectDetail() {
                               <FormLabel>Category</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
-                                  <SelectTrigger aria-label="Project category">
+                                  <SelectTrigger aria-label="Project category" data-testid="project-detail-edit-category-select">
                                     <SelectValue placeholder="Select category" />
                                   </SelectTrigger>
                                 </FormControl>
@@ -254,7 +254,7 @@ export default function ProjectDetail() {
                               <FormLabel>Status</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
-                                  <SelectTrigger aria-label="Project status">
+                                  <SelectTrigger aria-label="Project status" data-testid="project-detail-edit-status-select">
                                     <SelectValue placeholder="Select status" />
                                   </SelectTrigger>
                                 </FormControl>
@@ -279,7 +279,7 @@ export default function ProjectDetail() {
                             <FormItem>
                               <FormLabel>Min Budget (₹)</FormLabel>
                               <FormControl>
-                                <Input aria-label="Minimum budget" type="number" placeholder="1000" {...field} />
+                                <Input aria-label="Minimum budget" type="number" placeholder="1000" data-testid="project-detail-edit-budget-min-input" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -292,7 +292,7 @@ export default function ProjectDetail() {
                             <FormItem>
                               <FormLabel>Max Budget (₹)</FormLabel>
                               <FormControl>
-                                <Input aria-label="Maximum budget" type="number" placeholder="5000" {...field} />
+                                <Input aria-label="Maximum budget" type="number" placeholder="5000" data-testid="project-detail-edit-budget-max-input" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -310,6 +310,7 @@ export default function ProjectDetail() {
                                 aria-label="Project description"
                                 placeholder="Describe your project requirements..."
                                 className="min-h-[150px] resize-none"
+                                data-testid="project-detail-edit-description-textarea"
                                 {...field}
                               />
                             </FormControl>
@@ -318,8 +319,8 @@ export default function ProjectDetail() {
                         )}
                       />
                       <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
-                        <Button type="submit" disabled={updatePending}>
+                        <Button type="button" variant="outline" onClick={() => setEditOpen(false)} data-testid="project-detail-edit-cancel-button">Cancel</Button>
+                        <Button type="submit" disabled={updatePending} data-testid="project-detail-edit-submit-button">
                           {updatePending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                           Save Changes
                         </Button>
@@ -330,7 +331,7 @@ export default function ProjectDetail() {
               </Dialog>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="destructive" size="sm" aria-label="Delete project">
+                  <Button variant="destructive" size="sm" aria-label="Delete project" data-testid="project-detail-delete-button">
                     <Trash2 className="h-4 w-4" />
                     <span className="hidden sm:inline">Delete</span>
                   </Button>
@@ -344,7 +345,7 @@ export default function ProjectDetail() {
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDelete} disabled={deletePending}>
+                    <AlertDialogAction onClick={handleDelete} disabled={deletePending} data-testid="project-detail-delete-confirm-button">
                       {deletePending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Delete
                     </AlertDialogAction>
@@ -364,7 +365,7 @@ export default function ProjectDetail() {
               <span>Posted {formatDistanceToNow(new Date(project.createdAt!), { addSuffix: true })}</span>
             </div>
             <div className="flex items-center gap-2 text-foreground font-medium">
-              <span>₹{project.budgetMin?.toLocaleString('en-IN')} - ₹{project.budgetMax?.toLocaleString('en-IN')}</span>
+              <span data-testid="project-detail-budget">₹{project.budgetMin?.toLocaleString('en-IN')} - ₹{project.budgetMax?.toLocaleString('en-IN')}</span>
             </div>
           </div>
         </div>
@@ -372,12 +373,12 @@ export default function ProjectDetail() {
 
       <main className="container mx-auto px-4 py-8 grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          <Card className="shadow-sm">
+          <Card className="shadow-sm" data-testid="project-detail-description-card">
             <CardHeader>
               <CardTitle>Project Description</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="prose max-w-none text-muted-foreground leading-relaxed whitespace-pre-wrap">
+              <div className="prose max-w-none text-muted-foreground leading-relaxed whitespace-pre-wrap" data-testid="project-detail-description">
                 {project.description}
               </div>
             </CardContent>
@@ -421,19 +422,20 @@ export default function ProjectDetail() {
                                 aria-label={`Assign project to ${interest.developer.firstName}`}
                                 onClick={() => handleAssign(interest.id!)}
                                 disabled={assignPending}
+                                data-testid={`project-detail-interest-${interest.id}-assign-button`}
                               >
                                 <UserCheck className="mr-1 h-3.5 w-3.5" />
                                 Assign
                               </Button>
                             )}
                             <Link href={`/client/messages?projectId=${projectId}&developerId=${interest.developerId}`}>
-                              <Button size="sm" variant="outline" aria-label={`Message ${interest.developer.firstName}`}>
+                              <Button size="sm" variant="outline" aria-label={`Message ${interest.developer.firstName}`} data-testid={`project-detail-interest-${interest.id}-message-button`}>
                                 <MessageSquare className="mr-1 h-3.5 w-3.5" />
                                 Message
                               </Button>
                             </Link>
                             <Link href={`/profile/${interest.developerId}`}>
-                              <Button size="sm" variant="outline" aria-label={`View ${interest.developer.firstName}'s profile`}>View Profile</Button>
+                              <Button size="sm" variant="outline" aria-label={`View ${interest.developer.firstName}'s profile`} data-testid={`project-detail-interest-${interest.id}-view-profile-button`}>View Profile</Button>
                             </Link>
                           </div>
                         </div>
@@ -448,19 +450,20 @@ export default function ProjectDetail() {
                               aria-label={`Assign project to ${interest.developer.firstName}`}
                               onClick={() => handleAssign(interest.id!)}
                               disabled={assignPending}
+                              data-testid={`project-detail-interest-${interest.id}-assign-button-mobile`}
                             >
                               <UserCheck className="mr-1 h-3.5 w-3.5" />
                               Assign
                             </Button>
                           )}
                           <Link href={`/client/messages?projectId=${projectId}&developerId=${interest.developerId}`}>
-                            <Button size="sm" variant="outline" className="w-full" aria-label={`Message ${interest.developer.firstName}`}>
+                            <Button size="sm" variant="outline" className="w-full" aria-label={`Message ${interest.developer.firstName}`} data-testid={`project-detail-interest-${interest.id}-message-button-mobile`}>
                               <MessageSquare className="mr-1 h-3.5 w-3.5" />
                               Message
                             </Button>
                           </Link>
                           <Link href={`/profile/${interest.developerId}`}>
-                            <Button size="sm" variant="outline" className="w-full" aria-label={`View ${interest.developer.firstName}'s profile`}>View Profile</Button>
+                            <Button size="sm" variant="outline" className="w-full" aria-label={`View ${interest.developer.firstName}'s profile`} data-testid={`project-detail-interest-${interest.id}-view-profile-button-mobile`}>View Profile</Button>
                           </Link>
                         </div>
                       </CardContent>
@@ -482,7 +485,7 @@ export default function ProjectDetail() {
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={confirmAssign} disabled={assignPending}>
+                <AlertDialogAction onClick={confirmAssign} disabled={assignPending} data-testid="project-detail-assign-confirm-button">
                   {assignPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Confirm Assignment
                 </AlertDialogAction>
@@ -505,10 +508,11 @@ export default function ProjectDetail() {
                       className="min-h-[80px] resize-none"
                       value={logContent}
                       onChange={(e) => setLogContent(e.target.value)}
+                      data-testid="project-detail-log-content-textarea"
                     />
                     <div className="flex items-center justify-between gap-4">
                       <Select value={logType} onValueChange={(val: typeof logTypes[number]) => setLogType(val)}>
-                        <SelectTrigger aria-label="Log type" className="w-[140px]">
+                        <SelectTrigger aria-label="Log type" className="w-[140px]" data-testid="project-detail-log-type-select">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -526,6 +530,7 @@ export default function ProjectDetail() {
                         onClick={handleCreateLog}
                         disabled={logPending || !logContent.trim()}
                         aria-label="Post update"
+                        data-testid="project-detail-log-submit-button"
                       >
                         {logPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
                         Post Update
@@ -539,7 +544,7 @@ export default function ProjectDetail() {
               {logs && logs.length > 0 ? (
                 <div className="space-y-3">
                   {logs.map((log) => (
-                    <Card key={log.id}>
+                    <Card key={log.id} data-testid={`project-detail-log-${log.id}`}>
                       <CardContent className="p-4">
                         <div className="flex items-start gap-3">
                           <ProfileAvatar
@@ -608,7 +613,7 @@ export default function ProjectDetail() {
                 ) : (
                   <Dialog open={interestOpen} onOpenChange={setInterestOpen}>
                     <DialogTrigger asChild>
-                      <Button className="w-full shadow-lg shadow-primary/20" size="lg" aria-label="Apply for this project">Apply Now</Button>
+                      <Button className="w-full shadow-lg shadow-primary/20" size="lg" aria-label="Apply for this project" data-testid="project-detail-apply-button">Apply Now</Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
@@ -623,9 +628,10 @@ export default function ProjectDetail() {
                         className="min-h-[150px]"
                         value={interestMessage}
                         onChange={(e) => setInterestMessage(e.target.value)}
+                        data-testid="project-detail-apply-message-textarea"
                       />
                       <DialogFooter>
-                        <Button onClick={handleInterest} aria-label="Submit application" disabled={interestPending || !interestMessage.trim()}>
+                        <Button onClick={handleInterest} aria-label="Submit application" disabled={interestPending || !interestMessage.trim()} data-testid="project-detail-apply-submit-button">
                           {interestPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                           Submit Application
                         </Button>

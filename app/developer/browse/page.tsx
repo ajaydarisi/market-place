@@ -35,10 +35,11 @@ export default function BrowseJobs() {
                 className="pl-12 h-14 rounded-xl text-lg shadow-sm border-transparent focus:border-primary"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+                data-testid="browse-search-input"
               />
             </div>
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger aria-label="Filter by category" className="w-full sm:w-[200px] h-14 rounded-xl border-transparent shadow-sm bg-background">
+              <SelectTrigger aria-label="Filter by category" className="w-full sm:w-[200px] h-14 rounded-xl border-transparent shadow-sm bg-background" data-testid="browse-category-filter">
                 <SelectValue placeholder="All Categories" />
               </SelectTrigger>
               <SelectContent>
@@ -59,7 +60,7 @@ export default function BrowseJobs() {
             {projects?.length ? `${projects.length} Projects Available` : 'Loading projects...'}
           </h2>
           <Select value={sort} onValueChange={setSort}>
-            <SelectTrigger aria-label="Sort projects" className="w-[180px]">
+            <SelectTrigger aria-label="Sort projects" className="w-[180px]" data-testid="browse-sort-filter">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -92,9 +93,9 @@ export default function BrowseJobs() {
             ))}
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="browse-projects-list">
             {projects?.map((project) => (
-              <ProjectCard key={project.id} project={project} isDeveloper />
+              <ProjectCard key={project.id} project={project} isDeveloper testIdPrefix="developer-project-card" />
             ))}
             {projects?.length === 0 && (
               <div className="col-span-full py-24 text-center">
