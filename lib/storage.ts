@@ -520,7 +520,7 @@ export class DatabaseStorage implements IStorage {
     const client = await getClient(token);
     const { data, error } = await client
       .from("messages")
-      .select("*, project:project_id(id, title), sender:sender_id(id, first_name, last_name, profile_image_url), receiver:receiver_id(id, first_name, last_name, profile_image_url)")
+      .select("*, project:projects!messages_project_id_fkey(id, title), sender:sender_id(id, first_name, last_name, profile_image_url), receiver:receiver_id(id, first_name, last_name, profile_image_url)")
       .order("created_at", { ascending: false });
 
     if (error) throw error;
