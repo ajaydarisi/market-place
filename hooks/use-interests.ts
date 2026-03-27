@@ -2,15 +2,14 @@
 
 import { api, buildUrl } from "@shared/routes";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getAuthHeaders } from "@/lib/api";
+import { authFetch } from "@/lib/api";
 
 export function useProjectInterests(projectId: number) {
   return useQuery({
     queryKey: [api.interests.listByProject.path, projectId],
     queryFn: async () => {
       const url = buildUrl(api.interests.listByProject.path, { projectId });
-      const headers = await getAuthHeaders();
-      const res = await fetch(url, { headers });
+      const res = await authFetch(url);
       if (!res.ok) throw new Error("Failed to fetch interests");
       return api.interests.listByProject.responses[200].parse(await res.json());
     },
@@ -23,10 +22,9 @@ export function useExpressInterest() {
   return useMutation({
     mutationFn: async ({ projectId, message }: { projectId: number; message: string }) => {
       const url = buildUrl(api.interests.create.path, { projectId });
-      const headers = await getAuthHeaders();
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method: api.interests.create.method,
-        headers: { "Content-Type": "application/json", ...headers },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message }),
       });
       if (!res.ok) throw new Error("Failed to express interest");
@@ -51,10 +49,9 @@ export function useUpdateInterestStatus() {
       status: "accepted" | "rejected";
     }) => {
       const url = buildUrl(api.interests.updateStatus.path, { projectId, interestId });
-      const headers = await getAuthHeaders();
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method: api.interests.updateStatus.method,
-        headers: { "Content-Type": "application/json", ...headers },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
       if (!res.ok) throw new Error("Failed to update interest status");

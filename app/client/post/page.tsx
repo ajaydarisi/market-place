@@ -49,23 +49,23 @@ export default function PostProject() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-12">
+    <div className="page-shell min-h-screen bg-background pb-12">
       <Navigation />
-      <div className="container mx-auto px-4 py-8">
-        <Link href="/client/projects" aria-label="Back to projects" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-6 transition-colors">
+      <div className="container mx-auto mobile-page">
+        <Link href="/client/projects" aria-label="Back to projects" className="surface-glass mb-4 inline-flex items-center rounded-full px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-primary md:mb-6">
           <ArrowLeft className="mr-1 h-4 w-4" />
           Back to Projects
         </Link>
 
         <div className="max-w-2xl mx-auto">
-          <Card className="shadow-xl border-primary/10">
-            <CardHeader className="border-b bg-secondary/20 pb-8">
-              <CardTitle className="text-2xl font-display">Post a New Project</CardTitle>
+          <Card className="border-primary/10 shadow-xl">
+            <CardHeader className="hero-grid border-b bg-secondary/20 pb-6 md:pb-8">
+              <CardTitle className="text-xl font-display sm:text-2xl">Post a New Project</CardTitle>
               <CardDescription>Fill out the details below to reach thousands of developers.</CardDescription>
             </CardHeader>
-            <CardContent className="pt-8">
+            <CardContent className="pt-6 md:pt-8">
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 md:space-y-6">
                   <FormField
                     control={form.control}
                     name="title"
@@ -80,7 +80,7 @@ export default function PostProject() {
                     )}
                   />
 
-                  <div className="grid sm:grid-cols-2 gap-6">
+                  <div className="grid gap-5 sm:grid-cols-2 md:gap-6">
                     <FormField
                       control={form.control}
                       name="category"
@@ -107,7 +107,7 @@ export default function PostProject() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:gap-6">
                     <FormField
                       control={form.control}
                       name="budgetMin"
@@ -156,11 +156,11 @@ export default function PostProject() {
                     )}
                   />
 
-                  <div className="pt-4 flex justify-end gap-4">
+                  <div className="flex flex-col-reverse gap-3 pt-3 sm:flex-row sm:justify-end sm:gap-4">
                     <Link href="/client/projects" aria-label="Cancel and go back">
-                      <Button type="button" aria-label="Cancel" variant="outline" size="lg" className="rounded-xl" data-testid="create-project-cancel-button">Cancel</Button>
+                      <Button type="button" aria-label="Cancel" variant="outline" size="lg" className="w-full rounded-2xl sm:w-auto" data-testid="create-project-cancel-button">Cancel</Button>
                     </Link>
-                    <Button type="submit" aria-label="Post project" size="lg" className="rounded-xl px-8" disabled={isPending} data-testid="create-project-submit-button">
+                    <Button type="submit" aria-label="Post project" size="lg" className="w-full rounded-2xl px-8 sm:w-auto" disabled={isPending} data-testid="create-project-submit-button">
                       {isPending ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
                       Post Project
                     </Button>

@@ -16,7 +16,7 @@ import { useState, useEffect, useRef, Suspense } from "react";
 export default function Messages() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-background">
+      <div className="page-shell min-h-screen bg-background">
         <Navigation />
         <div className="container mx-auto px-4 py-8 flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -80,18 +80,22 @@ function MessagesContent() {
   const allConversations: Conversation[] = conversations || [];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="page-shell min-h-screen bg-background">
       <Navigation />
-      <div className="container mx-auto px-4 py-8 h-[calc(100vh-64px)]">
-        <h1 className="text-3xl font-display font-bold mb-6">Messages</h1>
+      <div className="container mx-auto flex h-[calc(100dvh-4.5rem-var(--safe-area-top)-var(--mobile-nav-height)-var(--safe-area-bottom)-1rem)] flex-col px-4 py-4 md:h-[calc(100vh-80px)] md:py-8">
+        <div className="surface-glass mobile-panel mb-4 border-primary/10 md:mb-6">
+          <h1 className="text-2xl font-display font-bold md:text-3xl">Messages</h1>
+          <p className="mt-2 text-muted-foreground">
+            Stay close to client context, keep active threads readable, and move delivery forward without losing signal.
+          </p>
+        </div>
 
-        <div className="grid grid-rows-1 md:grid-cols-3 gap-6 h-[calc(100%-80px)]">
+        <div className="grid min-h-0 flex-1 grid-rows-1 gap-4 md:grid-cols-3 md:gap-6">
           {/* Conversation List */}
-          <Card className={`flex flex-col overflow-hidden md:col-span-1 ${mobileShowChat ? "hidden md:flex" : ""}`}>
-            <CardHeader className="bg-secondary/20 py-4 px-4">
+          <Card className={`surface-glass flex min-h-0 flex-col overflow-hidden md:col-span-1 ${mobileShowChat ? "hidden md:flex" : ""}`}>
+            <CardHeader className="border-b border-border/50 bg-transparent px-4 py-4">
               <CardTitle className="text-base font-semibold">Conversations</CardTitle>
             </CardHeader>
-            <Separator />
             <ScrollArea className="flex-1">
               {convsLoading ? (
                 <CardContent className="flex items-center justify-center p-8">
@@ -111,8 +115,10 @@ function MessagesContent() {
                     return (
                       <button
                         key={`${conv.projectId}-${conv.otherUserId}`}
-                        className={`w-full text-left p-3 rounded-lg transition-colors flex items-start gap-3 ${
-                          isActive ? "bg-primary/10" : "hover:bg-secondary/50"
+                        className={`w-full text-left p-3 rounded-2xl transition-all flex items-start gap-3 ${
+                          isActive
+                            ? "bg-primary/[0.08] shadow-sm ring-1 ring-primary/10"
+                            : "hover:bg-secondary/45"
                         }`}
                         onClick={() => {
                           setSelected({ projectId: conv.projectId, clientId: conv.otherUserId });
@@ -143,7 +149,7 @@ function MessagesContent() {
           </Card>
 
           {/* Chat Thread */}
-          <Card className={`flex flex-col overflow-hidden md:col-span-2 ${mobileShowChat ? "" : "hidden md:flex"}`}>
+          <Card className={`surface-glass flex min-h-0 flex-col overflow-hidden md:col-span-2 ${mobileShowChat ? "" : "hidden md:flex"}`}>
             {!selected ? (
               <CardContent className="flex-1 flex items-center justify-center text-muted-foreground bg-secondary/10">
                 <div className="text-center space-y-2">
@@ -154,11 +160,11 @@ function MessagesContent() {
             ) : (
               <>
                 {/* Chat Header */}
-                <CardHeader className="bg-secondary/20 py-3 px-4 flex-row items-center gap-3 space-y-0">
+                <CardHeader className="border-b border-border/50 bg-transparent py-3 px-4 flex-row items-center gap-3 space-y-0">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="md:hidden shrink-0"
+                    className="shrink-0 md:hidden"
                     aria-label="Back to conversations"
                     onClick={() => setMobileShowChat(false)}
                   >
@@ -200,10 +206,10 @@ function MessagesContent() {
                             {!isOwn && (
                               <ProfileAvatar name={conv?.otherUserName || "?"} imageUrl={conv?.otherUserAvatar} size="xs" />
                             )}
-                            <div className={`max-w-[75%] rounded-2xl px-4 py-2 ${
+                            <div className={`max-w-[75%] rounded-2xl px-4 py-3 ${
                               isOwn
-                                ? "bg-primary text-primary-foreground rounded-br-md"
-                                : "bg-secondary rounded-bl-md"
+                                ? "bg-primary text-primary-foreground rounded-br-md shadow-lg shadow-primary/15"
+                                : "surface-subtle border border-border/50 rounded-bl-md"
                             }`}>
                               <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
                               <p className={`text-[10px] mt-1 ${isOwn ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
@@ -219,8 +225,8 @@ function MessagesContent() {
                 </ScrollArea>
 
                 {/* Message Input */}
-                <Separator />
-                <div className="p-3 flex gap-2">
+                <Separator className="bg-border/50" />
+                <div className="safe-bottom flex gap-2 bg-background/35 p-3">
                   <Input
                     aria-label="Type a message"
                     placeholder="Type a message..."

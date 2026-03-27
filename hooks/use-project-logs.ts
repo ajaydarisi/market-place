@@ -2,15 +2,14 @@
 
 import { api, buildUrl } from "@shared/routes";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getAuthHeaders } from "@/lib/api";
+import { authFetch } from "@/lib/api";
 
 export function useProjectLogs(projectId: number) {
   return useQuery({
     queryKey: [api.projectLogs.list.path, projectId],
     queryFn: async () => {
       const url = buildUrl(api.projectLogs.list.path, { projectId });
-      const headers = await getAuthHeaders();
-      const res = await fetch(url, { headers });
+      const res = await authFetch(url);
       if (!res.ok) throw new Error("Failed to fetch project logs");
       return api.projectLogs.list.responses[200].parse(await res.json());
     },
@@ -31,10 +30,9 @@ export function useCreateProjectLog() {
       logType?: "update" | "milestone" | "blocker" | "completed";
     }) => {
       const url = buildUrl(api.projectLogs.create.path, { projectId });
-      const headers = await getAuthHeaders();
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method: api.projectLogs.create.method,
-        headers: { "Content-Type": "application/json", ...headers },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content, logType: logType || "update" }),
       });
       if (!res.ok) throw new Error("Failed to create project log");

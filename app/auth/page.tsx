@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -9,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { createClient } from "@/lib/supabase/client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Briefcase, CheckCircle2, Eye, EyeOff, Loader2, MessageSquare, Shield } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -135,44 +136,107 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-secondary/30 py-12 px-4">
-      <Card className="w-full max-w-md shadow-2xl border-primary/10">
-        <CardHeader className="text-center space-y-2 pb-6">
-          <div className="font-display text-3xl font-bold tracking-tight">
-            Market<span className="text-primary">Place</span>
+    <div className="page-shell hero-aurora min-h-screen bg-background px-4 py-6 lg:flex lg:items-center lg:py-0">
+      <div className="container mx-auto grid w-full max-w-6xl items-center gap-8 lg:grid-cols-[0.95fr_0.8fr] lg:gap-10">
+        <div className="order-2 min-w-0 space-y-6 lg:order-1 lg:space-y-8">
+          <Badge variant="outline" className="surface-glass w-fit px-4 py-2 text-xs text-muted-foreground sm:text-sm">
+            <Shield className="mr-2 h-4 w-4 text-primary" />
+            High-trust marketplace access
+          </Badge>
+
+          <div className="max-w-xl min-w-0 space-y-4 lg:space-y-5">
+            <h1 className="text-[2.6rem] font-display font-bold leading-[1.02] text-foreground sm:text-5xl md:text-6xl">
+              Welcome back to
+              <span className="mt-2 block text-gradient">DevMarket</span>
+            </h1>
+            <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
+              Meet the right developers faster, keep conversations flowing, and manage hiring with the same premium experience across every step.
+            </p>
           </div>
-          <CardDescription className="text-base">Sign in to your account or create a new one.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="signin" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2">
+
+          <div className="phone-scroll-row w-full max-w-full sm:grid sm:grid-cols-3 sm:gap-4">
+            <Card className="surface-glass w-full border-primary/10 sm:w-auto sm:max-w-none">
+              <div className="flex min-h-[11.5rem] h-full flex-col items-center justify-center px-5 py-5 text-center">
+                <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/[0.08] text-primary">
+                  <Briefcase className="h-5 w-5" />
+                </div>
+                <h2 className="mb-1 text-base font-bold">Curated projects</h2>
+                <p className="mx-auto max-w-[14rem] text-sm text-muted-foreground">Focused flows for clients and developers.</p>
+              </div>
+            </Card>
+            <Card className="surface-glass w-full border-accent/10 sm:w-auto sm:max-w-none">
+              <div className="flex min-h-[11.5rem] h-full flex-col items-center justify-center px-5 py-5 text-center">
+                <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-accent/[0.12] text-accent">
+                  <MessageSquare className="h-5 w-5" />
+                </div>
+                <h2 className="mb-1 text-base font-bold">Instant context</h2>
+                <p className="mx-auto max-w-[14rem] text-sm text-muted-foreground">Messaging and dashboards stay in sync.</p>
+              </div>
+            </Card>
+            <Card className="surface-glass w-full border-primary/10 sm:w-auto sm:max-w-none">
+              <div className="flex min-h-[11.5rem] h-full flex-col items-center justify-center px-5 py-5 text-center">
+                <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/[0.08] text-primary">
+                  <CheckCircle2 className="h-5 w-5" />
+                </div>
+                <h2 className="mb-1 text-base font-bold">Clear delivery</h2>
+                <p className="mx-auto max-w-[14rem] text-sm text-muted-foreground">Track projects from proposal to handoff.</p>
+              </div>
+            </Card>
+          </div>
+        </div>
+
+        <Card className="surface-glass order-1 min-w-0 w-full max-w-full justify-self-stretch border-primary/10 shadow-2xl sm:max-w-md sm:justify-self-center lg:order-2">
+          <CardHeader className="space-y-2 px-4 pb-6 pt-6 text-center sm:px-6">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-[1.4rem] bg-gradient-to-br from-primary via-primary to-accent text-primary-foreground shadow-lg shadow-primary/20">
+              <Briefcase className="h-6 w-6 translate-y-px" />
+            </div>
+            <CardTitle className="text-[2rem] leading-none sm:text-3xl">
+              Dev<span className="text-primary">Market</span>
+            </CardTitle>
+            <CardDescription className="px-2 text-sm leading-relaxed sm:px-0 sm:text-base">
+              Sign in to your account or create a new one.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="px-4 pb-5 sm:px-6 md:pb-6">
+            <Tabs defaultValue="signin" className="space-y-6">
+              <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin" aria-label="Sign in tab" data-testid="signin-tab">Sign In</TabsTrigger>
               <TabsTrigger value="signup" aria-label="Sign up tab" data-testid="signup-tab">Sign Up</TabsTrigger>
             </TabsList>
 
             <TabsContent value="signin">
               {showForgot ? (
-                <div className="space-y-4">
+                <form
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    void handleForgotPassword();
+                  }}
+                  className="space-y-4"
+                >
                   <div className="space-y-2">
-                    <FormLabel>Email</FormLabel>
+                    <label htmlFor="forgot-email" className="text-sm font-medium leading-none text-foreground">
+                      Email
+                    </label>
                     <Input
+                      id="forgot-email"
                       aria-label="Email for password reset"
                       type="email"
                       placeholder="you@example.com"
+                      autoComplete="email"
                       value={forgotEmail}
                       onChange={(e) => setForgotEmail(e.target.value)}
                       className="h-12"
                       data-testid="forgot-email-input"
                     />
                   </div>
-                  <Button onClick={handleForgotPassword} aria-label="Send password reset link" className="w-full h-12" disabled={isLoading} data-testid="forgot-send-reset-button">
+                  <Button type="submit" aria-label="Send password reset link" className="h-12 w-full" disabled={isLoading} data-testid="forgot-send-reset-button">
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Send Reset Link
                   </Button>
-                  <Button variant="ghost" aria-label="Back to sign in" className="w-full" onClick={() => setShowForgot(false)} data-testid="forgot-back-button">
+                  <Button type="button" variant="ghost" aria-label="Back to sign in" className="w-full" onClick={() => setShowForgot(false)} data-testid="forgot-back-button">
                     Back to sign in
                   </Button>
-                </div>
+                </form>
               ) : (
                 <Form {...signInForm}>
                   <form onSubmit={signInForm.handleSubmit(handleSignIn)} className="space-y-4">
@@ -230,7 +294,7 @@ export default function AuthPage() {
             <TabsContent value="signup">
               <Form {...signUpForm}>
                 <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <FormField
                       control={signUpForm.control}
                       name="firstName"
@@ -303,7 +367,7 @@ export default function AuthPage() {
                     onExpire={() => setCaptchaToken(null)}
                     onError={() => setCaptchaToken(null)}
                     data-testid="signup-captcha"
-                  />
+                    />
                   <Button type="submit" aria-label="Create account" className="w-full h-12 text-lg font-semibold" disabled={isLoading} data-testid="signup-submit-button">
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Create Account
@@ -312,8 +376,9 @@ export default function AuthPage() {
               </Form>
             </TabsContent>
           </Tabs>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

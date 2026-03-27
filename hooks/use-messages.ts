@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { api, buildUrl } from "@shared/routes";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getAuthHeaders } from "@/lib/api";
+import { authFetch } from "@/lib/api";
 import { createClient } from "@/lib/supabase/client";
 
 export function useProjectMessages(projectId: number) {
@@ -11,8 +11,7 @@ export function useProjectMessages(projectId: number) {
     queryKey: [api.messages.list.path, projectId],
     queryFn: async () => {
       const url = buildUrl(api.messages.list.path, { projectId });
-      const headers = await getAuthHeaders();
-      const res = await fetch(url, { headers });
+      const res = await authFetch(url);
       if (!res.ok) throw new Error("Failed to fetch messages");
       return api.messages.list.responses[200].parse(await res.json());
     },
@@ -71,8 +70,7 @@ export function useConversations(currentUserId: string) {
   return useQuery({
     queryKey: [api.messages.conversations.path],
     queryFn: async () => {
-      const headers = await getAuthHeaders();
-      const res = await fetch(api.messages.conversations.path, { headers });
+      const res = await authFetch(api.messages.conversations.path);
       if (!res.ok) throw new Error("Failed to fetch conversations");
       const messages: any[] = await res.json();
 
@@ -104,10 +102,9 @@ export function useSendMessage() {
   return useMutation({
     mutationFn: async ({ projectId, receiverId, content }: { projectId: number; receiverId: string; content: string }) => {
       const url = buildUrl(api.messages.send.path, { projectId });
-      const headers = await getAuthHeaders();
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method: api.messages.send.method,
-        headers: { "Content-Type": "application/json", ...headers },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ receiverId, content }),
       });
       if (!res.ok) throw new Error("Failed to send message");

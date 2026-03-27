@@ -139,25 +139,25 @@ function AdminProjectsContent() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto mobile-page">
         <Link
           href="/admin"
           aria-label="Back to admin dashboard"
-          className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-4 transition-colors"
+          className="surface-glass mb-4 inline-flex items-center rounded-full px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-primary"
         >
           <ArrowLeft className="mr-1 h-4 w-4" />
           Back to Dashboard
         </Link>
 
-        <div className="mb-8">
-          <h1 className="text-3xl font-display font-bold">Projects</h1>
-          <p className="text-muted-foreground mt-1">
+        <div className="surface-glass mobile-panel mb-6 border-primary/10 md:mb-8">
+          <h1 className="mobile-section-title">Projects</h1>
+          <p className="mobile-copy mt-2">
             Manage all projects on the platform. Total: {data?.total || 0} projects.
           </p>
         </div>
 
-        <Card className="mb-6 p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
+        <Card className="mb-4 p-4 md:mb-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -169,7 +169,7 @@ function AdminProjectsContent() {
               />
             </div>
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger aria-label="Filter by status" className="w-[180px]">
+              <SelectTrigger aria-label="Filter by status" className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -191,103 +191,170 @@ function AdminProjectsContent() {
               ))}
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Budget</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              <div className="divide-y divide-border/50 md:hidden">
                 {data?.items.map((project) => (
-                  <TableRow key={project.id}>
-                    <TableCell>
-                      <div className="min-w-0">
-                        <p className="font-medium truncate" title={project.title}>
-                          {project.title}
-                        </p>
-                        <p className="text-sm text-muted-foreground">{project.category}</p>
+                  <div key={project.id} className="space-y-4 p-4">
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant={getStatusBadgeVariant(project.status)}>
+                          {project.status.replace(/_/g, " ")}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">{project.category}</span>
                       </div>
-                    </TableCell>
-                    <TableCell>
+                      <p className="font-semibold" title={project.title}>{project.title}</p>
                       <div className="flex items-center gap-2">
                         <ProfileAvatar
                           name={`${project.client?.firstName || ""} ${project.client?.lastName || ""}`}
                           imageUrl={project.client?.profileImageUrl}
                           size="sm"
                         />
-                        <span
-                          className="truncate"
-                          title={`${project.client?.firstName} ${project.client?.lastName}`}
-                        >
+                        <span className="truncate text-sm text-muted-foreground" title={`${project.client?.firstName} ${project.client?.lastName}`}>
                           {project.client?.firstName} {project.client?.lastName}
                         </span>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusBadgeVariant(project.status)}>
-                        {project.status.replace(/_/g, " ")}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{formatBudget(project.budgetMin, project.budgetMax)}</TableCell>
-                    <TableCell>
-                      {project.createdAt
-                        ? new Date(project.createdAt).toLocaleDateString()
-                        : "N/A"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Link href={`/admin/projects/${project.id}`}>
-                          <Button variant="ghost" size="icon" aria-label="Edit project">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" aria-label="Delete project">
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Project</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete &quot;{project.title}&quot;? This
-                                action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDelete(project.id!, project.title)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                {isDeleting ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  "Delete"
-                                )}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                    </div>
+                    <div className="grid gap-2 text-sm">
+                      <div className="surface-subtle rounded-2xl px-3 py-2">
+                        <span className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Budget</span>
+                        <p className="mt-1 font-medium">{formatBudget(project.budgetMin, project.budgetMax)}</p>
                       </div>
-                    </TableCell>
-                  </TableRow>
+                      <p className="text-xs text-muted-foreground">
+                        Created {project.createdAt ? new Date(project.createdAt).toLocaleDateString() : "N/A"}
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Link href={`/admin/projects/${project.id}`}>
+                        <Button variant="outline" className="w-full" aria-label="Edit project">
+                          <Edit className="mr-2 h-4 w-4" />
+                          Edit
+                        </Button>
+                      </Link>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="outline" className="w-full text-destructive" aria-label="Delete project">
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Project</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete &quot;{project.title}&quot;? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDelete(project.id!, project.title)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
                 ))}
                 {data?.items.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
-                      <p className="text-muted-foreground">No projects found</p>
-                    </TableCell>
-                  </TableRow>
+                  <div className="p-8 text-center">
+                    <p className="text-muted-foreground">No projects found</p>
+                  </div>
                 )}
-              </TableBody>
-            </Table>
+              </div>
+
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Project</TableHead>
+                      <TableHead>Client</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Budget</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {data?.items.map((project) => (
+                      <TableRow key={project.id}>
+                        <TableCell>
+                          <div className="min-w-0">
+                            <p className="font-medium truncate" title={project.title}>
+                              {project.title}
+                            </p>
+                            <p className="text-sm text-muted-foreground">{project.category}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <ProfileAvatar
+                              name={`${project.client?.firstName || ""} ${project.client?.lastName || ""}`}
+                              imageUrl={project.client?.profileImageUrl}
+                              size="sm"
+                            />
+                            <span className="truncate" title={`${project.client?.firstName} ${project.client?.lastName}`}>
+                              {project.client?.firstName} {project.client?.lastName}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={getStatusBadgeVariant(project.status)}>
+                            {project.status.replace(/_/g, " ")}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{formatBudget(project.budgetMin, project.budgetMax)}</TableCell>
+                        <TableCell>
+                          {project.createdAt ? new Date(project.createdAt).toLocaleDateString() : "N/A"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Link href={`/admin/projects/${project.id}`}>
+                              <Button variant="ghost" size="icon" aria-label="Edit project">
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" aria-label="Delete project">
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Project</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete &quot;{project.title}&quot;? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDelete(project.id!, project.title)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {data?.items.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8">
+                          <p className="text-muted-foreground">No projects found</p>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </Card>
 

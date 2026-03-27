@@ -2,15 +2,14 @@
 
 import { api, buildUrl, type UpdateUserRequest } from "@shared/routes";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getAuthHeaders } from "@/lib/api";
+import { authFetch } from "@/lib/api";
 
 export function useUser(userId: string) {
   return useQuery({
     queryKey: [api.users.get.path, userId],
     queryFn: async () => {
       const url = buildUrl(api.users.get.path, { userId });
-      const headers = await getAuthHeaders();
-      const res = await fetch(url, { headers });
+      const res = await authFetch(url);
       if (res.status === 404) return null;
       if (!res.ok) throw new Error("Failed to fetch user");
       return api.users.get.responses[200].parse(await res.json());
@@ -23,10 +22,9 @@ export function useUpdateUser() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: UpdateUserRequest) => {
-      const headers = await getAuthHeaders();
-      const res = await fetch(api.users.update.path, {
+      const res = await authFetch(api.users.update.path, {
         method: api.users.update.method,
-        headers: { "Content-Type": "application/json", ...headers },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
       if (!res.ok) {

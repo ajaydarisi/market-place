@@ -21,15 +21,15 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="page-shell min-h-screen bg-background">
       <Navigation />
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-display font-bold">Admin Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Manage users, projects, and platform settings.</p>
+      <main className="container mx-auto mobile-page">
+        <div className="surface-glass mobile-panel mb-6 border-primary/10 md:mb-8">
+          <h1 className="mobile-section-title">Admin Dashboard</h1>
+          <p className="mobile-copy mt-2">Manage users, projects, and platform settings.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="mb-6 grid grid-cols-1 gap-4 md:mb-8 md:grid-cols-2 md:gap-6 lg:grid-cols-4">
           {statCards.map((stat) => (
             <Link key={stat.title} href={stat.href} aria-label={`View ${stat.title}`}>
               <Card className="hover:border-primary/50 transition-colors cursor-pointer">
@@ -49,7 +49,7 @@ export default function AdminDashboard() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
           <Card>
             <CardHeader>
               <CardTitle>Quick Actions</CardTitle>

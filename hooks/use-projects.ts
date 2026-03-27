@@ -2,7 +2,7 @@
 
 import { api, buildUrl, type InsertProject, type UpdateProjectRequest } from "@shared/routes";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getAuthHeaders } from "@/lib/api";
+import { authFetch } from "@/lib/api";
 
 // List projects with optional filters
 export function useProjects(filters?: { category?: string; search?: string; sort?: string; clientId?: string }) {
@@ -17,8 +17,7 @@ export function useProjects(filters?: { category?: string; search?: string; sort
 
       console.log(filters, "filters")
 
-      const headers = await getAuthHeaders();
-      const res = await fetch(url.toString(), { headers });
+      const res = await authFetch(url.toString());
       if (!res.ok) throw new Error("Failed to fetch projects");
       return api.projects.list.responses[200].parse(await res.json());
     },
@@ -30,8 +29,7 @@ export function useProject(id: number) {
     queryKey: [api.projects.get.path, id],
     queryFn: async () => {
       const url = buildUrl(api.projects.get.path, { id });
-      const headers = await getAuthHeaders();
-      const res = await fetch(url, { headers });
+      const res = await authFetch(url);
       if (!res.ok) throw new Error("Failed to fetch project");
       return api.projects.get.responses[200].parse(await res.json());
     },
@@ -43,10 +41,9 @@ export function useCreateProject() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: InsertProject) => {
-      const headers = await getAuthHeaders();
-      const res = await fetch(api.projects.create.path, {
+      const res = await authFetch(api.projects.create.path, {
         method: api.projects.create.method,
-        headers: { "Content-Type": "application/json", ...headers },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error("Failed to create project");
@@ -63,10 +60,9 @@ export function useUpdateProject() {
   return useMutation({
     mutationFn: async ({ id, data }: { id: number; data: UpdateProjectRequest }) => {
       const url = buildUrl(api.projects.update.path, { id });
-      const headers = await getAuthHeaders();
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method: api.projects.update.method,
-        headers: { "Content-Type": "application/json", ...headers },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error("Failed to update project");
@@ -84,10 +80,8 @@ export function useDeleteProject() {
   return useMutation({
     mutationFn: async (id: number) => {
       const url = buildUrl(api.projects.delete.path, { id });
-      const headers = await getAuthHeaders();
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method: api.projects.delete.method,
-        headers,
       });
       if (!res.ok) throw new Error("Failed to delete project");
       return api.projects.delete.responses[200].parse(await res.json());

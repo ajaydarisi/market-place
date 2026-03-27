@@ -157,7 +157,7 @@ export default function ProjectDetail() {
 
   const logTypeLabels: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
     update: { label: "Update", icon: <Clock className="h-3 w-3" />, color: "bg-primary/10 text-primary" },
-    milestone: { label: "Milestone", icon: <Flag className="h-3 w-3" />, color: "bg-green-500/10 text-green-600" },
+    milestone: { label: "Milestone", icon: <Flag className="h-3 w-3" />, color: "bg-status-online/15 text-status-online" },
     blocker: { label: "Blocker", icon: <AlertTriangle className="h-3 w-3" />, color: "bg-destructive/10 text-destructive" },
     completed: { label: "Completed", icon: <CheckCircle2 className="h-3 w-3" />, color: "bg-accent/10 text-accent" },
   };
@@ -170,9 +170,9 @@ export default function ProjectDetail() {
 
   if (isLoading || !project) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="page-shell min-h-screen bg-background">
         <Navigation />
-        <div className="h-[calc(100vh-64px)] flex items-center justify-center">
+        <div className="h-[calc(100vh-80px)] flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </div>
@@ -180,23 +180,23 @@ export default function ProjectDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-12">
+    <div className="page-shell min-h-screen bg-background pb-12">
       <Navigation />
 
       {/* Header */}
-      <div className="bg-secondary/30 border-b dark:border-slate-500 border-slate-300 py-12">
+      <div className="section-band-strong border-b border-border/55 py-8 md:py-12">
         <div className="container mx-auto px-4">
-          <div className="flex items-center gap-2 mb-4">
-            <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20" data-testid="project-detail-category">{project.category}</Badge>
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <Badge className="bg-primary/[0.08] text-primary border-primary/20" data-testid="project-detail-category">{project.category}</Badge>
             <Badge variant={statusVariant(project.status)} data-testid="project-detail-status">{statusLabels[project.status] || project.status}</Badge>
           </div>
-          <div className="flex items-center gap-3 mb-4">
-            <h1 className="text-3xl md:text-4xl font-display font-bold line-clamp-3 md:truncate md:line-clamp-none" title={project.title} data-testid="project-detail-title">{project.title}</h1>
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <h1 className="text-2xl font-display font-bold line-clamp-3 sm:text-3xl md:text-4xl md:truncate md:line-clamp-none" title={project.title} data-testid="project-detail-title">{project.title}</h1>
             {isOwner && (
-              <>
+              <div className="flex flex-wrap gap-2">
               <Dialog open={editOpen} onOpenChange={setEditOpen}>
                 <DialogTrigger asChild>
-                  <Button size="sm" aria-label="Edit project" data-testid="project-detail-edit-button">
+                  <Button size="sm" variant="outline" className="surface-glass" aria-label="Edit project" data-testid="project-detail-edit-button">
                     <Pencil className="h-4 w-4" />
                     <span className="hidden sm:inline">Edit</span>
                   </Button>
@@ -350,12 +350,12 @@ export default function ProjectDetail() {
                       Delete
                     </AlertDialogAction>
                   </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-              </>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             )}
           </div>
-          <div className="flex flex-wrap gap-6 text-muted-foreground">
+          <div className="flex flex-col gap-3 text-sm text-muted-foreground sm:flex-row sm:flex-wrap sm:gap-6">
             <div className="flex items-center gap-2">
               <User className="h-4 w-4" />
               <span className="truncate" title={`Posted by ${project.client.firstName} ${project.client.lastName}`}>Posted by {project.client.firstName} {project.client.lastName}</span>
@@ -371,9 +371,9 @@ export default function ProjectDetail() {
         </div>
       </div>
 
-      <main className="container mx-auto px-4 py-8 grid lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          <Card className="shadow-sm" data-testid="project-detail-description-card">
+      <main className="container mx-auto grid gap-6 px-4 py-6 lg:grid-cols-3 lg:gap-8 lg:py-8">
+        <div className="space-y-6 lg:col-span-2 lg:space-y-8">
+          <Card className="surface-glass" data-testid="project-detail-description-card">
             <CardHeader>
               <CardTitle>Project Description</CardTitle>
             </CardHeader>
@@ -388,7 +388,7 @@ export default function ProjectDetail() {
             <div className="space-y-4">
               <h2 className="text-2xl font-bold font-display">Proposals ({interests?.length || 0})</h2>
               {interests?.length === 0 ? (
-                <Card className="border-dashed rounded-xl">
+                <Card className="surface-glass border-dashed">
                   <CardContent className="p-8 text-center">
                     <p className="text-muted-foreground">No proposals yet. Check back later!</p>
                   </CardContent>
@@ -396,7 +396,7 @@ export default function ProjectDetail() {
               ) : (
                 <div className="grid gap-4">
                   {interests?.map((interest) => (
-                    <Card key={interest.id} className={`overflow-hidden ${interest.status === "accepted" ? "border-primary/50" : ""}`}>
+                    <Card key={interest.id} className={`surface-glass overflow-hidden ${interest.status === "accepted" ? "border-primary/40" : ""}`}>
                       <CardContent className="p-6 space-y-3">
                         <div className="flex items-center justify-between gap-4">
                           <div className="flex items-center gap-3 min-w-0">
@@ -439,10 +439,10 @@ export default function ProjectDetail() {
                             </Link>
                           </div>
                         </div>
-                        <p className="text-sm text-muted-foreground bg-secondary/30 p-3 rounded-lg line-clamp-3" title={interest.message || ""}>
+                        <p className="surface-subtle text-sm text-muted-foreground p-3 rounded-2xl line-clamp-3" title={interest.message || ""}>
                           &quot;{interest.message}&quot;
                         </p>
-                        <div className="grid grid-cols-3 gap-2 pt-1 sm:hidden">
+                      <div className="grid grid-cols-1 gap-2 pt-1 sm:hidden">
                           {project.status === "open" && interest.status === "pending" && (
                             <Button
                               size="sm"
@@ -499,7 +499,7 @@ export default function ProjectDetail() {
               <h2 className="text-2xl font-bold font-display">Project Activity</h2>
 
               {/* Add Log Form */}
-              <Card>
+              <Card className="surface-glass">
                 <CardContent className="p-4">
                   <div className="space-y-3">
                     <Textarea
@@ -510,9 +510,9 @@ export default function ProjectDetail() {
                       onChange={(e) => setLogContent(e.target.value)}
                       data-testid="project-detail-log-content-textarea"
                     />
-                    <div className="flex items-center justify-between gap-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <Select value={logType} onValueChange={(val: typeof logTypes[number]) => setLogType(val)}>
-                        <SelectTrigger aria-label="Log type" className="w-[140px]" data-testid="project-detail-log-type-select">
+                        <SelectTrigger aria-label="Log type" className="w-full sm:w-[140px]" data-testid="project-detail-log-type-select">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -544,7 +544,7 @@ export default function ProjectDetail() {
               {logs && logs.length > 0 ? (
                 <div className="space-y-3">
                   {logs.map((log) => (
-                    <Card key={log.id} data-testid={`project-detail-log-${log.id}`}>
+                    <Card key={log.id} className="surface-glass" data-testid={`project-detail-log-${log.id}`}>
                       <CardContent className="p-4">
                         <div className="flex items-start gap-3">
                           <ProfileAvatar
@@ -571,7 +571,7 @@ export default function ProjectDetail() {
                   ))}
                 </div>
               ) : (
-                <Card className="border-dashed">
+                <Card className="surface-glass border-dashed">
                   <CardContent className="p-8 text-center">
                     <p className="text-muted-foreground">No activity yet. Post the first update!</p>
                   </CardContent>
@@ -581,8 +581,8 @@ export default function ProjectDetail() {
           )}
         </div>
 
-        <div className="space-y-6">
-          <Card>
+        <div className="space-y-4 md:space-y-6">
+          <Card className="surface-glass">
             <CardHeader>
               <CardTitle className="text-lg">About the Client</CardTitle>
             </CardHeader>
@@ -603,10 +603,10 @@ export default function ProjectDetail() {
           </Card>
 
           {!isClient && (
-            <Card>
+            <Card className="surface-glass">
               <CardContent className="pt-6">
                 {hasExpressedInterest ? (
-                  <Button className="w-full bg-status-online hover:bg-status-online/90 cursor-default" size="lg" aria-label="Already applied">
+                  <Button className="w-full border-status-online bg-status-online text-white hover:bg-status-online/90 cursor-default" size="lg" aria-label="Already applied">
                     <CheckCircle2 className="mr-2 h-5 w-5" />
                     Applied
                   </Button>

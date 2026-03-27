@@ -129,25 +129,25 @@ function AdminUsersContent() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto mobile-page">
         <Link
           href="/admin"
           aria-label="Back to admin dashboard"
-          className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-4 transition-colors"
+          className="surface-glass mb-4 inline-flex items-center rounded-full px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-primary"
         >
           <ArrowLeft className="mr-1 h-4 w-4" />
           Back to Dashboard
         </Link>
 
-        <div className="mb-8">
-          <h1 className="text-3xl font-display font-bold">Users</h1>
-          <p className="text-muted-foreground mt-1">
+        <div className="surface-glass mobile-panel mb-6 border-primary/10 md:mb-8">
+          <h1 className="mobile-section-title">Users</h1>
+          <p className="mobile-copy mt-2">
             Manage all users on the platform. Total: {data?.total || 0} users.
           </p>
         </div>
 
-        <Card className="mb-6 p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
+        <Card className="mb-4 p-4 md:mb-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -159,7 +159,7 @@ function AdminUsersContent() {
               />
             </div>
             <Select value={role} onValueChange={setRole}>
-              <SelectTrigger aria-label="Filter by role" className="w-[180px]">
+              <SelectTrigger aria-label="Filter by role" className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Filter by role" />
               </SelectTrigger>
               <SelectContent>
@@ -180,114 +180,162 @@ function AdminUsersContent() {
               ))}
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Joined</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              <div className="divide-y divide-border/50 md:hidden">
                 {data?.items.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <ProfileAvatar
-                          name={`${user.firstName || ""} ${user.lastName || ""}`}
-                          imageUrl={user.profileImageUrl}
-                          size="sm"
-                        />
-                        <div className="min-w-0">
-                          <p
-                            className="font-medium truncate"
-                            title={`${user.firstName} ${user.lastName}`}
-                          >
-                            {user.firstName} {user.lastName}
-                          </p>
+                  <div key={user.id} className="space-y-4 p-4">
+                    <div className="flex items-start gap-3">
+                      <ProfileAvatar
+                        name={`${user.firstName || ""} ${user.lastName || ""}`}
+                        imageUrl={user.profileImageUrl}
+                        size="md"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-semibold" title={`${user.firstName} ${user.lastName}`}>
+                          {user.firstName} {user.lastName}
+                        </p>
+                        <p className="truncate text-sm text-muted-foreground" title={user.email}>
+                          {user.email}
+                        </p>
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          <Badge variant={getRoleBadgeVariant(user.profile?.role)}>
+                            {user.profile?.role || "No profile"}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            Joined {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A"}
+                          </span>
                         </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="truncate" title={user.email}>
-                        {user.email}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={getRoleBadgeVariant(user.profile?.role)}>
-                        {user.profile?.role || "No profile"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {user.createdAt
-                        ? new Date(user.createdAt).toLocaleDateString()
-                        : "N/A"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Link href={`/admin/users/${user.id}`}>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            aria-label="Edit user"
-                          >
-                            <Edit className="h-4 w-4" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Link href={`/admin/users/${user.id}`}>
+                        <Button variant="outline" className="w-full" aria-label="Edit user">
+                          <Edit className="mr-2 h-4 w-4" />
+                          Edit
+                        </Button>
+                      </Link>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="outline" className="w-full text-destructive" aria-label="Delete user">
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
                           </Button>
-                        </Link>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              aria-label="Delete user"
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete User</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete {user.firstName} {user.lastName}? This will also remove all their projects and data. This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDelete(user.id, `${user.firstName} ${user.lastName}`)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete User</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete {user.firstName}{" "}
-                                {user.lastName}? This will also remove all their
-                                projects and data. This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() =>
-                                  handleDelete(
-                                    user.id,
-                                    `${user.firstName} ${user.lastName}`
-                                  )
-                                }
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                {isDeleting ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  "Delete"
-                                )}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                              {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
                 ))}
                 {data?.items.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8">
-                      <p className="text-muted-foreground">No users found</p>
-                    </TableCell>
-                  </TableRow>
+                  <div className="p-8 text-center">
+                    <p className="text-muted-foreground">No users found</p>
+                  </div>
                 )}
-              </TableBody>
-            </Table>
+              </div>
+
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>User</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Joined</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {data?.items.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <ProfileAvatar
+                              name={`${user.firstName || ""} ${user.lastName || ""}`}
+                              imageUrl={user.profileImageUrl}
+                              size="sm"
+                            />
+                            <div className="min-w-0">
+                              <p className="font-medium truncate" title={`${user.firstName} ${user.lastName}`}>
+                                {user.firstName} {user.lastName}
+                              </p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="truncate" title={user.email}>
+                            {user.email}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={getRoleBadgeVariant(user.profile?.role)}>
+                            {user.profile?.role || "No profile"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Link href={`/admin/users/${user.id}`}>
+                              <Button variant="ghost" size="icon" aria-label="Edit user">
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" aria-label="Delete user">
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete User</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete {user.firstName} {user.lastName}? This will also remove all their projects and data. This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDelete(user.id, `${user.firstName} ${user.lastName}`)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {data?.items.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-8">
+                          <p className="text-muted-foreground">No users found</p>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </Card>
 

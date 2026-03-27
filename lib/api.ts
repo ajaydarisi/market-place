@@ -8,3 +8,18 @@ export async function getAuthHeaders(): Promise<Record<string, string>> {
     Authorization: `Bearer ${session.access_token}`,
   };
 }
+
+export async function authFetch(input: RequestInfo | URL, init: RequestInit = {}) {
+  const authHeaders = await getAuthHeaders();
+  const headers = new Headers(init.headers);
+
+  Object.entries(authHeaders).forEach(([key, value]) => {
+    headers.set(key, value);
+  });
+
+  return fetch(input, {
+    ...init,
+    credentials: "omit",
+    headers,
+  });
+}

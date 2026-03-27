@@ -64,20 +64,20 @@ export default function Onboarding() {
   const selectedRole = form.watch("role");
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-secondary/30 py-12 px-4">
-      <Card className="w-full max-w-xl shadow-2xl border-primary/10">
-        <CardHeader className="text-center space-y-4 pb-8">
+    <div className="page-shell hero-aurora min-h-screen bg-background px-4 py-6 md:flex md:items-center md:justify-center md:py-10">
+      <Card className="mx-auto w-full max-w-xl border-primary/10 shadow-2xl">
+        <CardHeader className="space-y-4 pb-6 text-center md:pb-8">
           <div className="mx-auto w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-2">
             <UserCircle className="w-8 h-8" />
           </div>
           <div>
-            <CardTitle className="text-3xl font-display font-bold">Welcome, {userData?.firstName || 'User'}!</CardTitle>
-            <CardDescription className="text-lg mt-2">Let&apos;s set up your profile to get you started.</CardDescription>
+            <CardTitle className="text-2xl font-display font-bold sm:text-3xl">Welcome, {userData?.firstName || 'User'}!</CardTitle>
+            <CardDescription className="mt-2 text-base sm:text-lg">Let&apos;s set up your profile to get you started.</CardDescription>
           </div>
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 md:space-y-8">
               <FormField
                 control={form.control}
                 name="role"
@@ -88,11 +88,11 @@ export default function Onboarding() {
                       aria-label="Select your role"
                       onValueChange={field.onChange}
                       defaultValue={field.value}
-                      className="grid grid-cols-2 gap-4 mt-2"
+                      className="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-2"
                     >
                       <Label
                         htmlFor="role-client"
-                        className={`cursor-pointer rounded-xl border-2 p-4 transition-all duration-200 hover:border-primary/50 hover:bg-primary/5 ${field.value === 'client' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border'}`}
+                        className={`cursor-pointer rounded-2xl border-2 p-4 transition-all duration-200 hover:border-primary/50 hover:bg-primary/5 ${field.value === 'client' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border'}`}
                         data-testid="onboarding-role-client-radio"
                       >
                         <RadioGroupItem value="client" id="role-client" className="sr-only" />
@@ -102,7 +102,7 @@ export default function Onboarding() {
                       </Label>
                       <Label
                         htmlFor="role-developer"
-                        className={`cursor-pointer rounded-xl border-2 p-4 transition-all duration-200 hover:border-primary/50 hover:bg-primary/5 ${field.value === 'developer' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border'}`}
+                        className={`cursor-pointer rounded-2xl border-2 p-4 transition-all duration-200 hover:border-primary/50 hover:bg-primary/5 ${field.value === 'developer' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border'}`}
                         data-testid="onboarding-role-developer-radio"
                       >
                         <RadioGroupItem value="developer" id="role-developer" className="sr-only" />
@@ -126,7 +126,7 @@ export default function Onboarding() {
                       <Textarea
                         aria-label="Biography"
                         placeholder="Tell us a bit about yourself..."
-                        className="resize-none h-32 text-base"
+                        className="h-32 resize-none text-base"
                         data-testid="onboarding-bio-textarea"
                         {...field}
                         value={field.value || ""}
@@ -159,7 +159,7 @@ export default function Onboarding() {
                 />
               )}
 
-              <Button type="submit" aria-label="Complete setup" className="w-full h-12 text-lg font-semibold rounded-xl" disabled={isPending} data-testid="onboarding-submit-button">
+              <Button type="submit" aria-label="Complete setup" className="w-full h-12 text-base font-semibold rounded-2xl sm:text-lg" disabled={isPending} data-testid="onboarding-submit-button">
                 {isPending ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />

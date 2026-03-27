@@ -209,7 +209,7 @@ export default function Profile() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="page-shell min-h-screen bg-background">
         <Navigation />
         <div className="flex items-center justify-center min-h-[50vh]">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -222,23 +222,23 @@ export default function Profile() {
   const fullName = [userData?.firstName, userData?.lastName].filter(Boolean).join(" ") || "User";
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="page-shell min-h-screen bg-background">
       <Navigation />
-      <div className="mx-auto px-4 py-4">
+      <div className="mx-auto max-w-5xl px-4 py-4 md:py-6">
         <Link
           href={backHref}
           aria-label="Go back"
-          className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-3 transition-colors"
+          className="surface-glass mb-4 inline-flex items-center rounded-full px-4 py-2 text-sm text-muted-foreground hover:text-primary"
         >
           <ArrowLeft className="mr-1 h-4 w-4" />
           Back
         </Link>
 
-        <Card className="shadow-xl border-primary/10 w-full md:w-[50%] md:min-w-[600px] max-w-[800px] mx-auto">
-          <CardHeader className="border-b bg-secondary/20 py-4">
+        <Card className="surface-glass mx-auto w-full border-primary/10">
+          <CardHeader className="hero-grid relative overflow-hidden border-b border-border/50 bg-transparent py-5 md:py-6">
             {!isEditing ? (
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                   <ProfileAvatar
                     name={fullName}
                     imageUrl={userData?.profileImageUrl}
@@ -246,11 +246,11 @@ export default function Profile() {
                     className="border-2 border-primary/20"
                   />
                   <div className="min-w-0">
-                    <CardTitle className="text-lg sm:text-xl font-display truncate">{fullName}</CardTitle>
+                    <CardTitle className="text-lg font-display truncate sm:text-xl">{fullName}</CardTitle>
                     <p className="text-xs sm:text-sm text-muted-foreground truncate mt-1">{userData?.email}</p>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" aria-label="Edit profile" className="shrink-0" onClick={() => setIsEditing(true)} data-testid="profile-edit-button">
+                <Button variant="outline" size="sm" aria-label="Edit profile" className="surface-glass w-full shrink-0 sm:w-auto" onClick={() => setIsEditing(true)} data-testid="profile-edit-button">
                   <Edit2 className="mr-2 h-4 w-4" />
                   Edit
                 </Button>
@@ -263,13 +263,13 @@ export default function Profile() {
             )}
           </CardHeader>
 
-          <CardContent className="pt-5 pb-4">
+          <CardContent className="pt-6 pb-6">
             {!isEditing ? (
               <div className="space-y-5">
                 {/* Personal Details */}
-                <div>
+                <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
                   <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Personal Details</h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <div className="space-y-1 min-w-0">
                       <p className="text-xs text-muted-foreground">First Name</p>
                       <p className="text-sm font-medium truncate" title={userData?.firstName || "Not set"}>{userData?.firstName || "Not set"}</p>
@@ -292,7 +292,7 @@ export default function Profile() {
                 <Separator />
 
                 {/* About */}
-                <div>
+                <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
                   <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">About</h3>
                   <div className="space-y-1 min-w-0">
                     <p className="text-xs text-muted-foreground">Bio</p>
@@ -307,7 +307,7 @@ export default function Profile() {
                     <Separator />
 
                     {/* Skills (Developer only) */}
-                    <div>
+                    <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
                       <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Skills</h3>
                       {profile?.skills && profile.skills.length > 0 ? (
                         <div className="flex flex-wrap gap-1.5">
@@ -325,7 +325,7 @@ export default function Profile() {
                     <Separator />
 
                     {/* Portfolio Links (Developer only) */}
-                    <div>
+                    <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
                       <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Portfolio Links</h3>
                       {profile?.portfolioLinks?.github || profile?.portfolioLinks?.linkedin || profile?.portfolioLinks?.website ? (
                         <div className="space-y-2">
@@ -377,9 +377,9 @@ export default function Profile() {
                     <Separator />
 
                     {/* Professional Details (Developer only) */}
-                    <div>
+                    <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
                       <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Professional Details</h3>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div className="space-y-1">
                           <p className="text-xs text-muted-foreground">Experience Level</p>
                           {profile?.experienceLevel ? (
@@ -415,9 +415,9 @@ export default function Profile() {
                     <Separator />
 
                     {/* Company Details (Client only) */}
-                    <div>
+                    <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
                       <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Company Details</h3>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         <div className="space-y-1 min-w-0">
                           <p className="text-xs text-muted-foreground">Company Name</p>
                           <p className="text-sm font-medium truncate" title={profile?.companyName || "Not set"}>
@@ -493,9 +493,9 @@ export default function Profile() {
                   <Separator />
 
                   {/* Personal Details */}
-                  <div>
+                  <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
                     <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Personal Details</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <FormField
                         control={form.control}
                         name="firstName"
@@ -524,13 +524,13 @@ export default function Profile() {
                       />
                       <div className="space-y-2">
                         <FormLabel>Email</FormLabel>
-                        <div aria-label="Email address" className="h-9 flex items-center px-3 border rounded-md bg-muted/50 text-sm text-muted-foreground truncate" title={userData?.email || "Not set"}>
+                        <div aria-label="Email address" className="surface-subtle flex h-11 items-center rounded-xl px-4 text-sm text-muted-foreground truncate" title={userData?.email || "Not set"}>
                           {userData?.email || "Not set"}
                         </div>
                       </div>
                       <div className="space-y-2">
                         <FormLabel>Role</FormLabel>
-                        <div aria-label="User role" className="h-9 flex items-center px-3 border rounded-md bg-muted/50 text-sm text-muted-foreground capitalize truncate" title={profile?.role || "Not set"}>
+                        <div aria-label="User role" className="surface-subtle flex h-11 items-center rounded-xl px-4 text-sm text-muted-foreground capitalize truncate" title={profile?.role || "Not set"}>
                           {profile?.role || "Not set"}
                         </div>
                       </div>
@@ -540,7 +540,7 @@ export default function Profile() {
                   <Separator />
 
                   {/* About */}
-                  <div>
+                  <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
                     <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">About</h3>
                     <FormField
                       control={form.control}
@@ -569,7 +569,7 @@ export default function Profile() {
                       <Separator />
 
                       {/* Skills (Developer only) */}
-                      <div>
+                      <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
                         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Skills</h3>
                         <FormField
                           control={form.control}
@@ -594,7 +594,7 @@ export default function Profile() {
                       <Separator />
 
                       {/* Portfolio Links (Developer only) */}
-                      <div>
+                      <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
                         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Portfolio Links</h3>
                         <div className="space-y-3">
                           <FormField
@@ -669,9 +669,9 @@ export default function Profile() {
                       <Separator />
 
                       {/* Professional Details (Developer only) */}
-                      <div>
+                      <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
                         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Professional Details</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                           <FormField
                             control={form.control}
                             name="experienceLevel"
@@ -736,9 +736,9 @@ export default function Profile() {
                       <Separator />
 
                       {/* Company Details (Client only) */}
-                      <div>
+                      <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
                         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Company Details</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                           <FormField
                             control={form.control}
                             name="companyName"
@@ -810,19 +810,19 @@ export default function Profile() {
                   )}
 
                   {/* Actions */}
-                  <div className="flex justify-center gap-3 pt-2">
+                  <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-center">
                     <Button
                       type="button"
                       variant="outline"
                       aria-label="Cancel editing"
-                      className="rounded-xl"
+                      className="w-full rounded-2xl sm:w-auto"
                       onClick={handleCancel}
                       disabled={isPending}
                       data-testid="profile-edit-cancel-button"
                     >
                       Cancel
                     </Button>
-                    <Button type="submit" aria-label="Save profile changes" className="rounded-xl px-6" disabled={isPending} data-testid="profile-edit-save-button">
+                    <Button type="submit" aria-label="Save profile changes" className="w-full rounded-2xl px-6 sm:w-auto" disabled={isPending} data-testid="profile-edit-save-button">
                       {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Save Changes
                     </Button>

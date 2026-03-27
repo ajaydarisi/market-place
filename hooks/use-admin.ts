@@ -8,7 +8,7 @@ import {
   type UpdateUserRequest,
 } from "@shared/routes";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getAuthHeaders } from "@/lib/api";
+import { authFetch } from "@/lib/api";
 
 // ==================== STATS ====================
 
@@ -16,8 +16,7 @@ export function useAdminStats() {
   return useQuery({
     queryKey: [api.admin.stats.path],
     queryFn: async () => {
-      const headers = await getAuthHeaders();
-      const res = await fetch(api.admin.stats.path, { headers });
+      const res = await authFetch(api.admin.stats.path);
       if (!res.ok) {
         const error = await res.json().catch(() => ({}));
         throw new Error(error.message || "Failed to fetch admin stats");
@@ -46,8 +45,7 @@ export function useAdminUsers(filters?: {
       if (filters?.pageSize) url.searchParams.set("pageSize", String(filters.pageSize));
       if (filters?.includeDeleted) url.searchParams.set("includeDeleted", "true");
 
-      const headers = await getAuthHeaders();
-      const res = await fetch(url.toString(), { headers });
+      const res = await authFetch(url.toString());
       if (!res.ok) {
         const error = await res.json().catch(() => ({}));
         throw new Error(error.message || "Failed to fetch users");
@@ -62,8 +60,7 @@ export function useAdminUser(userId: string) {
     queryKey: [api.admin.users.get.path, userId],
     queryFn: async () => {
       const url = buildUrl(api.admin.users.get.path, { userId });
-      const headers = await getAuthHeaders();
-      const res = await fetch(url, { headers });
+      const res = await authFetch(url);
       if (!res.ok) {
         const error = await res.json().catch(() => ({}));
         throw new Error(error.message || "Failed to fetch user");
@@ -79,10 +76,9 @@ export function useAdminUpdateUser() {
   return useMutation({
     mutationFn: async ({ userId, data }: { userId: string; data: UpdateUserRequest }) => {
       const url = buildUrl(api.admin.users.update.path, { userId });
-      const headers = await getAuthHeaders();
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method: api.admin.users.update.method,
-        headers: { "Content-Type": "application/json", ...headers },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
       if (!res.ok) {
@@ -104,10 +100,8 @@ export function useAdminDeleteUser() {
   return useMutation({
     mutationFn: async (userId: string) => {
       const url = buildUrl(api.admin.users.delete.path, { userId });
-      const headers = await getAuthHeaders();
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method: api.admin.users.delete.method,
-        headers,
       });
       if (!res.ok) {
         const error = await res.json().catch(() => ({}));
@@ -129,8 +123,7 @@ export function useAdminProfile(userId: string) {
     queryKey: [api.admin.profiles.get.path, userId],
     queryFn: async () => {
       const url = buildUrl(api.admin.profiles.get.path, { userId });
-      const headers = await getAuthHeaders();
-      const res = await fetch(url, { headers });
+      const res = await authFetch(url);
       if (!res.ok) {
         const error = await res.json().catch(() => ({}));
         throw new Error(error.message || "Failed to fetch profile");
@@ -146,10 +139,9 @@ export function useAdminUpdateProfile() {
   return useMutation({
     mutationFn: async ({ userId, data }: { userId: string; data: UpdateProfileRequest }) => {
       const url = buildUrl(api.admin.profiles.update.path, { userId });
-      const headers = await getAuthHeaders();
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method: api.admin.profiles.update.method,
-        headers: { "Content-Type": "application/json", ...headers },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
       if (!res.ok) {
@@ -186,8 +178,7 @@ export function useAdminProjects(filters?: {
       if (filters?.pageSize) url.searchParams.set("pageSize", String(filters.pageSize));
       if (filters?.includeDeleted) url.searchParams.set("includeDeleted", "true");
 
-      const headers = await getAuthHeaders();
-      const res = await fetch(url.toString(), { headers });
+      const res = await authFetch(url.toString());
       if (!res.ok) {
         const error = await res.json().catch(() => ({}));
         throw new Error(error.message || "Failed to fetch projects");
@@ -202,8 +193,7 @@ export function useAdminProject(id: number) {
     queryKey: [api.admin.projects.get.path, id],
     queryFn: async () => {
       const url = buildUrl(api.admin.projects.get.path, { id });
-      const headers = await getAuthHeaders();
-      const res = await fetch(url, { headers });
+      const res = await authFetch(url);
       if (!res.ok) {
         const error = await res.json().catch(() => ({}));
         throw new Error(error.message || "Failed to fetch project");
@@ -219,10 +209,9 @@ export function useAdminUpdateProject() {
   return useMutation({
     mutationFn: async ({ id, data }: { id: number; data: UpdateProjectRequest }) => {
       const url = buildUrl(api.admin.projects.update.path, { id });
-      const headers = await getAuthHeaders();
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method: api.admin.projects.update.method,
-        headers: { "Content-Type": "application/json", ...headers },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
       if (!res.ok) {
@@ -244,10 +233,8 @@ export function useAdminDeleteProject() {
   return useMutation({
     mutationFn: async (id: number) => {
       const url = buildUrl(api.admin.projects.delete.path, { id });
-      const headers = await getAuthHeaders();
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method: api.admin.projects.delete.method,
-        headers,
       });
       if (!res.ok) {
         const error = await res.json().catch(() => ({}));
@@ -279,8 +266,7 @@ export function useAdminAuditLogs(filters?: {
       if (filters?.page) url.searchParams.set("page", String(filters.page));
       if (filters?.pageSize) url.searchParams.set("pageSize", String(filters.pageSize));
 
-      const headers = await getAuthHeaders();
-      const res = await fetch(url.toString(), { headers });
+      const res = await authFetch(url.toString());
       if (!res.ok) {
         const error = await res.json().catch(() => ({}));
         throw new Error(error.message || "Failed to fetch audit logs");
