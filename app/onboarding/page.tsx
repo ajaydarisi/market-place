@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { CategoryMultiSelect } from "@/components/category-multi-select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -20,8 +21,10 @@ import { z } from "zod";
 
 const onboardingSchema = insertProfileSchema.pick({
   role: true,
+  headline: true,
   bio: true,
   skills: true,
+  primaryCategories: true,
 });
 
 type OnboardingFormValues = z.infer<typeof onboardingSchema>;
@@ -37,8 +40,10 @@ export default function Onboarding() {
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
       role: "client",
+      headline: "",
       bio: "",
       skills: [],
+      primaryCategories: [],
     },
   });
 
@@ -118,6 +123,27 @@ export default function Onboarding() {
 
               <FormField
                 control={form.control}
+                name="headline"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base font-semibold">Headline</FormLabel>
+                    <FormControl>
+                      <Input
+                        aria-label="Headline"
+                        placeholder={selectedRole === "developer" ? "Senior React developer shipping fast product work" : "Founder hiring for digital product work"}
+                        className="h-12"
+                        data-testid="onboarding-headline-input"
+                        {...field}
+                        value={field.value || ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
                 name="bio"
                 render={({ field }) => (
                   <FormItem>
@@ -131,6 +157,22 @@ export default function Onboarding() {
                         {...field}
                         value={field.value || ""}
                       />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="primaryCategories"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base font-semibold">
+                      {selectedRole === "developer" ? "Primary categories" : "Hiring categories"}
+                    </FormLabel>
+                    <FormControl>
+                      <CategoryMultiSelect value={field.value || []} onChange={field.onChange} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

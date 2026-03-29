@@ -1,5 +1,6 @@
 "use client";
 
+import { AppearanceDropdown } from "@/components/appearance-selector";
 import { PoweredByDarisi } from "@/components/powered-by-darisi";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -219,21 +220,28 @@ export default function Landing() {
 
       <header className="container mx-auto flex h-20 items-center justify-between px-4 md:h-24">
         <div className="surface-glass inline-flex items-center gap-3 rounded-full px-3 py-2 md:px-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-primary via-primary to-accent text-primary-foreground shadow-lg shadow-primary/20">
-            <Briefcase className="h-5 w-5" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-primary via-primary to-accent text-white shadow-lg shadow-primary/20">
+            <Briefcase className="h-5 w-5 text-white" />
           </div>
           <div className="font-display text-xl font-bold tracking-tight md:text-2xl">
-            Dev<span className="text-primary">Market</span>
+            Dev<span className="text-gradient">Market</span>
           </div>
         </div>
-        <Button
-          onClick={() => router.push("/auth")}
-          variant="outline"
-          aria-label="Log in to your account"
-          className="surface-glass"
-        >
-          Log In
-        </Button>
+        <div className="flex items-center gap-3">
+          <AppearanceDropdown
+            buttonClassName="surface-glass"
+            labelClassName="hidden md:inline"
+            triggerTestId="landing-theme-trigger"
+          />
+          <Button
+            onClick={() => router.push("/auth")}
+            variant="outline"
+            aria-label="Log in to your account"
+            className="surface-glass"
+          >
+            Log In
+          </Button>
+        </div>
       </header>
 
       <section className="container mx-auto px-4 pb-16 pt-3 md:pb-28 md:pt-10">
@@ -637,17 +645,17 @@ export default function Landing() {
         </div>
       </section>
 
-      <footer className="border-t border-border/55 py-8">
+      <footer className="border-t border-border/55 py-4">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
-            <div className="font-display text-lg font-bold tracking-tight">
-              Dev<span className="text-primary">Market</span>
+          <div className="flex flex-col items-center justify-between gap-2 sm:flex-row">
+            <div className="font-display text-base font-bold tracking-tight">
+              Dev<span className="text-gradient">Market</span>
             </div>
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+            <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
               © {new Date().getFullYear()} DevMarket. All rights reserved.
             </p>
           </div>
-          <div className="mt-4 flex justify-center sm:justify-end">
+          <div className="mt-2 flex justify-center sm:justify-end">
             <PoweredByDarisi />
           </div>
         </div>

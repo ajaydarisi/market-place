@@ -1,6 +1,10 @@
 "use client";
 
+import { BackLinkButton } from "@/components/back-link-button";
+import { EmptyState } from "@/components/empty-state";
+import { FilterBar } from "@/components/filter-bar";
 import { Navigation } from "@/components/navigation";
+import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -66,23 +70,17 @@ export default function AdminAuditLogs() {
     <div className="page-shell min-h-screen bg-background">
       <Navigation />
       <main className="container mx-auto mobile-page">
-        <Link
-          href="/admin"
-          aria-label="Back to admin dashboard"
-          className="surface-glass mb-4 inline-flex items-center rounded-full px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-primary"
-        >
-          <ArrowLeft className="mr-1 h-4 w-4" />
+        <BackLinkButton href="/admin" aria-label="Back to admin dashboard" className="mb-4">
           Back to Dashboard
-        </Link>
+        </BackLinkButton>
 
-        <div className="surface-glass mobile-panel mb-6 border-primary/10 md:mb-8">
-          <h1 className="mobile-section-title">Audit Logs</h1>
-          <p className="mobile-copy mt-2">
-            Track all administrative actions. Total: {data?.total || 0} entries.
-          </p>
-        </div>
+        <PageHeader
+          className="mb-6 md:mb-8"
+          title="Audit Logs"
+          description={`Track all administrative actions. Total: ${data?.total || 0} entries.`}
+        />
 
-        <Card className="mb-4 p-4 md:mb-6">
+        <FilterBar className="mb-4 md:mb-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
             <Select value={action} onValueChange={setAction}>
               <SelectTrigger aria-label="Filter by action" className="w-full sm:w-[200px]">
@@ -98,16 +96,24 @@ export default function AdminAuditLogs() {
               </SelectContent>
             </Select>
           </div>
-        </Card>
+        </FilterBar>
 
-        <Card>
-          {isLoading ? (
+        {isLoading ? (
+          <Card>
             <div className="p-6 space-y-4">
               {[1, 2, 3, 4, 5].map((i) => (
                 <Skeleton key={i} className="h-12 w-full" />
               ))}
             </div>
-          ) : (
+          </Card>
+        ) : data?.items.length === 0 ? (
+          <EmptyState
+            icon={FileText}
+            title="No audit logs found"
+            description="Administrative activity will appear here once actions are performed."
+          />
+        ) : (
+          <Card>
             <>
               <div className="divide-y divide-border/50 md:hidden">
                 {data?.items.map((log) => (
@@ -129,17 +135,6 @@ export default function AdminAuditLogs() {
                     </p>
                   </div>
                 ))}
-                {data?.items.length === 0 && (
-                  <div className="p-8 text-center">
-                    <div className="flex flex-col items-center gap-2">
-                      <FileText className="h-8 w-8 text-muted-foreground" />
-                      <p className="text-muted-foreground">No audit logs found</p>
-                      <p className="text-sm text-muted-foreground">
-                        Admin actions will appear here once performed.
-                      </p>
-                    </div>
-                  </div>
-                )}
               </div>
 
               <div className="hidden md:block">
@@ -182,25 +177,12 @@ export default function AdminAuditLogs() {
                         </TableCell>
                       </TableRow>
                     ))}
-                    {data?.items.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={5} className="text-center py-12">
-                          <div className="flex flex-col items-center gap-2">
-                            <FileText className="h-8 w-8 text-muted-foreground" />
-                            <p className="text-muted-foreground">No audit logs found</p>
-                            <p className="text-sm text-muted-foreground">
-                              Admin actions will appear here once performed.
-                            </p>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )}
                   </TableBody>
                 </Table>
               </div>
             </>
-          )}
-        </Card>
+          </Card>
+        )}
 
         {/* Pagination */}
         {data && data.total > 50 && (

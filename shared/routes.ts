@@ -1,17 +1,31 @@
 import { z } from 'zod';
 import {
+    conversationSummarySchema,
+    engagementTypes,
+    experienceLevels,
     insertProfileSchema,
     insertProjectSchema,
+    insertReviewSchema,
     insertUserSchema,
     logTypes,
+    projectDraftResponseSchema,
+    projectTypes,
+    proposalSortOptions,
+    proposalScreeningAnswerSchema,
+    scopeSizes,
     projectStatuses,
+    reviewWithUsersSchema,
+    teamPreferences,
+    updateProjectSchema,
     type AdminAuditLog,
     type AdminStats,
+    type ConversationSummary,
     type Message,
     type Profile,
     type Project,
     type ProjectInterest,
     type ProjectLog,
+    type ReviewWithUsers,
     type User,
     type UserWithProfile
 } from './schema';
@@ -83,16 +97,24 @@ export const api = {
         minBudget: z.coerce.number().optional(),
         maxBudget: z.coerce.number().optional(),
         search: z.string().optional(),
+        status: z.enum(projectStatuses).optional(),
+        requiredSkills: z.array(z.string()).optional(),
+        technologyTags: z.array(z.string()).optional(),
+        preferredExperienceLevel: z.enum(experienceLevels).optional(),
+        projectType: z.enum(projectTypes).optional(),
+        scopeSize: z.enum(scopeSizes).optional(),
+        teamPreference: z.enum(teamPreferences).optional(),
+        sort: z.enum(["newest", "oldest", "budget_high", "budget_low", "recommended"]).optional(),
       }).optional(),
       responses: {
-        200: z.array(z.custom<Project & { client: { id: string, email: string, firstName: string | null, lastName: string | null, profileImageUrl: string | null, createdAt?: Date } }>()),
+        200: z.array(z.custom<Project & { client: User }>()),
       },
     },
     get: {
       method: 'GET' as const,
       path: '/api/projects/:id',
       responses: {
-        200: z.custom<Project & { client: { id: string, email: string, firstName: string | null, lastName: string | null, profileImageUrl: string | null, createdAt?: Date } }>(),
+        200: z.custom<Project & { client: User }>(),
         404: errorSchemas.notFound,
       },
     },
@@ -109,12 +131,23 @@ export const api = {
     update: {
       method: 'PATCH' as const,
       path: '/api/projects/:id',
-      input: insertProjectSchema.partial().extend({ status: z.enum(["open", "in_progress", "completed", "cancelled"]).optional() }),
+      input: updateProjectSchema,
       responses: {
         200: z.custom<Project>(),
         401: errorSchemas.unauthorized,
         403: z.object({ message: z.string() }), // Forbidden (not owner)
         404: errorSchemas.notFound,
+      },
+    },
+    draft: {
+      method: 'POST' as const,
+      path: '/api/projects/draft',
+      input: z.object({
+        rawBrief: z.string().min(20),
+      }),
+      responses: {
+        200: projectDraftResponseSchema,
+        401: errorSchemas.unauthorized,
       },
     },
     delete: {
@@ -132,18 +165,28 @@ export const api = {
     create: {
       method: 'POST' as const,
       path: '/api/projects/:projectId/interests',
-      input: z.object({ message: z.string() }),
+      input: z.object({
+        message: z.string().min(1),
+        proposedBudget: z.coerce.number().positive().optional(),
+        estimatedDurationDays: z.coerce.number().int().positive().optional(),
+        relevantSkills: z.array(z.string()).optional(),
+        screeningAnswers: z.array(proposalScreeningAnswerSchema).optional(),
+      }),
       responses: {
         201: z.custom<ProjectInterest>(),
         400: errorSchemas.validation,
         401: errorSchemas.unauthorized,
+        409: z.object({ message: z.string() }),
       },
     },
     listByProject: {
       method: 'GET' as const,
       path: '/api/projects/:projectId/interests',
+      input: z.object({
+        sort: z.enum(proposalSortOptions).optional(),
+      }).optional(),
       responses: {
-        200: z.array(z.custom<ProjectInterest & { developer: { id: string, email: string, firstName: string | null, lastName: string | null, profileImageUrl: string | null } }>()),
+        200: z.array(z.custom<ProjectInterest & { developer: User }>()),
         401: errorSchemas.unauthorized,
       },
     },
@@ -198,7 +241,7 @@ export const api = {
       method: 'GET' as const,
       path: '/api/messages',
       responses: {
-        200: z.array(z.any()),
+        200: z.array(z.custom<ConversationSummary>()).or(z.array(conversationSummarySchema)),
         401: errorSchemas.unauthorized,
       },
     },
@@ -206,7 +249,7 @@ export const api = {
       method: 'GET' as const,
       path: '/api/projects/:projectId/messages',
       responses: {
-        200: z.array(z.custom<Message & { sender: { id: string, firstName: string | null } }>()),
+        200: z.array(z.custom<Message & { sender: User }>()),
         401: errorSchemas.unauthorized,
       },
     },
@@ -217,6 +260,36 @@ export const api = {
       responses: {
         201: z.custom<Message>(),
         401: errorSchemas.unauthorized,
+      },
+    },
+    markRead: {
+      method: 'PATCH' as const,
+      path: '/api/projects/:projectId/messages/read',
+      responses: {
+        200: z.object({ updated: z.number() }),
+        401: errorSchemas.unauthorized,
+      },
+    },
+  },
+  reviews: {
+    listByProject: {
+      method: 'GET' as const,
+      path: '/api/projects/:projectId/reviews',
+      responses: {
+        200: z.array(z.custom<ReviewWithUsers>()).or(z.array(reviewWithUsersSchema)),
+        401: errorSchemas.unauthorized,
+      },
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/projects/:projectId/reviews',
+      input: insertReviewSchema.omit({ projectId: true, revieweeId: true }),
+      responses: {
+        201: z.custom<ReviewWithUsers>(),
+        400: errorSchemas.validation,
+        401: errorSchemas.unauthorized,
+        403: z.object({ message: z.string() }),
+        409: z.object({ message: z.string() }),
       },
     },
   },
@@ -342,9 +415,7 @@ export const api = {
       update: {
         method: 'PATCH' as const,
         path: '/api/admin/projects/:id',
-        input: insertProjectSchema.partial().extend({
-          status: z.enum(projectStatuses).optional(),
-        }),
+        input: updateProjectSchema,
         responses: {
           200: z.custom<Project>(),
           400: errorSchemas.validation,

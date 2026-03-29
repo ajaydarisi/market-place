@@ -1,93 +1,133 @@
 "use client";
 
-import { useProject, useUpdateProject, useDeleteProject } from "@/hooks/use-projects";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { formatDistanceToNow } from "date-fns";
+import {
+  AlertTriangle,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  FileText,
+  Flag,
+  Loader2,
+  MessageSquare,
+  Send,
+  Star,
+  Trash2,
+  User,
+  UserCheck,
+} from "lucide-react";
+
+import { Navigation } from "@/components/navigation";
+import { ProfileAvatar } from "@/components/profile-avatar";
+import { RatingPill } from "@/components/rating-pill";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { FormLabel } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { TagInput } from "@/components/ui/tag-input";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfile } from "@/hooks/use-profiles";
 import { useProjectInterests, useExpressInterest, useUpdateInterestStatus } from "@/hooks/use-interests";
 import { useProjectLogs, useCreateProjectLog } from "@/hooks/use-project-logs";
-import { Navigation } from "@/components/navigation";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ProfileAvatar } from "@/components/profile-avatar";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
-import { insertProjectSchema, projectStatuses } from "@shared/schema";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { formatDistanceToNow } from "date-fns";
-import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
-import { Loader2, Calendar, User, CheckCircle2, Pencil, MessageSquare, Trash2, UserCheck, Clock, AlertTriangle, Flag, Send } from "lucide-react";
+import { useProject, useDeleteProject } from "@/hooks/use-projects";
+import { useProjectReviews, useCreateProjectReview } from "@/hooks/use-reviews";
 import { logTypes } from "@shared/schema";
-import { useState, useEffect } from "react";
+import {
+  AVAILABILITY_LABELS,
+  COMMUNICATION_CADENCE_LABELS,
+  ENGAGEMENT_TYPE_LABELS,
+  EXPERIENCE_LEVEL_LABELS,
+  PROJECT_CATEGORY_LABELS,
+  PROJECT_TYPE_LABELS,
+  SCOPE_SIZE_LABELS,
+  TEAM_PREFERENCE_LABELS,
+  TECHNOLOGY_TAG_LABELS,
+} from "@shared/marketplace";
 
 export default function ProjectDetail() {
   const params = useParams();
-  const projectId = parseInt(params.id as string || "0");
-  const { user } = useAuth();
-  const { data: profile } = useProfile(user?.id || "");
-  const { data: project, isLoading } = useProject(projectId);
-  const { data: interests } = useProjectInterests(projectId);
-  const { data: logs } = useProjectLogs(projectId);
-
-  const isClient = profile?.role === "client";
-  const isDeveloper = profile?.role === "developer";
-  const isOwner = isClient && project?.client.id === user?.id;
-  const isAssignedDev = isDeveloper && project?.assignedDeveloperId === user?.id;
-  const canViewLogs = isOwner || isAssignedDev;
-
   const router = useRouter();
+  const projectId = parseInt((params.id as string) || "0", 10);
+
+  const { user } = useAuth();
+  const { data: currentProfile } = useProfile(user?.id || "");
+  const { data: project, isLoading } = useProject(projectId);
+  const { data: clientProfile } = useProfile(project?.client.id || "");
+
+  const [proposalSort, setProposalSort] = useState<string>("best_match");
+  const { data: interests } = useProjectInterests(projectId, proposalSort);
+  const { data: logs } = useProjectLogs(projectId);
+  const { data: reviews } = useProjectReviews(projectId);
+
   const { mutate: expressInterest, isPending: interestPending } = useExpressInterest();
-  const { mutate: updateProject, isPending: updatePending } = useUpdateProject();
   const { mutate: deleteProject, isPending: deletePending } = useDeleteProject();
   const { mutate: updateInterestStatus, isPending: assignPending } = useUpdateInterestStatus();
   const { mutate: createLog, isPending: logPending } = useCreateProjectLog();
-  const [interestMessage, setInterestMessage] = useState("");
+  const { mutate: createReview, isPending: reviewPending } = useCreateProjectReview();
+
   const [interestOpen, setInterestOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
+  const [interestMessage, setInterestMessage] = useState("");
+  const [interestBudget, setInterestBudget] = useState("");
+  const [interestDuration, setInterestDuration] = useState("");
+  const [interestSkills, setInterestSkills] = useState<string[]>([]);
+  const [interestScreeningAnswers, setInterestScreeningAnswers] = useState<string[]>([]);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [selectedInterestId, setSelectedInterestId] = useState<number | null>(null);
+
   const [logContent, setLogContent] = useState("");
   const [logType, setLogType] = useState<typeof logTypes[number]>("update");
-  const hasExpressedInterest = interests?.some(i => i.developerId === user?.id);
 
-  const editFormSchema = insertProjectSchema.extend({
-    budgetMin: z.coerce.number().min(1, "Budget must be at least ₹1"),
-    budgetMax: z.coerce.number().min(1, "Budget must be at least ₹1"),
-    status: z.enum(projectStatuses),
-  });
+  const [reviewRating, setReviewRating] = useState("5");
+  const [reviewComment, setReviewComment] = useState("");
 
-  const editForm = useForm<z.infer<typeof editFormSchema>>({
-    resolver: zodResolver(editFormSchema),
-    defaultValues: {
-      title: project?.title || "",
-      description: project?.description || "",
-      category: project?.category || "",
-      budgetMin: project?.budgetMin || undefined,
-      budgetMax: project?.budgetMax || undefined,
-      status: project?.status || "open",
-    },
-  });
+  const isClient = currentProfile?.role === "client";
+  const isDeveloper = currentProfile?.role === "developer";
+  const isOwner = Boolean(isClient && project?.client.id === user?.id);
+  const isAssignedDev = Boolean(isDeveloper && project?.assignedDeveloperId === user?.id);
+  const canViewLogs = isOwner || isAssignedDev;
+  const hasExpressedInterest = Boolean(interests?.some((interest) => interest.developerId === user?.id));
+  const myReview = reviews?.find((review) => review.reviewerId === user?.id);
+  const canReview =
+    project?.status === "completed" &&
+    Boolean(project.assignedDeveloperId) &&
+    (isOwner || isAssignedDev) &&
+    !myReview;
 
   useEffect(() => {
-    if (project && editOpen) {
-      editForm.reset({
-        title: project.title,
-        description: project.description,
-        category: project.category,
-        budgetMin: project.budgetMin || undefined,
-        budgetMax: project.budgetMax || undefined,
-        status: project.status || "open",
-      });
-    }
-  }, [project, editOpen, editForm]);
+    setInterestScreeningAnswers((project?.screeningQuestions ?? []).map(() => ""));
+  }, [project?.id, project?.screeningQuestions?.join("||")]);
+
+  const selectedInterest = useMemo(
+    () => interests?.find((interest) => interest.id === selectedInterestId),
+    [interests, selectedInterestId],
+  );
 
   const statusLabels: Record<string, string> = {
     open: "Open",
@@ -98,61 +138,17 @@ export default function ProjectDetail() {
 
   const statusVariant = (status: string) => {
     switch (status) {
-      case "open": return "default" as const;
-      case "in_progress": return "secondary" as const;
-      case "completed": return "default" as const;
-      case "cancelled": return "destructive" as const;
-      default: return "secondary" as const;
+      case "open":
+        return "default" as const;
+      case "in_progress":
+        return "secondary" as const;
+      case "completed":
+        return "default" as const;
+      case "cancelled":
+        return "destructive" as const;
+      default:
+        return "secondary" as const;
     }
-  };
-
-  const handleEdit = (data: z.infer<typeof editFormSchema>) => {
-    updateProject({ id: projectId, data }, {
-      onSuccess: () => setEditOpen(false),
-    });
-  };
-
-  const handleDelete = () => {
-    deleteProject(projectId, {
-      onSuccess: () => router.push("/client/projects"),
-    });
-  };
-
-  const handleInterest = () => {
-    expressInterest({ projectId, message: interestMessage }, {
-      onSuccess: () => setInterestOpen(false)
-    });
-  };
-
-  const handleAssign = (interestId: number) => {
-    setSelectedInterestId(interestId);
-    setAssignDialogOpen(true);
-  };
-
-  const confirmAssign = () => {
-    if (!selectedInterestId) return;
-    updateInterestStatus(
-      { projectId, interestId: selectedInterestId, status: "accepted" },
-      {
-        onSuccess: () => {
-          setAssignDialogOpen(false);
-          setSelectedInterestId(null);
-        },
-      }
-    );
-  };
-
-  const handleCreateLog = () => {
-    if (!logContent.trim()) return;
-    createLog(
-      { projectId, content: logContent, logType },
-      {
-        onSuccess: () => {
-          setLogContent("");
-          setLogType("update");
-        },
-      }
-    );
   };
 
   const logTypeLabels: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
@@ -162,17 +158,94 @@ export default function ProjectDetail() {
     completed: { label: "Completed", icon: <CheckCircle2 className="h-3 w-3" />, color: "bg-accent/10 text-accent" },
   };
 
-  const interestStatusLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-    pending: { label: "Pending", variant: "secondary" },
-    accepted: { label: "Accepted", variant: "default" },
-    rejected: { label: "Rejected", variant: "destructive" },
+  const handleDelete = () => {
+    deleteProject(projectId, {
+      onSuccess: () => router.push("/client/projects"),
+    });
+  };
+
+  const handleInterest = () => {
+    expressInterest(
+      {
+        projectId,
+        message: interestMessage,
+        proposedBudget: interestBudget ? Number(interestBudget) : undefined,
+        estimatedDurationDays: interestDuration ? Number(interestDuration) : undefined,
+        relevantSkills: interestSkills,
+        screeningAnswers: (project?.screeningQuestions ?? [])
+          .map((question, index) => ({
+            question,
+            answer: interestScreeningAnswers[index]?.trim() ?? "",
+          }))
+          .filter((answer) => answer.answer),
+      },
+      {
+        onSuccess: () => {
+          setInterestMessage("");
+          setInterestBudget("");
+          setInterestDuration("");
+          setInterestSkills([]);
+          setInterestScreeningAnswers((project?.screeningQuestions ?? []).map(() => ""));
+          setInterestOpen(false);
+        },
+      },
+    );
+  };
+
+  const handleAssign = (interestId: number) => {
+    setSelectedInterestId(interestId);
+    setAssignDialogOpen(true);
+  };
+
+  const confirmAssign = () => {
+    if (!selectedInterest) return;
+
+    updateInterestStatus(
+      { projectId, interestId: selectedInterest.id!, status: "accepted" },
+      {
+        onSuccess: () => {
+          setAssignDialogOpen(false);
+          router.push(`/client/messages?projectId=${projectId}&developerId=${selectedInterest.developerId}`);
+        },
+      },
+    );
+  };
+
+  const handleCreateLog = () => {
+    if (!logContent.trim()) return;
+
+    createLog(
+      { projectId, content: logContent, logType },
+      {
+        onSuccess: () => {
+          setLogContent("");
+          setLogType("update");
+        },
+      },
+    );
+  };
+
+  const handleCreateReview = () => {
+    createReview(
+      {
+        projectId,
+        rating: Number(reviewRating),
+        comment: reviewComment.trim() || undefined,
+      },
+      {
+        onSuccess: () => {
+          setReviewComment("");
+          setReviewRating("5");
+        },
+      },
+    );
   };
 
   if (isLoading || !project) {
     return (
       <div className="page-shell min-h-screen bg-background">
         <Navigation />
-        <div className="h-[calc(100vh-80px)] flex items-center justify-center">
+        <div className="flex h-[calc(100vh-80px)] items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </div>
@@ -183,368 +256,498 @@ export default function ProjectDetail() {
     <div className="page-shell min-h-screen bg-background pb-12">
       <Navigation />
 
-      {/* Header */}
       <div className="section-band-strong border-b border-border/55 py-8 md:py-12">
         <div className="container mx-auto px-4">
           <div className="mb-4 flex flex-wrap items-center gap-2">
-            <Badge className="bg-primary/[0.08] text-primary border-primary/20" data-testid="project-detail-category">{project.category}</Badge>
-            <Badge variant={statusVariant(project.status)} data-testid="project-detail-status">{statusLabels[project.status] || project.status}</Badge>
+            <Badge className="border-primary/20 bg-primary/[0.08] text-primary" data-testid="project-detail-category">
+              {PROJECT_CATEGORY_LABELS[project.category] || project.category}
+            </Badge>
+            <Badge variant={statusVariant(project.status)} data-testid="project-detail-status">
+              {statusLabels[project.status] || project.status}
+            </Badge>
+            {project.engagementType ? (
+              <Badge variant="outline">{ENGAGEMENT_TYPE_LABELS[project.engagementType]}</Badge>
+            ) : null}
+            {project.projectType ? (
+              <Badge variant="outline">{PROJECT_TYPE_LABELS[project.projectType]}</Badge>
+            ) : null}
+            {project.scopeSize ? (
+              <Badge variant="outline">{SCOPE_SIZE_LABELS[project.scopeSize]}</Badge>
+            ) : null}
+            {project.preferredExperienceLevel ? (
+              <Badge variant="outline">{EXPERIENCE_LEVEL_LABELS[project.preferredExperienceLevel]}</Badge>
+            ) : null}
           </div>
+
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <h1 className="text-2xl font-display font-bold line-clamp-3 sm:text-3xl md:text-4xl md:truncate md:line-clamp-none" title={project.title} data-testid="project-detail-title">{project.title}</h1>
-            {isOwner && (
+            <div className="max-w-4xl">
+              <h1 className="text-2xl font-display font-bold line-clamp-3 sm:text-3xl md:text-4xl" data-testid="project-detail-title">
+                {project.title}
+              </h1>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {[...new Set([...(project.technologyTags ?? []), ...(project.requiredSkills ?? [])])].slice(0, 8).map((skill) => (
+                  <Badge key={skill} variant="secondary">
+                    {TECHNOLOGY_TAG_LABELS[skill] || skill}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            {isOwner ? (
               <div className="flex flex-wrap gap-2">
-              <Dialog open={editOpen} onOpenChange={setEditOpen}>
-                <DialogTrigger asChild>
-                  <Button size="sm" variant="outline" className="surface-glass" aria-label="Edit project" data-testid="project-detail-edit-button">
-                    <Pencil className="h-4 w-4" />
-                    <span className="hidden sm:inline">Edit</span>
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[600px]">
-                  <DialogHeader>
-                    <DialogTitle>Edit Project</DialogTitle>
-                    <DialogDescription>Update your project details.</DialogDescription>
-                  </DialogHeader>
-                  <Form {...editForm}>
-                    <form onSubmit={editForm.handleSubmit(handleEdit)} className="space-y-4">
-                      <FormField
-                        control={editForm.control}
-                        name="title"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Project Title</FormLabel>
-                            <FormControl>
-                              <Input aria-label="Project title" placeholder="e.g. E-commerce Platform Development" data-testid="project-detail-edit-title-input" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <FormField
-                          control={editForm.control}
-                          name="category"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Category</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl>
-                                  <SelectTrigger aria-label="Project category" data-testid="project-detail-edit-category-select">
-                                    <SelectValue placeholder="Select category" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="web_dev">Web Development</SelectItem>
-                                  <SelectItem value="mobile_app">Mobile App</SelectItem>
-                                  <SelectItem value="design">UI/UX Design</SelectItem>
-                                  <SelectItem value="ai_ml">AI & Machine Learning</SelectItem>
-                                  <SelectItem value="devops">DevOps & Cloud</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={editForm.control}
-                          name="status"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Status</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl>
-                                  <SelectTrigger aria-label="Project status" data-testid="project-detail-edit-status-select">
-                                    <SelectValue placeholder="Select status" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {projectStatuses.map((status) => (
-                                    <SelectItem key={status} value={status}>
-                                      {statusLabels[status]}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={editForm.control}
-                          name="budgetMin"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Min Budget (₹)</FormLabel>
-                              <FormControl>
-                                <Input aria-label="Minimum budget" type="number" placeholder="1000" data-testid="project-detail-edit-budget-min-input" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={editForm.control}
-                          name="budgetMax"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Max Budget (₹)</FormLabel>
-                              <FormControl>
-                                <Input aria-label="Maximum budget" type="number" placeholder="5000" data-testid="project-detail-edit-budget-max-input" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <FormField
-                        control={editForm.control}
-                        name="description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Project Description</FormLabel>
-                            <FormControl>
-                              <Textarea
-                                aria-label="Project description"
-                                placeholder="Describe your project requirements..."
-                                className="min-h-[150px] resize-none"
-                                data-testid="project-detail-edit-description-textarea"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => setEditOpen(false)} data-testid="project-detail-edit-cancel-button">Cancel</Button>
-                        <Button type="submit" disabled={updatePending} data-testid="project-detail-edit-submit-button">
-                          {updatePending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                          Save Changes
-                        </Button>
-                      </DialogFooter>
-                    </form>
-                  </Form>
-                </DialogContent>
-              </Dialog>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" size="sm" aria-label="Delete project" data-testid="project-detail-delete-button">
-                    <Trash2 className="h-4 w-4" />
-                    <span className="hidden sm:inline">Delete</span>
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete this project?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete your project and remove all associated data.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDelete} disabled={deletePending} data-testid="project-detail-delete-confirm-button">
-                      {deletePending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
+                <Button asChild size="sm" variant="outline" className="surface-glass" aria-label="Edit project">
+                  <Link href={`/projects/${projectId}/edit`}>
+                    Edit Brief
+                  </Link>
+                </Button>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm" aria-label="Delete project">
+                      <Trash2 className="h-4 w-4" />
+                      <span className="hidden sm:inline">Delete</span>
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete this project?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This hides the project and removes it from active marketplace discovery.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDelete} disabled={deletePending}>
+                        {deletePending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                        Delete Project
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
               </div>
-            )}
+            ) : null}
           </div>
+
           <div className="flex flex-col gap-3 text-sm text-muted-foreground sm:flex-row sm:flex-wrap sm:gap-6">
             <div className="flex items-center gap-2">
               <User className="h-4 w-4" />
-              <span className="truncate" title={`Posted by ${project.client.firstName} ${project.client.lastName}`}>Posted by {project.client.firstName} {project.client.lastName}</span>
+              <span>
+                Posted by {project.client.firstName} {project.client.lastName}
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
               <span>Posted {formatDistanceToNow(new Date(project.createdAt!), { addSuffix: true })}</span>
             </div>
-            <div className="flex items-center gap-2 text-foreground font-medium">
-              <span data-testid="project-detail-budget">₹{project.budgetMin?.toLocaleString('en-IN')} - ₹{project.budgetMax?.toLocaleString('en-IN')}</span>
+            <div className="font-medium text-foreground">
+              ₹{project.budgetMin?.toLocaleString("en-IN")} - ₹{project.budgetMax?.toLocaleString("en-IN")}
+            </div>
+            {project.estimatedDurationWeeks ? (
+              <div>Duration: {project.estimatedDurationWeeks} weeks</div>
+            ) : null}
+            <div>
+              Deadline: {project.deadline ? new Date(project.deadline).toLocaleDateString() : "Flexible"}
             </div>
           </div>
         </div>
       </div>
 
       <main className="container mx-auto grid gap-6 px-4 py-6 lg:grid-cols-3 lg:gap-8 lg:py-8">
-        <div className="space-y-6 lg:col-span-2 lg:space-y-8">
-          <Card className="surface-glass" data-testid="project-detail-description-card">
+        <div className="space-y-6 lg:col-span-2">
+          <Card className="surface-glass">
             <CardHeader>
-              <CardTitle>Project Description</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                Project Brief
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="prose max-w-none text-muted-foreground leading-relaxed whitespace-pre-wrap" data-testid="project-detail-description">
+            <CardContent className="space-y-5">
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="surface-subtle rounded-2xl p-4">
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Project Type</p>
+                  <p className="mt-2 text-sm font-medium text-foreground">
+                    {project.projectType ? PROJECT_TYPE_LABELS[project.projectType] : "Not specified"}
+                  </p>
+                </div>
+                <div className="surface-subtle rounded-2xl p-4">
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Scope Size</p>
+                  <p className="mt-2 text-sm font-medium text-foreground">
+                    {project.scopeSize ? SCOPE_SIZE_LABELS[project.scopeSize] : "Not specified"}
+                  </p>
+                </div>
+                <div className="surface-subtle rounded-2xl p-4">
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Engagement</p>
+                  <p className="mt-2 text-sm font-medium text-foreground">
+                    {project.engagementType ? ENGAGEMENT_TYPE_LABELS[project.engagementType] : "Not specified"}
+                  </p>
+                </div>
+                <div className="surface-subtle rounded-2xl p-4">
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Preferred Experience</p>
+                  <p className="mt-2 text-sm font-medium text-foreground">
+                    {project.preferredExperienceLevel
+                      ? EXPERIENCE_LEVEL_LABELS[project.preferredExperienceLevel]
+                      : "Open to all levels"}
+                  </p>
+                </div>
+                <div className="surface-subtle rounded-2xl p-4">
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Team Preference</p>
+                  <p className="mt-2 text-sm font-medium text-foreground">
+                    {project.teamPreference ? TEAM_PREFERENCE_LABELS[project.teamPreference] : "Flexible"}
+                  </p>
+                </div>
+                <div className="surface-subtle rounded-2xl p-4">
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Communication</p>
+                  <p className="mt-2 text-sm font-medium text-foreground">
+                    {project.communicationCadence ? COMMUNICATION_CADENCE_LABELS[project.communicationCadence] : "Flexible"}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Business Goal</p>
+                <p className="rounded-2xl border border-border/60 bg-background/35 p-4 text-sm text-foreground">
+                  {project.businessGoal || "No goal added yet."}
+                </p>
+              </div>
+
+              <Separator />
+
+              <div className="grid gap-5 md:grid-cols-2">
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Technology Tags</p>
+                  <div className="flex flex-wrap gap-2">
+                    {project.technologyTags && project.technologyTags.length > 0 ? (
+                      project.technologyTags.map((tag) => (
+                        <Badge key={tag} variant="secondary">
+                          {TECHNOLOGY_TAG_LABELS[tag] || tag}
+                        </Badge>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No technology tags listed yet.</p>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Required Skills</p>
+                  <div className="flex flex-wrap gap-2">
+                    {project.requiredSkills && project.requiredSkills.length > 0 ? (
+                      project.requiredSkills.map((skill) => (
+                        <Badge key={skill} variant="outline">
+                          {skill}
+                        </Badge>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No required skills listed yet.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-5 md:grid-cols-2">
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Current State</p>
+                  <p className="rounded-2xl border border-border/60 bg-background/35 p-4 text-sm text-muted-foreground">
+                    {project.currentState || "No current-state notes shared."}
+                  </p>
+                </div>
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Target Users</p>
+                  <p className="rounded-2xl border border-border/60 bg-background/35 p-4 text-sm text-muted-foreground">
+                    {project.targetUsers || "No target-user notes shared."}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid gap-5 md:grid-cols-3">
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Deliverables</p>
+                  <div className="space-y-2">
+                    {(project.deliverables ?? []).length > 0 ? (
+                      project.deliverables?.map((item) => (
+                        <div key={item} className="rounded-2xl border border-border/60 bg-background/35 px-4 py-3 text-sm text-muted-foreground">
+                          {item}
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No deliverables listed.</p>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Must-haves</p>
+                  <div className="flex flex-wrap gap-2">
+                    {(project.mustHaves ?? []).length > 0 ? (
+                      project.mustHaves?.map((item) => (
+                        <Badge key={item} variant="secondary">{item}</Badge>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No must-haves listed.</p>
+                    )}
+                  </div>
+                  <p className="mb-2 mt-5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Nice-to-haves</p>
+                  <div className="flex flex-wrap gap-2">
+                    {(project.niceToHaves ?? []).length > 0 ? (
+                      project.niceToHaves?.map((item) => (
+                        <Badge key={item} variant="outline">{item}</Badge>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No nice-to-haves listed.</p>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Success Criteria</p>
+                  <div className="space-y-2">
+                    {(project.successCriteria ?? []).length > 0 ? (
+                      project.successCriteria?.map((item) => (
+                        <div key={item} className="rounded-2xl border border-border/60 bg-background/35 px-4 py-3 text-sm text-muted-foreground">
+                          {item}
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No success criteria listed.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="prose max-w-none whitespace-pre-wrap text-muted-foreground">
                 {project.description}
               </div>
+
+              {(project.referenceLinks ?? []).length > 0 ? (
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Reference Links</p>
+                  <div className="flex flex-col gap-2">
+                    {project.referenceLinks?.map((link) => (
+                      <a
+                        key={`${link.label}-${link.url}`}
+                        href={link.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="rounded-2xl border border-border/60 px-4 py-3 text-sm text-primary transition-colors hover:border-primary/40"
+                      >
+                        {link.label}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {(project.screeningQuestions ?? []).length > 0 ? (
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Screening Questions</p>
+                  <div className="space-y-2">
+                    {project.screeningQuestions?.map((question) => (
+                      <div key={question} className="rounded-2xl border border-border/60 bg-background/35 px-4 py-3 text-sm text-muted-foreground">
+                        {question}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
             </CardContent>
           </Card>
 
-          {isOwner && (
+          {isOwner ? (
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold font-display">Proposals ({interests?.length || 0})</h2>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className="text-2xl font-bold font-display">
+                  Proposal Workspace ({interests?.length || 0})
+                </h2>
+                <Select value={proposalSort} onValueChange={setProposalSort}>
+                  <SelectTrigger className="w-full sm:w-[220px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="best_match">Best Match</SelectItem>
+                    <SelectItem value="lowest_budget">Lowest Budget</SelectItem>
+                    <SelectItem value="fastest_delivery">Fastest Delivery</SelectItem>
+                    <SelectItem value="newest">Newest</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               {interests?.length === 0 ? (
                 <Card className="surface-glass border-dashed">
-                  <CardContent className="p-8 text-center">
-                    <p className="text-muted-foreground">No proposals yet. Check back later!</p>
+                  <CardContent className="p-8 text-center text-muted-foreground">
+                    No proposals yet. The structured brief is live and ready for the right developers.
                   </CardContent>
                 </Card>
               ) : (
                 <div className="grid gap-4">
                   {interests?.map((interest) => (
-                    <Card key={interest.id} className={`surface-glass overflow-hidden ${interest.status === "accepted" ? "border-primary/40" : ""}`}>
-                      <CardContent className="p-6 space-y-3">
-                        <div className="flex items-center justify-between gap-4">
-                          <div className="flex items-center gap-3 min-w-0">
+                    <Card
+                      key={interest.id}
+                      className={`surface-glass overflow-hidden ${interest.status === "accepted" ? "border-primary/40" : ""}`}
+                    >
+                      <CardContent className="space-y-4 p-6">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="flex min-w-0 items-start gap-3">
                             <ProfileAvatar
                               name={`${interest.developer.firstName} ${interest.developer.lastName}`}
                               imageUrl={interest.developer.profileImageUrl}
                               size="lg"
                             />
                             <div className="min-w-0">
-                              <div className="flex items-center gap-2">
-                                <h4 className="font-bold truncate" title={`${interest.developer.firstName} ${interest.developer.lastName}`}>{interest.developer.firstName} {interest.developer.lastName}</h4>
-                                <Badge variant={interestStatusLabels[interest.status]?.variant || "secondary"} className="text-xs">
-                                  {interestStatusLabels[interest.status]?.label || interest.status}
-                                </Badge>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <h4 className="font-bold">
+                                  {interest.developer.firstName} {interest.developer.lastName}
+                                </h4>
+                                <Badge variant={statusVariant(interest.status)}>{interest.status}</Badge>
+                                {interest.matchScore ? (
+                                  <Badge className="bg-primary/10 text-primary">{interest.matchScore}% match</Badge>
+                                ) : null}
                               </div>
-                              <span className="text-xs text-muted-foreground">Applied {formatDistanceToNow(new Date(interest.createdAt!), { addSuffix: true })}</span>
+                              <div className="mt-2 flex flex-wrap items-center gap-2">
+                                <span className="text-xs text-muted-foreground">
+                                  Applied {formatDistanceToNow(new Date(interest.createdAt!), { addSuffix: true })}
+                                </span>
+                                <RatingPill
+                                  averageRating={interest.developer.averageRating}
+                                  reviewCount={interest.developer.reviewCount}
+                                  emptyLabel="No reviews yet"
+                                />
+                              </div>
                             </div>
                           </div>
-                          <div className="hidden sm:flex gap-2 shrink-0">
-                            {project.status === "open" && interest.status === "pending" && (
-                              <Button
-                                size="sm"
-                                aria-label={`Assign project to ${interest.developer.firstName}`}
-                                onClick={() => handleAssign(interest.id!)}
-                                disabled={assignPending}
-                                data-testid={`project-detail-interest-${interest.id}-assign-button`}
-                              >
+
+                          <div className="flex flex-wrap gap-2">
+                            {project.status === "open" && interest.status === "pending" ? (
+                              <Button size="sm" onClick={() => handleAssign(interest.id!)}>
                                 <UserCheck className="mr-1 h-3.5 w-3.5" />
                                 Assign
                               </Button>
-                            )}
-                            <Link href={`/client/messages?projectId=${projectId}&developerId=${interest.developerId}`}>
-                              <Button size="sm" variant="outline" aria-label={`Message ${interest.developer.firstName}`} data-testid={`project-detail-interest-${interest.id}-message-button`}>
+                            ) : null}
+                            <Button asChild size="sm" variant="outline">
+                              <Link href={`/client/messages?projectId=${projectId}&developerId=${interest.developerId}`}>
                                 <MessageSquare className="mr-1 h-3.5 w-3.5" />
                                 Message
-                              </Button>
-                            </Link>
-                            <Link href={`/profile/${interest.developerId}`}>
-                              <Button size="sm" variant="outline" aria-label={`View ${interest.developer.firstName}'s profile`} data-testid={`project-detail-interest-${interest.id}-view-profile-button`}>View Profile</Button>
-                            </Link>
+                              </Link>
+                            </Button>
+                            <Button asChild size="sm" variant="outline">
+                              <Link href={`/profile/${interest.developerId}`}>View Profile</Link>
+                            </Button>
                           </div>
                         </div>
-                        <p className="surface-subtle text-sm text-muted-foreground p-3 rounded-2xl line-clamp-3" title={interest.message || ""}>
-                          &quot;{interest.message}&quot;
-                        </p>
-                      <div className="grid grid-cols-1 gap-2 pt-1 sm:hidden">
-                          {project.status === "open" && interest.status === "pending" && (
-                            <Button
-                              size="sm"
-                              className="w-full"
-                              aria-label={`Assign project to ${interest.developer.firstName}`}
-                              onClick={() => handleAssign(interest.id!)}
-                              disabled={assignPending}
-                              data-testid={`project-detail-interest-${interest.id}-assign-button-mobile`}
-                            >
-                              <UserCheck className="mr-1 h-3.5 w-3.5" />
-                              Assign
-                            </Button>
-                          )}
-                          <Link href={`/client/messages?projectId=${projectId}&developerId=${interest.developerId}`}>
-                            <Button size="sm" variant="outline" className="w-full" aria-label={`Message ${interest.developer.firstName}`} data-testid={`project-detail-interest-${interest.id}-message-button-mobile`}>
-                              <MessageSquare className="mr-1 h-3.5 w-3.5" />
-                              Message
-                            </Button>
-                          </Link>
-                          <Link href={`/profile/${interest.developerId}`}>
-                            <Button size="sm" variant="outline" className="w-full" aria-label={`View ${interest.developer.firstName}'s profile`} data-testid={`project-detail-interest-${interest.id}-view-profile-button-mobile`}>View Profile</Button>
-                          </Link>
+
+                        <div className="grid gap-3 sm:grid-cols-3">
+                          <div className="surface-subtle rounded-2xl p-3 text-sm">
+                            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Budget</p>
+                            <p className="mt-2 font-medium text-foreground">
+                              {interest.proposedBudget
+                                ? `₹${interest.proposedBudget.toLocaleString("en-IN")}`
+                                : "Not specified"}
+                            </p>
+                          </div>
+                          <div className="surface-subtle rounded-2xl p-3 text-sm">
+                            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Delivery</p>
+                            <p className="mt-2 font-medium text-foreground">
+                              {interest.estimatedDurationDays
+                                ? `${interest.estimatedDurationDays} days`
+                                : "Flexible"}
+                            </p>
+                          </div>
+                          <div className="surface-subtle rounded-2xl p-3 text-sm">
+                            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Relevant Skills</p>
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              {interest.relevantSkills && interest.relevantSkills.length > 0 ? (
+                                interest.relevantSkills.map((skill) => (
+                                  <Badge key={skill} variant="secondary">
+                                    {skill}
+                                  </Badge>
+                                ))
+                              ) : (
+                                <p className="text-muted-foreground">No extra skills listed</p>
+                              )}
+                            </div>
+                          </div>
                         </div>
+
+                        <div className="rounded-2xl border border-border/60 bg-background/35 p-4 text-sm text-muted-foreground">
+                          {interest.message}
+                        </div>
+
+                        {interest.screeningAnswers && interest.screeningAnswers.length > 0 ? (
+                          <div className="space-y-3">
+                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                              Screening Answers
+                            </p>
+                            <div className="space-y-3">
+                              {interest.screeningAnswers.map((answer) => (
+                                <div key={`${answer.question}-${answer.answer}`} className="rounded-2xl border border-border/60 bg-background/35 p-4">
+                                  <p className="text-sm font-medium text-foreground">{answer.question}</p>
+                                  <p className="mt-2 text-sm text-muted-foreground">{answer.answer}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null}
                       </CardContent>
                     </Card>
                   ))}
                 </div>
               )}
             </div>
-          )}
+          ) : null}
 
-          {/* Assign Confirmation Dialog */}
           <AlertDialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Assign this developer?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will assign the project to the selected developer. The project status will change to &quot;In Progress&quot; and all other pending proposals will be rejected.
+                  This moves the project into active delivery, rejects other pending proposals, and sends you straight into the conversation thread.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={confirmAssign} disabled={assignPending} data-testid="project-detail-assign-confirm-button">
-                  {assignPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <AlertDialogAction onClick={confirmAssign} disabled={assignPending}>
+                  {assignPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                   Confirm Assignment
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
 
-          {/* Project Activity / Logs Section */}
-          {canViewLogs && (
+          {canViewLogs ? (
             <div className="space-y-4">
               <h2 className="text-2xl font-bold font-display">Project Activity</h2>
 
-              {/* Add Log Form */}
               <Card className="surface-glass">
-                <CardContent className="p-4">
-                  <div className="space-y-3">
-                    <Textarea
-                      aria-label="Log content"
-                      placeholder="Add a project update..."
-                      className="min-h-[80px] resize-none"
-                      value={logContent}
-                      onChange={(e) => setLogContent(e.target.value)}
-                      data-testid="project-detail-log-content-textarea"
-                    />
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <Select value={logType} onValueChange={(val: typeof logTypes[number]) => setLogType(val)}>
-                        <SelectTrigger aria-label="Log type" className="w-full sm:w-[140px]" data-testid="project-detail-log-type-select">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {logTypes.map((type) => (
-                            <SelectItem key={type} value={type}>
-                              <div className="flex items-center gap-2">
-                                {logTypeLabels[type]?.icon}
-                                {logTypeLabels[type]?.label}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        onClick={handleCreateLog}
-                        disabled={logPending || !logContent.trim()}
-                        aria-label="Post update"
-                        data-testid="project-detail-log-submit-button"
-                      >
-                        {logPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-                        Post Update
-                      </Button>
-                    </div>
+                <CardContent className="space-y-3 p-4">
+                  <Textarea
+                    placeholder="Add a project update..."
+                    className="min-h-[80px] resize-none"
+                    value={logContent}
+                    onChange={(event) => setLogContent(event.target.value)}
+                  />
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <Select value={logType} onValueChange={(value: typeof logTypes[number]) => setLogType(value)}>
+                      <SelectTrigger className="w-full sm:w-[180px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {logTypes.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {logTypeLabels[type]?.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button onClick={handleCreateLog} disabled={logPending || !logContent.trim()}>
+                      {logPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                      Post Update
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Logs Timeline */}
               {logs && logs.length > 0 ? (
                 <div className="space-y-3">
                   {logs.map((log) => (
-                    <Card key={log.id} className="surface-glass" data-testid={`project-detail-log-${log.id}`}>
+                    <Card key={log.id} className="surface-glass">
                       <CardContent className="p-4">
                         <div className="flex items-start gap-3">
                           <ProfileAvatar
@@ -552,18 +755,19 @@ export default function ProjectDetail() {
                             imageUrl={log.author.profileImageUrl}
                             size="sm"
                           />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="font-medium text-sm">{log.author.firstName} {log.author.lastName}</span>
+                          <div className="min-w-0 flex-1">
+                            <div className="mb-1 flex flex-wrap items-center gap-2">
+                              <span className="text-sm font-medium">
+                                {log.isSystem ? "System" : `${log.author.firstName} ${log.author.lastName}`}
+                              </span>
                               <Badge className={`text-xs ${logTypeLabels[log.logType]?.color || ""}`}>
-                                {logTypeLabels[log.logType]?.icon}
-                                <span className="ml-1">{logTypeLabels[log.logType]?.label}</span>
+                                {logTypeLabels[log.logType]?.label}
                               </Badge>
                               <span className="text-xs text-muted-foreground">
                                 {formatDistanceToNow(new Date(log.createdAt!), { addSuffix: true })}
                               </span>
                             </div>
-                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{log.content}</p>
+                            <p className="whitespace-pre-wrap text-sm text-muted-foreground">{log.content}</p>
                           </div>
                         </div>
                       </CardContent>
@@ -572,13 +776,106 @@ export default function ProjectDetail() {
                 </div>
               ) : (
                 <Card className="surface-glass border-dashed">
-                  <CardContent className="p-8 text-center">
-                    <p className="text-muted-foreground">No activity yet. Post the first update!</p>
+                  <CardContent className="p-8 text-center text-muted-foreground">
+                    No activity yet. Post the first delivery update.
                   </CardContent>
                 </Card>
               )}
             </div>
-          )}
+          ) : null}
+
+          {project.status === "completed" ? (
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold font-display">Reviews</h2>
+
+              {canReview ? (
+                <Card className="surface-glass">
+                  <CardHeader>
+                    <CardTitle>Leave a Project Review</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid gap-4 sm:grid-cols-[180px_1fr]">
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium">Rating</p>
+                        <Select value={reviewRating} onValueChange={setReviewRating}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {[5, 4, 3, 2, 1].map((rating) => (
+                              <SelectItem key={rating} value={String(rating)}>
+                                {rating} stars
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium">Comment</p>
+                        <Textarea
+                          value={reviewComment}
+                          onChange={(event) => setReviewComment(event.target.value)}
+                          placeholder="What went well? What should future collaborators know?"
+                          className="min-h-[110px] resize-none"
+                        />
+                      </div>
+                    </div>
+
+                    <Button onClick={handleCreateReview} disabled={reviewPending}>
+                      {reviewPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Star className="mr-2 h-4 w-4" />}
+                      Submit Review
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : null}
+
+              {reviews && reviews.length > 0 ? (
+                <div className="grid gap-4">
+                  {reviews.map((review) => (
+                    <Card key={review.id} className="surface-glass">
+                      <CardContent className="space-y-3 p-5">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex items-center gap-3">
+                            <ProfileAvatar
+                              name={`${review.reviewer.firstName} ${review.reviewer.lastName}`}
+                              imageUrl={review.reviewer.profileImageUrl}
+                              size="sm"
+                            />
+                            <div>
+                              <p className="font-medium">
+                                {review.reviewer.firstName} {review.reviewer.lastName}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {formatDistanceToNow(new Date(review.createdAt!), { addSuffix: true })}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-3 py-1 text-sm font-medium text-amber-700">
+                            <Star className="h-4 w-4 fill-current" />
+                            {review.rating.toFixed(1)}
+                          </div>
+                        </div>
+
+                        {review.comment ? (
+                          <p className="text-sm text-muted-foreground">{review.comment}</p>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">No written comment provided.</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <Card className="surface-glass border-dashed">
+                  <CardContent className="p-8 text-center text-muted-foreground">
+                    No reviews yet for this project.
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          ) : null}
         </div>
 
         <div className="space-y-4 md:space-y-6">
@@ -586,7 +883,7 @@ export default function ProjectDetail() {
             <CardHeader>
               <CardTitle className="text-lg">About the Client</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <div className="flex items-center gap-4">
                 <ProfileAvatar
                   name={`${project.client.firstName} ${project.client.lastName}`}
@@ -595,45 +892,155 @@ export default function ProjectDetail() {
                   className="border-2 border-background shadow-sm"
                 />
                 <div className="min-w-0">
-                  <div className="font-bold truncate" title={`${project.client.firstName} ${project.client.lastName}`}>{project.client.firstName} {project.client.lastName}</div>
-                  <div className="text-sm text-muted-foreground">Member since {project.client.createdAt ? new Date(project.client.createdAt).getFullYear() : new Date().getFullYear()}</div>
+                  <div className="font-bold">
+                    {project.client.firstName} {project.client.lastName}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Member since {project.client.createdAt ? new Date(project.client.createdAt).getFullYear() : new Date().getFullYear()}
+                  </div>
+                  <div className="mt-2">
+                    <RatingPill
+                      averageRating={project.client.averageRating}
+                      reviewCount={project.client.reviewCount}
+                      emptyLabel="No client reviews yet"
+                    />
+                  </div>
                 </div>
+              </div>
+
+              {clientProfile?.headline ? (
+                <div className="rounded-2xl border border-border/60 bg-background/35 p-4 text-sm text-foreground">
+                  {clientProfile.headline}
+                </div>
+              ) : null}
+
+              <div className="space-y-2 text-sm text-muted-foreground">
+                {clientProfile?.companyName ? (
+                  <p>
+                    <span className="font-medium text-foreground">Company:</span> {clientProfile.companyName}
+                  </p>
+                ) : null}
+                {clientProfile?.industry ? (
+                  <p>
+                    <span className="font-medium text-foreground">Industry:</span> {clientProfile.industry}
+                  </p>
+                ) : null}
+                {clientProfile?.bio ? <p>{clientProfile.bio}</p> : null}
+                {clientProfile?.primaryCategories && clientProfile.primaryCategories.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {clientProfile.primaryCategories.map((category) => (
+                      <Badge key={category} variant="secondary">
+                        {PROJECT_CATEGORY_LABELS[category] || category}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : null}
               </div>
             </CardContent>
           </Card>
 
-          {!isClient && (
+          {isDeveloper ? (
             <Card className="surface-glass">
               <CardContent className="pt-6">
                 {hasExpressedInterest ? (
-                  <Button className="w-full border-status-online bg-status-online text-white hover:bg-status-online/90 cursor-default" size="lg" aria-label="Already applied">
-                    <CheckCircle2 className="mr-2 h-5 w-5" />
-                    Applied
-                  </Button>
+                  <div className="space-y-3">
+                    <Button className="w-full cursor-default border-status-online bg-status-online text-white hover:bg-status-online/90" size="lg">
+                      <CheckCircle2 className="mr-2 h-5 w-5" />
+                      Proposal Submitted
+                    </Button>
+                    {isAssignedDev ? (
+                      <Button asChild variant="outline" className="w-full">
+                        <Link href="/developer/messages">
+                          Open Project Messages
+                        </Link>
+                      </Button>
+                    ) : null}
+                  </div>
                 ) : (
                   <Dialog open={interestOpen} onOpenChange={setInterestOpen}>
                     <DialogTrigger asChild>
-                      <Button className="w-full shadow-lg shadow-primary/20" size="lg" aria-label="Apply for this project" data-testid="project-detail-apply-button">Apply Now</Button>
+                      <Button className="w-full shadow-lg shadow-primary/20" size="lg">
+                        Apply Now
+                      </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="sm:max-w-[620px]">
                       <DialogHeader>
-                        <DialogTitle>Apply for this project</DialogTitle>
+                        <DialogTitle>Submit a Proposal</DialogTitle>
                         <DialogDescription>
-                          Introduce yourself and explain why you&apos;re a good fit.
+                          Share your fit, budget, timing, and the skills that make you a strong match.
                         </DialogDescription>
                       </DialogHeader>
-                      <Textarea
-                        aria-label="Application message"
-                        placeholder="Hi, I'm a developer with 5 years of experience in..."
-                        className="min-h-[150px]"
-                        value={interestMessage}
-                        onChange={(e) => setInterestMessage(e.target.value)}
-                        data-testid="project-detail-apply-message-textarea"
-                      />
+
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-2">
+                          <FormLabel>Proposed Budget (₹)</FormLabel>
+                          <Input
+                            type="number"
+                            value={interestBudget}
+                            onChange={(event) => setInterestBudget(event.target.value)}
+                            placeholder="75000"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <FormLabel>Estimated Duration (days)</FormLabel>
+                          <Input
+                            type="number"
+                            value={interestDuration}
+                            onChange={(event) => setInterestDuration(event.target.value)}
+                            placeholder="21"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <FormLabel>Relevant Skills</FormLabel>
+                        <TagInput
+                          value={interestSkills}
+                          onChange={setInterestSkills}
+                          placeholder="Add the skills that are most relevant to this brief..."
+                        />
+                      </div>
+
+                      {(project.screeningQuestions ?? []).length > 0 ? (
+                        <div className="space-y-3">
+                          <FormLabel>Screening Questions</FormLabel>
+                          {(project.screeningQuestions ?? []).map((question, index) => (
+                            <div key={question} className="space-y-2">
+                              <p className="text-sm font-medium text-foreground">{question}</p>
+                              <Textarea
+                                value={interestScreeningAnswers[index] ?? ""}
+                                onChange={(event) =>
+                                  setInterestScreeningAnswers((current) => {
+                                    const next = [...current];
+                                    next[index] = event.target.value;
+                                    return next;
+                                  })
+                                }
+                                className="min-h-[100px] resize-none"
+                                placeholder="Add a concise answer..."
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+
+                      <div className="space-y-2">
+                        <FormLabel>Proposal Message</FormLabel>
+                        <Textarea
+                          value={interestMessage}
+                          onChange={(event) => setInterestMessage(event.target.value)}
+                          className="min-h-[150px] resize-none"
+                          placeholder="Explain why you're a strong fit, how you'd approach the work, and any delivery assumptions."
+                        />
+                      </div>
+
                       <DialogFooter>
-                        <Button onClick={handleInterest} aria-label="Submit application" disabled={interestPending || !interestMessage.trim()} data-testid="project-detail-apply-submit-button">
-                          {interestPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                          Submit Application
+                        <Button
+                          onClick={handleInterest}
+                          disabled={interestPending || !interestMessage.trim()}
+                        >
+                          {interestPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                          Submit Proposal
                         </Button>
                       </DialogFooter>
                     </DialogContent>
@@ -641,7 +1048,7 @@ export default function ProjectDetail() {
                 )}
               </CardContent>
             </Card>
-          )}
+          ) : null}
         </div>
       </main>
     </div>

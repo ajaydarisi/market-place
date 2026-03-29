@@ -1,6 +1,8 @@
 "use client";
 
+import { EmptyState } from "@/components/empty-state";
 import { Navigation } from "@/components/navigation";
+import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +10,14 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ProfileAvatar } from "@/components/profile-avatar";
 import { useAuth } from "@/hooks/use-auth";
-import { useConversations, useProjectMessages, useSendMessage, useMessagesRealtime, type Conversation } from "@/hooks/use-messages";
+import {
+  useConversations,
+  useProjectMessages,
+  useSendMessage,
+  useMessagesRealtime,
+  useMarkMessagesRead,
+  type Conversation,
+} from "@/hooks/use-messages";
 import { MessageSquare, Send, Loader2, ArrowLeft } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useState, useEffect, useRef, Suspense } from "react";
@@ -51,6 +60,7 @@ function MessagesContent() {
   // Fetch messages for the selected conversation
   const { data: messages, isLoading: msgsLoading } = useProjectMessages(selected?.projectId || 0);
   const { mutate: sendMessage, isPending: sendPending } = useSendMessage();
+  const { mutate: markMessagesRead } = useMarkMessagesRead();
 
   // Filter messages for the selected client
   const filteredMessages = messages?.filter(
@@ -61,6 +71,11 @@ function MessagesContent() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [filteredMessages.length]);
+
+  useEffect(() => {
+    if (!selected) return;
+    markMessagesRead(selected.projectId);
+  }, [markMessagesRead, selected]);
 
   const handleSend = () => {
     if (!messageText.trim() || !selected) return;
@@ -83,12 +98,11 @@ function MessagesContent() {
     <div className="page-shell min-h-screen bg-background">
       <Navigation />
       <div className="container mx-auto flex h-[calc(100dvh-4.5rem-var(--safe-area-top)-var(--mobile-nav-height)-var(--safe-area-bottom)-1rem)] flex-col px-4 py-4 md:h-[calc(100vh-80px)] md:py-8">
-        <div className="surface-glass mobile-panel mb-4 border-primary/10 md:mb-6">
-          <h1 className="text-2xl font-display font-bold md:text-3xl">Messages</h1>
-          <p className="mt-2 text-muted-foreground">
-            Stay close to client context, keep active threads readable, and move delivery forward without losing signal.
-          </p>
-        </div>
+        <PageHeader
+          className="mb-4 md:mb-6"
+          title="Messages"
+          description="Stay close to client context, keep active threads readable, and move delivery forward without losing signal."
+        />
 
         <div className="grid min-h-0 flex-1 grid-rows-1 gap-4 md:grid-cols-3 md:gap-6">
           {/* Conversation List */}
@@ -102,11 +116,13 @@ function MessagesContent() {
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </CardContent>
               ) : allConversations.length === 0 ? (
-                <CardContent className="flex items-center justify-center text-muted-foreground p-8 text-center min-h-[200px]">
-                  <div className="space-y-2">
-                    <MessageSquare className="h-8 w-8 mx-auto opacity-50" />
-                    <p>No conversations yet</p>
-                  </div>
+                <CardContent className="p-4">
+                  <EmptyState
+                    icon={MessageSquare}
+                    title="No conversations yet"
+                    description="When clients reply to your proposals, those threads will appear here."
+                    className="border-0 shadow-none"
+                  />
                 </CardContent>
               ) : (
                 <div className="p-2">
@@ -139,6 +155,11 @@ function MessagesContent() {
                           {conv.lastMessage && (
                             <p className="text-xs text-muted-foreground truncate mt-0.5">{conv.lastMessage}</p>
                           )}
+                          {conv.unreadCount > 0 ? (
+                            <span className="mt-2 inline-flex rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">
+                              {conv.unreadCount} new
+                            </span>
+                          ) : null}
                         </div>
                       </button>
                     );
@@ -151,11 +172,13 @@ function MessagesContent() {
           {/* Chat Thread */}
           <Card className={`surface-glass flex min-h-0 flex-col overflow-hidden md:col-span-2 ${mobileShowChat ? "" : "hidden md:flex"}`}>
             {!selected ? (
-              <CardContent className="flex-1 flex items-center justify-center text-muted-foreground bg-secondary/10">
-                <div className="text-center space-y-2">
-                  <MessageSquare className="h-8 w-8 mx-auto opacity-50" />
-                  <p>Select a conversation to start chatting</p>
-                </div>
+              <CardContent className="flex-1 bg-secondary/10 p-4">
+                <EmptyState
+                  icon={MessageSquare}
+                  title="Select a conversation"
+                  description="Choose a thread from the list to pick up the latest client context."
+                  className="border-0 bg-transparent shadow-none"
+                />
               </CardContent>
             ) : (
               <>
@@ -193,9 +216,12 @@ function MessagesContent() {
                       <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                     </div>
                   ) : filteredMessages.length === 0 ? (
-                    <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-                      <p>No messages yet. Send one to start the conversation!</p>
-                    </div>
+                    <EmptyState
+                      icon={MessageSquare}
+                      title="No messages yet"
+                      description="Send the first message to start the conversation."
+                      className="border-0 bg-transparent shadow-none"
+                    />
                   ) : (
                     <div className="space-y-3">
                       {filteredMessages.map((msg) => {

@@ -9,7 +9,13 @@ import { queryClient } from "@/lib/query-client";
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider data-testid="providers" client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="system" disableTransitionOnChange>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        disableTransitionOnChange
+        enableSystem
+        storageKey="devmarket-theme"
+      >
         <TooltipProvider>
           <PWAProvider>{children}</PWAProvider>
         </TooltipProvider>

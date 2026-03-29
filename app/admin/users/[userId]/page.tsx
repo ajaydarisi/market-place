@@ -1,6 +1,9 @@
 "use client";
 
+import { BackLinkButton } from "@/components/back-link-button";
+import { EmptyState } from "@/components/empty-state";
 import { Navigation } from "@/components/navigation";
+import { PageHeader } from "@/components/page-header";
 import { ProfileAvatar } from "@/components/profile-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,8 +38,7 @@ import {
   useAdminDeleteUser,
 } from "@/hooks/use-admin";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Loader2, Save, Trash2 } from "lucide-react";
-import Link from "next/link";
+import { Loader2, Save, Trash2, User } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { userRoles, experienceLevels, availabilityStatuses, companySizes } from "@shared/schema";
@@ -157,7 +159,11 @@ export default function AdminUserDetail() {
       <div className="min-h-screen bg-background">
         <Navigation />
         <main className="container mx-auto px-4 py-8">
-          <p className="text-muted-foreground">User not found</p>
+          <EmptyState
+            icon={User}
+            title="User not found"
+            description="This account may have been removed or is no longer available to administrators."
+          />
         </main>
       </div>
     );
@@ -170,31 +176,29 @@ export default function AdminUserDetail() {
     <div className="min-h-screen bg-background">
       <Navigation />
       <main className="container mx-auto px-4 py-8">
-        <Link
-          href="/admin/users"
-          aria-label="Back to users list"
-          className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-4 transition-colors"
-        >
-          <ArrowLeft className="mr-1 h-4 w-4" />
+        <BackLinkButton href="/admin/users" aria-label="Back to users list" className="mb-4">
           Back to Users
-        </Link>
+        </BackLinkButton>
 
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <ProfileAvatar
-              name={`${user.firstName || ""} ${user.lastName || ""}`}
-              imageUrl={user.profileImageUrl}
-              size="lg"
-            />
-            <div>
-              <h1 className="text-3xl font-display font-bold">
-                {user.firstName} {user.lastName}
-              </h1>
-              <p className="text-muted-foreground">{user.email}</p>
+        <PageHeader
+          className="mb-8"
+          title={
+            <div className="flex min-w-0 items-center gap-4">
+              <ProfileAvatar
+                name={`${user.firstName || ""} ${user.lastName || ""}`}
+                imageUrl={user.profileImageUrl}
+                size="lg"
+              />
+              <div className="min-w-0">
+                <div className="truncate text-3xl font-display font-bold">
+                  {user.firstName} {user.lastName}
+                </div>
+                <div className="truncate text-muted-foreground">{user.email}</div>
+              </div>
             </div>
-          </div>
-          <Badge variant={role === "admin" ? "default" : "secondary"}>{role || "No role"}</Badge>
-        </div>
+          }
+          actions={<Badge variant={role === "admin" ? "default" : "secondary"}>{role || "No role"}</Badge>}
+        />
 
         <div className="grid gap-6 md:grid-cols-2">
           {/* User Details Card */}

@@ -1,7 +1,9 @@
 "use client";
 
+import { EmptyState } from "@/components/empty-state";
 import { useAssignedProjects } from "@/hooks/use-assigned-projects";
 import { Navigation } from "@/components/navigation";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,12 +36,11 @@ export default function DeveloperProjects() {
     <div className="page-shell min-h-screen bg-background">
       <Navigation />
       <main className="container mx-auto mobile-page">
-        <div className="surface-glass mobile-panel mb-6 overflow-hidden border-primary/10 md:mb-8">
-          <h1 className="mobile-section-title">My Projects</h1>
-          <p className="mobile-copy mt-2 max-w-2xl">
-            Track active assignments, jump into delivery faster, and keep every project surface feeling focused and actionable.
-          </p>
-        </div>
+        <PageHeader
+          className="mb-6 md:mb-8"
+          title="My Projects"
+          description="Track active assignments, jump into delivery faster, and keep every project surface feeling focused and actionable."
+        />
 
         {isLoading ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 md:gap-6">
@@ -112,30 +113,27 @@ export default function DeveloperProjects() {
                 </CardContent>
 
                 <CardFooter className="mt-3 border-t border-t-border/50 bg-gradient-to-r from-secondary/55 to-background/20 py-4">
-                  <Link href={`/projects/${project.id}`} aria-label={`View details for ${project.title}`} className="w-full">
-                    <Button aria-label="View project details" className="w-full" variant="secondary">
+                  <Button asChild aria-label="View project details" className="w-full" variant="secondary">
+                    <Link href={`/projects/${project.id}`} aria-label={`View details for ${project.title}`}>
                       View Details
                       <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                    </Button>
-                  </Link>
+                    </Link>
+                  </Button>
                 </CardFooter>
               </Card>
             ))}
             {projects?.length === 0 && (
-              <Card className="surface-glass col-span-full border-2 border-dashed border-border/60">
-                <div className="flex flex-col items-center justify-center py-24 text-center">
-                  <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-[1.5rem] bg-primary/[0.08] text-primary">
-                    <Briefcase className="h-8 w-8" />
-                  </div>
-                  <h3 className="text-xl font-bold">No assigned projects yet</h3>
-                  <p className="text-muted-foreground max-w-sm mt-2 mb-6">
-                    Browse available projects and submit proposals to get started.
-                  </p>
-                  <Link href="/developer/browse" aria-label="Browse available projects">
-                    <Button aria-label="Browse projects" variant="outline" className="surface-glass">Browse Projects</Button>
-                  </Link>
-                </div>
-              </Card>
+              <EmptyState
+                icon={Briefcase}
+                title="No assigned projects yet"
+                description="Browse available projects and submit proposals to get started."
+                className="col-span-full"
+                action={(
+                  <Button asChild aria-label="Browse projects" variant="outline" className="surface-glass">
+                    <Link href="/developer/browse" aria-label="Browse available projects">Browse Projects</Link>
+                  </Button>
+                )}
+              />
             )}
           </div>
         )}

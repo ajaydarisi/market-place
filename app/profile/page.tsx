@@ -1,7 +1,11 @@
 "use client";
 
+import { ActionListItem } from "@/components/action-list-item";
+import { BackLinkButton } from "@/components/back-link-button";
 import { ProfileAvatar } from "@/components/profile-avatar";
 import { AvatarUpload } from "@/components/avatar-upload";
+import { CategoryMultiSelect } from "@/components/category-multi-select";
+import { RatingPill } from "@/components/rating-pill";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +22,13 @@ import { useUser, useUpdateUser } from "@/hooks/use-users";
 import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertProfileSchema, insertUserSchema, experienceLevels, availabilityStatuses, companySizes } from "@shared/schema";
-import { ArrowLeft, Loader2, Edit2, Globe, ExternalLink } from "lucide-react";
+import {
+  AVAILABILITY_LABELS,
+  EXPERIENCE_LEVEL_LABELS,
+  PROJECT_CATEGORY_LABELS,
+  calculateProfileCompletionScore,
+} from "@shared/marketplace";
+import { Loader2, Edit2, Globe, ExternalLink } from "lucide-react";
 
 function GitHubIcon({ className }: { className?: string }) {
   return (
@@ -36,7 +46,6 @@ function LinkedInIcon({ className }: { className?: string }) {
   );
 }
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -48,8 +57,10 @@ const userFormSchema = insertUserSchema.pick({
 
 const profileFormSchema = insertProfileSchema.pick({
   role: true,
+  headline: true,
   bio: true,
   skills: true,
+  primaryCategories: true,
   portfolioLinks: true,
   experienceLevel: true,
   availabilityStatus: true,
@@ -61,19 +72,6 @@ const profileFormSchema = insertProfileSchema.pick({
 const combinedFormSchema = userFormSchema.merge(profileFormSchema);
 
 type CombinedFormValues = z.infer<typeof combinedFormSchema>;
-
-const experienceLevelLabels: Record<string, string> = {
-  junior: "Junior",
-  mid: "Mid-Level",
-  senior: "Senior",
-  lead: "Lead",
-};
-
-const availabilityLabels: Record<string, string> = {
-  available: "Available",
-  busy: "Busy",
-  open_to_offers: "Open to Offers",
-};
 
 const companySizeLabels: Record<string, string> = {
   solo: "Solo / Freelancer",
@@ -97,8 +95,10 @@ export default function Profile() {
       firstName: "",
       lastName: "",
       role: "client",
+      headline: "",
       bio: "",
       skills: [],
+      primaryCategories: [],
       portfolioLinks: { github: "", linkedin: "", website: "" },
       experienceLevel: undefined,
       availabilityStatus: "available",
@@ -114,8 +114,10 @@ export default function Profile() {
         firstName: userData?.firstName || "",
         lastName: userData?.lastName || "",
         role: profile?.role || "client",
+        headline: profile?.headline || "",
         bio: profile?.bio || "",
         skills: profile?.skills || [],
+        primaryCategories: profile?.primaryCategories || [],
         portfolioLinks: {
           github: profile?.portfolioLinks?.github || "",
           linkedin: profile?.portfolioLinks?.linkedin || "",
@@ -138,8 +140,10 @@ export default function Profile() {
 
     const profileUpdates = {
       role: data.role,
+      headline: data.headline || undefined,
       bio: data.bio || undefined,
       skills: data.skills || undefined,
+      primaryCategories: data.primaryCategories || undefined,
       portfolioLinks: data.portfolioLinks ? {
         github: data.portfolioLinks.github || null,
         linkedin: data.portfolioLinks.linkedin || null,
@@ -185,14 +189,17 @@ export default function Profile() {
   const isPending = isUpdatingUser || isUpdatingProfile;
 
   const backHref = profile?.role === "client" ? "/client/projects" : "/developer/browse";
+  const profileCompletionScore = profile?.profileCompletionScore ?? calculateProfileCompletionScore(profile);
 
   const handleCancel = () => {
     form.reset({
       firstName: userData?.firstName || "",
       lastName: userData?.lastName || "",
       role: profile?.role || "client",
+      headline: profile?.headline || "",
       bio: profile?.bio || "",
       skills: profile?.skills || [],
+      primaryCategories: profile?.primaryCategories || [],
       portfolioLinks: {
         github: profile?.portfolioLinks?.github || "",
         linkedin: profile?.portfolioLinks?.linkedin || "",
@@ -225,14 +232,9 @@ export default function Profile() {
     <div className="page-shell min-h-screen bg-background">
       <Navigation />
       <div className="mx-auto max-w-5xl px-4 py-4 md:py-6">
-        <Link
-          href={backHref}
-          aria-label="Go back"
-          className="surface-glass mb-4 inline-flex items-center rounded-full px-4 py-2 text-sm text-muted-foreground hover:text-primary"
-        >
-          <ArrowLeft className="mr-1 h-4 w-4" />
+        <BackLinkButton href={backHref} aria-label="Go back" className="mb-4">
           Back
-        </Link>
+        </BackLinkButton>
 
         <Card className="surface-glass mx-auto w-full border-primary/10">
           <CardHeader className="hero-grid relative overflow-hidden border-b border-border/50 bg-transparent py-5 md:py-6">
@@ -248,6 +250,14 @@ export default function Profile() {
                   <div className="min-w-0">
                     <CardTitle className="text-lg font-display truncate sm:text-xl">{fullName}</CardTitle>
                     <p className="text-xs sm:text-sm text-muted-foreground truncate mt-1">{userData?.email}</p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <Badge variant="outline">{profileCompletionScore}% complete</Badge>
+                      <RatingPill
+                        averageRating={userData?.averageRating}
+                        reviewCount={userData?.reviewCount}
+                        emptyLabel="No reviews yet"
+                      />
+                    </div>
                   </div>
                 </div>
                 <Button variant="outline" size="sm" aria-label="Edit profile" className="surface-glass w-full shrink-0 sm:w-auto" onClick={() => setIsEditing(true)} data-testid="profile-edit-button">
@@ -294,6 +304,12 @@ export default function Profile() {
                 {/* About */}
                 <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
                   <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">About</h3>
+                  <div className="space-y-1 min-w-0 mb-4">
+                    <p className="text-xs text-muted-foreground">Headline</p>
+                    <p className="text-sm font-medium" title={profile?.headline || undefined}>
+                      {profile?.headline || <span className="text-muted-foreground">Add a headline to improve matching.</span>}
+                    </p>
+                  </div>
                   <div className="space-y-1 min-w-0">
                     <p className="text-xs text-muted-foreground">Bio</p>
                     <p className="text-sm line-clamp-3" title={profile?.bio || undefined}>
@@ -302,10 +318,25 @@ export default function Profile() {
                   </div>
                 </div>
 
+                <Separator />
+
+                <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Primary Categories</h3>
+                  {profile?.primaryCategories && profile.primaryCategories.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {profile.primaryCategories.map((category) => (
+                        <Badge key={category} variant="secondary" className="px-2.5 py-0.5 text-xs">
+                          {PROJECT_CATEGORY_LABELS[category] || category}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Choose categories to improve recommendation quality.</p>
+                  )}
+                </div>
+
                 {profile?.role === "developer" && (
                   <>
-                    <Separator />
-
                     {/* Skills (Developer only) */}
                     <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
                       <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Skills</h3>
@@ -330,43 +361,43 @@ export default function Profile() {
                       {profile?.portfolioLinks?.github || profile?.portfolioLinks?.linkedin || profile?.portfolioLinks?.website ? (
                         <div className="space-y-2">
                           {profile.portfolioLinks.github && (
-                            <a
+                            <ActionListItem
                               href={profile.portfolioLinks.github}
+                              ariaLabel="Open GitHub profile"
+                              icon={GitHubIcon}
+                              title="GitHub"
+                              description={profile.portfolioLinks.github}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-2 text-sm text-primary hover:underline truncate"
-                              title={profile.portfolioLinks.github}
-                            >
-                              <GitHubIcon className="h-4 w-4 shrink-0" />
-                              <span className="truncate">{profile.portfolioLinks.github}</span>
-                              <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
-                            </a>
+                              trailing={<ExternalLink className="h-3 w-3" />}
+                              className="justify-between rounded-xl px-3"
+                            />
                           )}
                           {profile.portfolioLinks.linkedin && (
-                            <a
+                            <ActionListItem
                               href={profile.portfolioLinks.linkedin}
+                              ariaLabel="Open LinkedIn profile"
+                              icon={LinkedInIcon}
+                              title="LinkedIn"
+                              description={profile.portfolioLinks.linkedin}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-2 text-sm text-primary hover:underline truncate"
-                              title={profile.portfolioLinks.linkedin}
-                            >
-                              <LinkedInIcon className="h-4 w-4 shrink-0" />
-                              <span className="truncate">{profile.portfolioLinks.linkedin}</span>
-                              <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
-                            </a>
+                              trailing={<ExternalLink className="h-3 w-3" />}
+                              className="justify-between rounded-xl px-3"
+                            />
                           )}
                           {profile.portfolioLinks.website && (
-                            <a
+                            <ActionListItem
                               href={profile.portfolioLinks.website}
+                              ariaLabel="Open personal website"
+                              icon={Globe}
+                              title="Website"
+                              description={profile.portfolioLinks.website}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-2 text-sm text-primary hover:underline truncate"
-                              title={profile.portfolioLinks.website}
-                            >
-                              <Globe className="h-4 w-4 shrink-0" />
-                              <span className="truncate">{profile.portfolioLinks.website}</span>
-                              <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
-                            </a>
+                              trailing={<ExternalLink className="h-3 w-3" />}
+                              className="justify-between rounded-xl px-3"
+                            />
                           )}
                         </div>
                       ) : (
@@ -382,9 +413,9 @@ export default function Profile() {
                       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div className="space-y-1">
                           <p className="text-xs text-muted-foreground">Experience Level</p>
-                          {profile?.experienceLevel ? (
+                              {profile?.experienceLevel ? (
                             <Badge variant="outline" className="text-sm">
-                              {experienceLevelLabels[profile.experienceLevel] || profile.experienceLevel}
+                              {EXPERIENCE_LEVEL_LABELS[profile.experienceLevel] || profile.experienceLevel}
                             </Badge>
                           ) : (
                             <p className="text-sm text-muted-foreground">Not set</p>
@@ -402,7 +433,7 @@ export default function Profile() {
                             }
                             className="text-sm"
                           >
-                            {availabilityLabels[profile?.availabilityStatus || "available"]}
+                            {AVAILABILITY_LABELS[profile?.availabilityStatus || "available"]}
                           </Badge>
                         </div>
                       </div>
@@ -544,6 +575,25 @@ export default function Profile() {
                     <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">About</h3>
                     <FormField
                       control={form.control}
+                      name="headline"
+                      render={({ field }) => (
+                        <FormItem className="mb-4">
+                          <FormLabel>Headline</FormLabel>
+                          <FormControl>
+                            <Input
+                              aria-label="Headline"
+                              placeholder="Add a short headline that explains your work"
+                              data-testid="profile-edit-headline-input"
+                              {...field}
+                              value={field.value || ""}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
                       name="bio"
                       render={({ field }) => (
                         <FormItem>
@@ -557,6 +607,24 @@ export default function Profile() {
                               {...field}
                               value={field.value || ""}
                             />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <Separator />
+
+                  <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Primary Categories</h3>
+                    <FormField
+                      control={form.control}
+                      name="primaryCategories"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <CategoryMultiSelect value={field.value || []} onChange={field.onChange} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -690,7 +758,7 @@ export default function Profile() {
                                   <SelectContent>
                                     {experienceLevels.map((level) => (
                                       <SelectItem key={level} value={level}>
-                                        {experienceLevelLabels[level]}
+                                        {EXPERIENCE_LEVEL_LABELS[level]}
                                       </SelectItem>
                                     ))}
                                   </SelectContent>
@@ -717,7 +785,7 @@ export default function Profile() {
                                   <SelectContent>
                                     {availabilityStatuses.map((status) => (
                                       <SelectItem key={status} value={status}>
-                                        {availabilityLabels[status]}
+                                        {AVAILABILITY_LABELS[status]}
                                       </SelectItem>
                                     ))}
                                   </SelectContent>

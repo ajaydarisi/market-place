@@ -2,20 +2,22 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import {
   Briefcase,
   LogOut,
   Menu,
   MessageSquare,
-  Moon,
   Plus,
   Search,
   Shield,
-  Sun,
   User,
 } from "lucide-react";
+import {
+  AppearanceInlineSelector,
+  AppearanceMenuItems,
+} from "@/components/appearance-selector";
+import { ActionListItem } from "@/components/action-list-item";
 import { ProfileAvatar } from "@/components/profile-avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,6 +44,14 @@ type MobileTab = {
   testId: string;
 };
 
+type NavItem = {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  active: boolean;
+  testId: string;
+};
+
 function getMobileTitle(pathname: string) {
   if (pathname.startsWith("/client/post")) return "Post Project";
   if (pathname.startsWith("/client/messages") || pathname.startsWith("/developer/messages")) return "Messages";
@@ -61,7 +71,6 @@ export function Navigation() {
   const { data: userData } = useUser(user?.id ?? "");
   const { data: profile } = useProfile(user?.id ?? "");
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
 
   const isClient = profile?.role === "client";
@@ -83,51 +92,102 @@ export function Navigation() {
 
   const navLinkClass = (isActive: boolean) =>
     cn(
-      "rounded-full px-3.5 py-2 text-sm font-medium transition-all duration-300",
+      "h-auto rounded-full border-transparent px-3.5 py-2 text-sm font-medium shadow-none transition-all duration-300",
       isActive
-        ? "bg-primary/[0.08] text-foreground shadow-sm ring-1 ring-primary/10"
+        ? "bg-primary/[0.08] text-foreground ring-1 ring-primary/10"
         : "text-muted-foreground hover:bg-secondary/55 hover:text-foreground"
     );
 
+  const navItems: NavItem[] = isAdmin
+    ? [
+        {
+          href: "/admin",
+          label: "Dashboard",
+          icon: Shield,
+          active: pathname === "/admin" && !pathname.includes("/admin/"),
+          testId: "nav-dashboard-link",
+        },
+        {
+          href: "/admin/users",
+          label: "Users",
+          icon: User,
+          active: pathname.startsWith("/admin/users"),
+          testId: "nav-users-link",
+        },
+        {
+          href: "/admin/projects",
+          label: "Projects",
+          icon: Briefcase,
+          active: pathname.startsWith("/admin/projects"),
+          testId: "nav-projects-link",
+        },
+        {
+          href: "/admin/audit-logs",
+          label: "Audit Logs",
+          icon: Shield,
+          active: pathname.startsWith("/admin/audit-logs"),
+          testId: "nav-audit-logs-link",
+        },
+      ]
+    : isClient
+      ? [
+          {
+            href: "/client/projects",
+            label: "My Projects",
+            icon: Briefcase,
+            active: pathname === "/client/projects" || pathname.startsWith("/projects/"),
+            testId: "nav-projects-link",
+          },
+          {
+            href: "/client/messages",
+            label: "Messages",
+            icon: MessageSquare,
+            active: pathname === "/client/messages",
+            testId: "nav-messages-link",
+          },
+        ]
+      : isDeveloper
+        ? [
+            {
+              href: "/developer/browse",
+              label: "Browse Jobs",
+              icon: Search,
+              active: pathname === "/developer/browse",
+              testId: "nav-browse-link",
+            },
+            {
+              href: "/developer/projects",
+              label: "My Projects",
+              icon: Briefcase,
+              active: pathname === "/developer/projects" || pathname.startsWith("/projects/"),
+              testId: "nav-projects-link",
+            },
+            {
+              href: "/developer/messages",
+              label: "My Messages",
+              icon: MessageSquare,
+              active: pathname === "/developer/messages",
+              testId: "nav-messages-link",
+            },
+          ]
+        : [];
+
   const NavLinks = () => (
     <>
-      {isAdmin ? (
-        <>
-          <Link href="/admin" aria-label="Admin dashboard" className={navLinkClass(pathname === "/admin" && !pathname.includes("/admin/"))}>
-            Dashboard
+      {navItems.map((item) => (
+        <Button
+          key={item.href}
+          asChild
+          variant="ghost"
+          size="sm"
+          className={navLinkClass(item.active)}
+          data-testid={item.testId}
+        >
+          <Link href={item.href} aria-label={item.label}>
+            {item.label}
           </Link>
-          <Link href="/admin/users" aria-label="Manage users" className={navLinkClass(pathname.startsWith("/admin/users"))}>
-            Users
-          </Link>
-          <Link href="/admin/projects" aria-label="Manage projects" className={navLinkClass(pathname.startsWith("/admin/projects"))}>
-            Projects
-          </Link>
-          <Link href="/admin/audit-logs" aria-label="Audit logs" className={navLinkClass(pathname.startsWith("/admin/audit-logs"))}>
-            Audit Logs
-          </Link>
-        </>
-      ) : isClient ? (
-        <>
-          <Link href="/client/projects" aria-label="My projects" className={navLinkClass(pathname === "/client/projects" || pathname.startsWith("/projects/"))}>
-            My Projects
-          </Link>
-          <Link href="/client/messages" aria-label="Messages" className={navLinkClass(pathname === "/client/messages")}>
-            Messages
-          </Link>
-        </>
-      ) : isDeveloper ? (
-        <>
-          <Link href="/developer/browse" aria-label="Browse jobs" className={navLinkClass(pathname === "/developer/browse")}>
-            Browse Jobs
-          </Link>
-          <Link href="/developer/projects" aria-label="My projects" className={navLinkClass(pathname === "/developer/projects" || pathname.startsWith("/projects/"))}>
-            My Projects
-          </Link>
-          <Link href="/developer/messages" aria-label="My messages" className={navLinkClass(pathname === "/developer/messages")}>
-            My Messages
-          </Link>
-        </>
-      ) : null}
+        </Button>
+      ))}
     </>
   );
 
@@ -241,13 +301,13 @@ export function Navigation() {
           <div className="container mx-auto hidden h-20 items-center justify-between gap-4 px-4 md:flex">
             <div className="flex items-center gap-8">
               <Link href={homeHref} aria-label="Go to workspace home" className="flex items-center space-x-3" data-testid="nav-logo-link">
-                <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-primary via-primary to-accent text-primary-foreground shadow-lg shadow-primary/20 ring-1 ring-white/10">
-                  <Briefcase className="h-7 w-7 translate-y-px text-primary-foreground" />
+                <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-primary via-primary to-accent text-white shadow-lg shadow-primary/20 ring-1 ring-white/10">
+                  <Briefcase className="h-7 w-7 translate-y-px text-white" />
                   <div className="pointer-events-none absolute inset-0 rounded-2xl bg-white/10" />
                 </div>
                 <div className="flex flex-col">
                   <span className="font-display text-xl font-bold leading-tight tracking-tight">
-                    Dev<span className="text-primary">Market</span>
+                    Dev<span className="text-gradient">Market</span>
                   </span>
                   {profile?.role && (
                     <span
@@ -270,17 +330,18 @@ export function Navigation() {
 
             <div className="flex items-center gap-4">
               {isClient && (
-                <Link href="/client/post" aria-label="Post a new project">
-                  <Button
-                    size="sm"
-                    aria-label="Post project"
-                    className="border-0 bg-gradient-to-r from-primary via-primary to-accent text-primary-foreground shadow-lg shadow-primary/25"
-                    data-testid="nav-post-project-button"
-                  >
+                <Button
+                  asChild
+                  size="sm"
+                  aria-label="Post project"
+                  className="border-0 bg-gradient-to-r from-primary via-primary to-accent text-primary-foreground shadow-lg shadow-primary/25"
+                  data-testid="nav-post-project-button"
+                >
+                  <Link href="/client/post" aria-label="Post a new project">
                     <Plus className="mr-2 h-4 w-4" />
                     Post Project
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               )}
 
               <DropdownMenu>
@@ -321,10 +382,8 @@ export function Navigation() {
                       <span>Profile</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label="Toggle theme" className="cursor-pointer" data-testid="nav-theme-toggle">
-                    {theme === "dark" ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
-                    <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
-                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <AppearanceMenuItems className="pb-1" />
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => logout()} aria-label="Log out" className="cursor-pointer" data-testid="nav-logout-button">
                     <LogOut className="mr-2 h-4 w-4" />
@@ -341,9 +400,9 @@ export function Navigation() {
                 <Link
                   href={homeHref}
                   aria-label="Go to workspace home"
-                  className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary via-primary to-accent text-primary-foreground shadow-lg shadow-primary/20"
+                  className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary via-primary to-accent text-white shadow-lg shadow-primary/20"
                 >
-                  <Briefcase className="h-7 w-7 translate-y-px" />
+                  <Briefcase className="h-7 w-7 translate-y-px text-white" />
                 </Link>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">{mobileTitle}</p>
@@ -390,43 +449,45 @@ export function Navigation() {
           <div className="mobile-stack">
             {isAdmin && (
               <>
-                <Link
+                <ActionListItem
                   href="/admin/audit-logs"
-                  aria-label="View audit logs"
+                  ariaLabel="View audit logs"
                   onClick={() => setIsOpen(false)}
-                  className="surface-subtle flex min-h-12 items-center justify-between rounded-2xl px-4 py-3 text-sm font-medium"
-                >
-                  <span>Audit Logs</span>
-                  <Shield className="h-4 w-4 text-primary" />
-                </Link>
+                  icon={Shield}
+                  title="Audit Logs"
+                  description="Review the latest administrative activity."
+                  className="surface-subtle rounded-2xl"
+                />
                 <Separator />
               </>
             )}
 
             {!isAdmin && (
               <>
-                <Link
+                <ActionListItem
                   href="/profile"
-                  aria-label="View profile"
+                  ariaLabel="View profile"
                   onClick={() => setIsOpen(false)}
-                  className="surface-subtle flex min-h-12 items-center justify-between rounded-2xl px-4 py-3 text-sm font-medium"
-                >
-                  <span>Profile</span>
-                  <User className="h-4 w-4 text-primary" />
-                </Link>
+                  icon={User}
+                  title="Profile"
+                  description="Manage your account, portfolio, and availability."
+                  className="surface-subtle rounded-2xl"
+                />
                 <Separator />
               </>
             )}
 
-            <Button
-              variant="outline"
-              aria-label="Toggle theme"
-              className="w-full justify-between"
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            >
-              <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
-              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
+            <div className="surface-subtle rounded-[1.4rem] p-3">
+              <div className="mb-3 px-1">
+                <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                  Appearance
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Choose how DevMarket looks on this device.
+                </p>
+              </div>
+              <AppearanceInlineSelector />
+            </div>
 
             <Button variant="ghost" aria-label="Log out" className="w-full justify-between text-destructive" onClick={closeAndLogout}>
               <span>Log out</span>
@@ -451,35 +512,42 @@ export function Navigation() {
 
               if (tab.href) {
                 return (
-                  <Link
+                  <Button
                     key={tab.label}
-                    href={tab.href}
-                    aria-label={tab.label}
+                    asChild
+                    variant="ghost"
                     className={cn(
-                      "flex min-h-[3.6rem] flex-1 flex-col items-center justify-center gap-1 rounded-[1.15rem] px-2 text-center transition-colors",
-                      tab.active ? "bg-primary/[0.08] shadow-sm ring-1 ring-primary/10" : "hover:bg-secondary/55"
+                      "h-auto min-h-[3.6rem] flex-1 flex-col gap-1 rounded-[1.15rem] border-transparent px-2 text-center shadow-none",
+                      tab.active ? "bg-primary/[0.08] ring-1 ring-primary/10" : "hover:bg-secondary/55"
                     )}
+                    aria-label={tab.label}
                     data-testid={tab.testId}
                   >
-                    {content}
-                  </Link>
+                    <Link
+                      href={tab.href}
+                      aria-label={tab.label}
+                    >
+                      {content}
+                    </Link>
+                  </Button>
                 );
               }
 
               return (
-                <button
+                <Button
                   key={tab.label}
                   type="button"
-                  aria-label={tab.label}
-                  onClick={tab.onSelect}
+                  variant="ghost"
                   className={cn(
-                    "flex min-h-[3.6rem] flex-1 flex-col items-center justify-center gap-1 rounded-[1.15rem] px-2 text-center transition-colors",
-                    tab.active ? "bg-primary/[0.08] shadow-sm ring-1 ring-primary/10" : "hover:bg-secondary/55"
+                    "h-auto min-h-[3.6rem] flex-1 flex-col gap-1 rounded-[1.15rem] border-transparent px-2 text-center shadow-none",
+                    tab.active ? "bg-primary/[0.08] ring-1 ring-primary/10" : "hover:bg-secondary/55"
                   )}
+                  aria-label={tab.label}
                   data-testid={tab.testId}
+                  onClick={tab.onSelect}
                 >
                   {content}
-                </button>
+                </Button>
               );
             })}
           </div>

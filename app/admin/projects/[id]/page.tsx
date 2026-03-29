@@ -1,6 +1,9 @@
 "use client";
 
+import { BackLinkButton } from "@/components/back-link-button";
+import { EmptyState } from "@/components/empty-state";
 import { Navigation } from "@/components/navigation";
+import { PageHeader } from "@/components/page-header";
 import { ProfileAvatar } from "@/components/profile-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,7 +32,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useAdminProject, useAdminUpdateProject, useAdminDeleteProject } from "@/hooks/use-admin";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Loader2, Save, Trash2 } from "lucide-react";
+import { Briefcase, Loader2, Save, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -143,7 +146,11 @@ export default function AdminProjectDetail() {
       <div className="min-h-screen bg-background">
         <Navigation />
         <main className="container mx-auto px-4 py-8">
-          <p className="text-muted-foreground">Project not found</p>
+          <EmptyState
+            icon={Briefcase}
+            title="Project not found"
+            description="This project may have been deleted or is no longer available to administer."
+          />
         </main>
       </div>
     );
@@ -153,26 +160,26 @@ export default function AdminProjectDetail() {
     <div className="min-h-screen bg-background">
       <Navigation />
       <main className="container mx-auto px-4 py-8">
-        <Link
-          href="/admin/projects"
-          aria-label="Back to projects list"
-          className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-4 transition-colors"
-        >
-          <ArrowLeft className="mr-1 h-4 w-4" />
+        <BackLinkButton href="/admin/projects" aria-label="Back to projects list" className="mb-4">
           Back to Projects
-        </Link>
+        </BackLinkButton>
 
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-display font-bold truncate" title={project.title}>
-              {project.title}
-            </h1>
-            <p className="text-muted-foreground">{project.category}</p>
-          </div>
-          <Badge variant={getStatusBadgeVariant(project.status)}>
-            {project.status.replace(/_/g, " ")}
-          </Badge>
-        </div>
+        <PageHeader
+          className="mb-8"
+          title={
+            <div className="min-w-0">
+              <div className="truncate text-3xl font-display font-bold" title={project.title}>
+                {project.title}
+              </div>
+              <div className="text-muted-foreground">{project.category}</div>
+            </div>
+          }
+          actions={(
+            <Badge variant={getStatusBadgeVariant(project.status)}>
+              {project.status.replace(/_/g, " ")}
+            </Badge>
+          )}
+        />
 
         <div className="grid gap-6 md:grid-cols-2">
           {/* Project Details Card */}
@@ -290,11 +297,11 @@ export default function AdminProjectDetail() {
                   </div>
                 </div>
                 <div className="mt-4">
-                  <Link href={`/admin/users/${project.clientId}`}>
-                    <Button variant="outline" aria-label="View client profile">
+                  <Button asChild variant="outline" aria-label="View client profile">
+                    <Link href={`/admin/users/${project.clientId}`}>
                       View Client Profile
-                    </Button>
-                  </Link>
+                    </Link>
+                  </Button>
                 </div>
               </CardContent>
             </Card>

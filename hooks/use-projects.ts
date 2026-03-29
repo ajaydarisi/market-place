@@ -5,7 +5,21 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { authFetch } from "@/lib/api";
 
 // List projects with optional filters
-export function useProjects(filters?: { category?: string; search?: string; sort?: string; clientId?: string }) {
+export function useProjects(filters?: {
+  category?: string;
+  search?: string;
+  sort?: string;
+  clientId?: string;
+  status?: string;
+  minBudget?: number;
+  maxBudget?: number;
+  requiredSkills?: string[];
+  technologyTags?: string[];
+  preferredExperienceLevel?: string;
+  projectType?: string;
+  scopeSize?: string;
+  teamPreference?: string;
+}) {
   return useQuery({
     queryKey: [api.projects.list.path, filters],
     queryFn: async () => {
@@ -14,8 +28,21 @@ export function useProjects(filters?: { category?: string; search?: string; sort
       if (filters?.search) url.searchParams.set("search", filters.search);
       if (filters?.sort) url.searchParams.set("sort", filters.sort);
       if (filters?.clientId) url.searchParams.set("clientId", filters.clientId);
-
-      console.log(filters, "filters")
+      if (filters?.status) url.searchParams.set("status", filters.status);
+      if (filters?.minBudget !== undefined) url.searchParams.set("minBudget", String(filters.minBudget));
+      if (filters?.maxBudget !== undefined) url.searchParams.set("maxBudget", String(filters.maxBudget));
+      if (filters?.preferredExperienceLevel) {
+        url.searchParams.set("preferredExperienceLevel", filters.preferredExperienceLevel);
+      }
+      if (filters?.requiredSkills && filters.requiredSkills.length > 0) {
+        url.searchParams.set("requiredSkills", filters.requiredSkills.join(","));
+      }
+      if (filters?.technologyTags && filters.technologyTags.length > 0) {
+        url.searchParams.set("technologyTags", filters.technologyTags.join(","));
+      }
+      if (filters?.projectType) url.searchParams.set("projectType", filters.projectType);
+      if (filters?.scopeSize) url.searchParams.set("scopeSize", filters.scopeSize);
+      if (filters?.teamPreference) url.searchParams.set("teamPreference", filters.teamPreference);
 
       const res = await authFetch(url.toString());
       if (!res.ok) throw new Error("Failed to fetch projects");
@@ -51,6 +78,20 @@ export function useCreateProject() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [api.projects.list.path] });
+    },
+  });
+}
+
+export function useGenerateProjectDraft() {
+  return useMutation({
+    mutationFn: async (rawBrief: string) => {
+      const res = await authFetch(api.projects.draft.path, {
+        method: api.projects.draft.method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rawBrief }),
+      });
+      if (!res.ok) throw new Error("Failed to generate project draft");
+      return api.projects.draft.responses[200].parse(await res.json());
     },
   });
 }

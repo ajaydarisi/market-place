@@ -123,15 +123,9 @@ export function AvatarUpload({
         <Avatar
           className={cn(
             sizeClasses[size],
-            "border-2 border-primary/20",
-            !disabled && "cursor-pointer"
+            "border-2 border-primary/20"
           )}
-          aria-label={
-            disabled ? "User avatar" : "Click to change profile photo"
-          }
-          onClick={() =>
-            !disabled && !isUploading && fileInputRef.current?.click()
-          }
+          aria-label={disabled ? "User avatar" : "Profile photo preview"}
         >
           {displayUrl && <AvatarImage src={displayUrl} alt="Profile photo" />}
           <AvatarFallback className="bg-primary/10 text-primary font-semibold">
@@ -140,20 +134,16 @@ export function AvatarUpload({
         </Avatar>
 
         {!disabled && !isUploading && (
-          <div
-            className="absolute inset-0 flex items-center justify-center rounded-full bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute inset-0 h-full w-full rounded-full bg-background/60 opacity-0 transition-opacity group-hover:opacity-100"
             onClick={() => fileInputRef.current?.click()}
-            role="button"
-            tabIndex={0}
             aria-label="Upload profile photo"
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                fileInputRef.current?.click();
-              }
-            }}
           >
             <Camera className={cn(iconSizeClasses[size], "text-primary")} />
-          </div>
+          </Button>
         )}
 
         {isUploading && (

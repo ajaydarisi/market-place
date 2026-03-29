@@ -1,38 +1,62 @@
 "use client";
 
+import { EmptyState } from "@/components/empty-state";
 import { useProjects } from "@/hooks/use-projects";
 import { Navigation } from "@/components/navigation";
+import { PageHeader } from "@/components/page-header";
 import { ProjectCard } from "@/components/project-card";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TagInput } from "@/components/ui/tag-input";
+import {
+  EXPERIENCE_LEVEL_LABELS,
+  PROJECT_CATEGORY_OPTIONS,
+  PROJECT_TYPE_LABELS,
+  SCOPE_SIZE_LABELS,
+} from "@shared/marketplace";
 import { Search } from "lucide-react";
-import { useState } from "react";
+import { useDeferredValue, useState } from "react";
 
 export default function BrowseJobs() {
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState<string>("");
-  const [sort, setSort] = useState<string>("newest");
-  const { data: projects, isLoading } = useProjects({ search, category: category === "all" ? undefined : category, sort });
+  const [category, setCategory] = useState<string>("all");
+  const [sort, setSort] = useState<string>("recommended");
+  const [minBudget, setMinBudget] = useState("");
+  const [maxBudget, setMaxBudget] = useState("");
+  const [requiredSkills, setRequiredSkills] = useState<string[]>([]);
+  const [technologyTags, setTechnologyTags] = useState<string[]>([]);
+  const [preferredExperienceLevel, setPreferredExperienceLevel] = useState<string>("all");
+  const [projectType, setProjectType] = useState<string>("all");
+  const [scopeSize, setScopeSize] = useState<string>("all");
+  const deferredSearch = useDeferredValue(search);
+  const { data: projects, isLoading } = useProjects({
+    search: deferredSearch,
+    category: category === "all" ? undefined : category,
+    sort,
+    status: "open",
+    minBudget: minBudget ? Number(minBudget) : undefined,
+    maxBudget: maxBudget ? Number(maxBudget) : undefined,
+    requiredSkills: requiredSkills.length > 0 ? requiredSkills : undefined,
+    technologyTags: technologyTags.length > 0 ? technologyTags : undefined,
+    preferredExperienceLevel:
+      preferredExperienceLevel === "all" ? undefined : preferredExperienceLevel,
+    projectType: projectType === "all" ? undefined : projectType,
+    scopeSize: scopeSize === "all" ? undefined : scopeSize,
+  });
 
   return (
     <div className="page-shell min-h-screen bg-background">
       <Navigation />
 
       <div className="container mx-auto mobile-page">
-        <div className="surface-glass mobile-panel overflow-hidden border-primary/10">
+        <PageHeader
+          title={<>Find your next <span className="text-gradient">opportunity</span></>}
+          description="Browse focused projects from serious clients and step into work that keeps your craft visible."
+        >
           <div className="mobile-stack">
-            <div className="text-left md:text-center">
-              <h1 className="mobile-section-title mb-4 tracking-tight">
-                Find your next <span className="text-gradient">opportunity</span>
-              </h1>
-              <p className="mobile-copy max-w-2xl md:mx-auto md:text-lg">
-                Browse focused projects from serious clients and step into work that keeps your craft visible.
-              </p>
-            </div>
-
-            <div className="mobile-filter-bar mx-auto flex w-full max-w-4xl flex-col gap-3 rounded-[1.6rem] bg-background/55 p-2 sm:flex-row md:static md:bg-transparent md:p-0">
+            <div className="mobile-filter-bar mx-auto flex w-full max-w-5xl flex-col gap-3 rounded-[1.6rem] bg-background/55 p-2 md:static md:bg-transparent md:p-0">
               <div className="surface-subtle relative flex-1 rounded-2xl p-2">
                 <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
@@ -44,21 +68,99 @@ export default function BrowseJobs() {
                   data-testid="browse-search-input"
                 />
               </div>
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger aria-label="Filter by category" className="w-full sm:w-[220px]" data-testid="browse-category-filter">
-                  <SelectValue placeholder="All Categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="web_dev">Web Development</SelectItem>
-                  <SelectItem value="mobile_app">Mobile App</SelectItem>
-                  <SelectItem value="design">UI/UX Design</SelectItem>
-                  <SelectItem value="ai_ml">AI & Machine Learning</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger aria-label="Filter by category" className="w-full" data-testid="browse-category-filter">
+                    <SelectValue placeholder="All Categories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {PROJECT_CATEGORY_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={projectType} onValueChange={setProjectType}>
+                  <SelectTrigger aria-label="Project type" className="w-full">
+                    <SelectValue placeholder="Any project type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Any project type</SelectItem>
+                    {Object.entries(PROJECT_TYPE_LABELS).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={scopeSize} onValueChange={setScopeSize}>
+                  <SelectTrigger aria-label="Scope size" className="w-full">
+                    <SelectValue placeholder="Any scope size" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Any scope size</SelectItem>
+                    {Object.entries(SCOPE_SIZE_LABELS).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={preferredExperienceLevel} onValueChange={setPreferredExperienceLevel}>
+                  <SelectTrigger aria-label="Preferred experience level" className="w-full">
+                    <SelectValue placeholder="Any experience" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Any experience</SelectItem>
+                    {Object.entries(EXPERIENCE_LEVEL_LABELS).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Input
+                  aria-label="Minimum budget filter"
+                  type="number"
+                  placeholder="Min budget"
+                  value={minBudget}
+                  onChange={(event) => setMinBudget(event.target.value)}
+                />
+
+                <Input
+                  aria-label="Maximum budget filter"
+                  type="number"
+                  placeholder="Max budget"
+                  value={maxBudget}
+                  onChange={(event) => setMaxBudget(event.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="surface-subtle rounded-[1.6rem] p-3">
+                <TagInput
+                  value={requiredSkills}
+                  onChange={setRequiredSkills}
+                  placeholder="Filter by required skills..."
+                />
+              </div>
+              <div className="surface-subtle rounded-[1.6rem] p-3">
+                <TagInput
+                  value={technologyTags}
+                  onChange={setTechnologyTags}
+                  placeholder="Filter by technology tags..."
+                />
+              </div>
             </div>
           </div>
-        </div>
+        </PageHeader>
       </div>
 
       <main className="container mx-auto px-4 pb-10 pt-2 md:py-12">
@@ -71,6 +173,7 @@ export default function BrowseJobs() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="recommended">Recommended</SelectItem>
               <SelectItem value="newest">Newest First</SelectItem>
               <SelectItem value="oldest">Oldest First</SelectItem>
               <SelectItem value="budget_high">Budget: High to Low</SelectItem>
@@ -105,10 +208,12 @@ export default function BrowseJobs() {
               <ProjectCard key={project.id} project={project} isDeveloper testIdPrefix="developer-project-card" />
             ))}
             {projects?.length === 0 && (
-              <Card className="surface-glass col-span-full py-16 text-center">
-                <h3 className="text-xl font-bold">No projects found</h3>
-                <p className="text-muted-foreground mt-2">Try adjusting your search filters.</p>
-              </Card>
+              <EmptyState
+                icon={Search}
+                title="No projects found"
+                description="Try adjusting your search terms, budget, or skill filters."
+                className="col-span-full"
+              />
             )}
           </div>
         )}

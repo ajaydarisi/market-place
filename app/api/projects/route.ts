@@ -11,10 +11,35 @@ export async function GET(request: NextRequest) {
   if (searchParams.get("minBudget")) filters.minBudget = Number(searchParams.get("minBudget"));
   if (searchParams.get("maxBudget")) filters.maxBudget = Number(searchParams.get("maxBudget"));
   if (searchParams.get("search")) filters.search = searchParams.get("search");
+  if (searchParams.get("status")) filters.status = searchParams.get("status");
   if (searchParams.get("sort")) filters.sort = searchParams.get("sort");
   if (searchParams.get("clientId")) filters.clientId = searchParams.get("clientId");
+  if (searchParams.get("preferredExperienceLevel")) {
+    filters.preferredExperienceLevel = searchParams.get("preferredExperienceLevel");
+  }
+  if (searchParams.get("projectType")) filters.projectType = searchParams.get("projectType");
+  if (searchParams.get("scopeSize")) filters.scopeSize = searchParams.get("scopeSize");
+  if (searchParams.get("teamPreference")) filters.teamPreference = searchParams.get("teamPreference");
+  if (searchParams.get("requiredSkills")) {
+    filters.requiredSkills = searchParams
+      .get("requiredSkills")
+      ?.split(",")
+      .map((value) => value.trim())
+      .filter(Boolean);
+  }
+  if (searchParams.get("technologyTags")) {
+    filters.technologyTags = searchParams
+      .get("technologyTags")
+      ?.split(",")
+      .map((value) => value.trim())
+      .filter(Boolean);
+  }
 
+  const user = await getAuthUser();
   const token = await getAuthToken();
+  if (filters.sort === "recommended" && user) {
+    filters.currentUserId = user.id;
+  }
   const projects = await storage.listProjects(filters, token ?? undefined);
   return NextResponse.json(projects);
 }

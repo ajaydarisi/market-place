@@ -33,7 +33,7 @@ export async function PATCH(
     const input = api.interests.updateStatus.input.parse(body);
 
     // Get the interest to find the developer
-    const interests = await storage.listInterests(projectId, token ?? undefined);
+    const interests = await storage.listInterests(projectId, undefined, token ?? undefined);
     const interest = interests.find(i => i.id === interestIdNum);
     if (!interest) {
       return NextResponse.json({ message: "Interest not found" }, { status: 404 });
@@ -50,6 +50,17 @@ export async function PATCH(
     if (input.status === "accepted") {
       await storage.assignDeveloper(projectId, interest.developerId, token ?? undefined);
       await storage.rejectOtherInterests(projectId, interestIdNum, token ?? undefined);
+      await storage.createProjectLog(
+        {
+          projectId,
+          content: `System: ${interest.developer.firstName || "Developer"} ${interest.developer.lastName || ""}`.trim() +
+            " was assigned from the proposal workspace.",
+          logType: "milestone",
+          isSystem: true,
+        },
+        user.id,
+        token ?? undefined
+      );
     }
 
     return NextResponse.json(updatedInterest);

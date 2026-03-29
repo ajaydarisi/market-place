@@ -1,6 +1,11 @@
 "use client";
 
+import { ActionListItem } from "@/components/action-list-item";
+import { BackLinkButton } from "@/components/back-link-button";
+import { EmptyState } from "@/components/empty-state";
 import { ProfileAvatar } from "@/components/profile-avatar";
+import { RatingPill } from "@/components/rating-pill";
+import { StatusBadge } from "@/components/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -8,9 +13,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Navigation } from "@/components/navigation";
 import { useProfile } from "@/hooks/use-profiles";
 import { useUser } from "@/hooks/use-users";
-import { experienceLevels, availabilityStatuses } from "@shared/schema";
-import { ArrowLeft, Globe, ExternalLink } from "lucide-react";
-import Link from "next/link";
+import { AVAILABILITY_LABELS, EXPERIENCE_LEVEL_LABELS, PROJECT_CATEGORY_LABELS } from "@shared/marketplace";
+import { Globe, ExternalLink, User } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 
 function GitHubIcon({ className }: { className?: string }) {
@@ -29,19 +33,6 @@ function LinkedInIcon({ className }: { className?: string }) {
   );
 }
 
-const experienceLevelLabels: Record<string, string> = {
-  junior: "Junior",
-  mid: "Mid-Level",
-  senior: "Senior",
-  lead: "Lead / Principal",
-};
-
-const availabilityLabels: Record<string, string> = {
-  available: "Available",
-  busy: "Busy",
-  open_to_offers: "Open to Offers",
-};
-
 export default function PublicProfile() {
   const params = useParams();
   const router = useRouter();
@@ -58,14 +49,9 @@ export default function PublicProfile() {
     <div className="min-h-screen bg-background">
       <Navigation />
       <div className="mx-auto px-4 py-4">
-        <button
-          onClick={() => router.back()}
-          aria-label="Go back"
-          className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-3 transition-colors"
-        >
-          <ArrowLeft className="mr-1 h-4 w-4" />
+        <BackLinkButton onClick={() => router.back()} aria-label="Go back" className="mb-3">
           Back
-        </button>
+        </BackLinkButton>
 
         {isLoading ? (
           <Card className="shadow-xl border-primary/10 w-full md:w-[50%] md:min-w-[600px] max-w-[800px] mx-auto">
@@ -86,11 +72,12 @@ export default function PublicProfile() {
             </CardContent>
           </Card>
         ) : !profile || !userData ? (
-          <Card className="shadow-xl border-primary/10 w-full md:w-[50%] md:min-w-[600px] max-w-[800px] mx-auto">
-            <CardContent className="p-8 text-center">
-              <p className="text-muted-foreground">Profile not found.</p>
-            </CardContent>
-          </Card>
+          <EmptyState
+            icon={User}
+            title="Profile not found"
+            description="This profile may have been removed, or the user has not finished setting it up yet."
+            className="mx-auto w-full max-w-[800px]"
+          />
         ) : (
           <Card className="shadow-xl border-primary/10 w-full md:w-[50%] md:min-w-[600px] max-w-[800px] mx-auto">
             <CardHeader className="border-b bg-secondary/20 py-4">
@@ -104,6 +91,13 @@ export default function PublicProfile() {
                 <div className="min-w-0">
                   <CardTitle className="text-lg sm:text-xl font-display truncate">{fullName}</CardTitle>
                   <p className="text-xs sm:text-sm text-muted-foreground capitalize mt-1">{profile.role}</p>
+                  <div className="mt-2">
+                    <RatingPill
+                      averageRating={userData.averageRating}
+                      reviewCount={userData.reviewCount}
+                      emptyLabel="No reviews yet"
+                    />
+                  </div>
                 </div>
               </div>
             </CardHeader>
@@ -113,9 +107,29 @@ export default function PublicProfile() {
                 {/* About */}
                 <div>
                   <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">About</h3>
+                  <p className="mb-3 text-sm font-medium">
+                    {profile.headline || <span className="text-muted-foreground">No headline added yet.</span>}
+                  </p>
                   <p className="text-sm" title={profile.bio || undefined}>
                     {profile.bio || <span className="text-muted-foreground">No bio added yet.</span>}
                   </p>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Primary Categories</h3>
+                  {profile.primaryCategories && profile.primaryCategories.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {profile.primaryCategories.map((category) => (
+                        <Badge key={category} variant="secondary" className="px-2.5 py-0.5 text-xs">
+                          {PROJECT_CATEGORY_LABELS[category] || category}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No focus categories added yet.</p>
+                  )}
                 </div>
 
                 {profile.role === "developer" && (
@@ -146,43 +160,43 @@ export default function PublicProfile() {
                       {profile.portfolioLinks?.github || profile.portfolioLinks?.linkedin || profile.portfolioLinks?.website ? (
                         <div className="space-y-2">
                           {profile.portfolioLinks.github && (
-                            <a
+                            <ActionListItem
                               href={profile.portfolioLinks.github}
+                              ariaLabel="Open GitHub profile"
+                              icon={GitHubIcon}
+                              title="GitHub"
+                              description={profile.portfolioLinks.github}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-2 text-sm text-primary hover:underline truncate"
-                              title={profile.portfolioLinks.github}
-                            >
-                              <GitHubIcon className="h-4 w-4 shrink-0" />
-                              <span className="truncate">{profile.portfolioLinks.github}</span>
-                              <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
-                            </a>
+                              trailing={<ExternalLink className="h-3 w-3" />}
+                              className="justify-between rounded-xl px-3"
+                            />
                           )}
                           {profile.portfolioLinks.linkedin && (
-                            <a
+                            <ActionListItem
                               href={profile.portfolioLinks.linkedin}
+                              ariaLabel="Open LinkedIn profile"
+                              icon={LinkedInIcon}
+                              title="LinkedIn"
+                              description={profile.portfolioLinks.linkedin}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-2 text-sm text-primary hover:underline truncate"
-                              title={profile.portfolioLinks.linkedin}
-                            >
-                              <LinkedInIcon className="h-4 w-4 shrink-0" />
-                              <span className="truncate">{profile.portfolioLinks.linkedin}</span>
-                              <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
-                            </a>
+                              trailing={<ExternalLink className="h-3 w-3" />}
+                              className="justify-between rounded-xl px-3"
+                            />
                           )}
                           {profile.portfolioLinks.website && (
-                            <a
+                            <ActionListItem
                               href={profile.portfolioLinks.website}
+                              ariaLabel="Open personal website"
+                              icon={Globe}
+                              title="Website"
+                              description={profile.portfolioLinks.website}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-2 text-sm text-primary hover:underline truncate"
-                              title={profile.portfolioLinks.website}
-                            >
-                              <Globe className="h-4 w-4 shrink-0" />
-                              <span className="truncate">{profile.portfolioLinks.website}</span>
-                              <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
-                            </a>
+                              trailing={<ExternalLink className="h-3 w-3" />}
+                              className="justify-between rounded-xl px-3"
+                            />
                           )}
                         </div>
                       ) : (
@@ -199,27 +213,27 @@ export default function PublicProfile() {
                         <div className="space-y-1">
                           <p className="text-xs text-muted-foreground">Experience Level</p>
                           {profile.experienceLevel ? (
-                            <Badge variant="outline" className="text-sm">
-                              {experienceLevelLabels[profile.experienceLevel] || profile.experienceLevel}
-                            </Badge>
+                            <StatusBadge tone="info" className="text-sm">
+                              {EXPERIENCE_LEVEL_LABELS[profile.experienceLevel] || profile.experienceLevel}
+                            </StatusBadge>
                           ) : (
                             <p className="text-sm text-muted-foreground">Not set</p>
                           )}
                         </div>
                         <div className="space-y-1">
                           <p className="text-xs text-muted-foreground">Availability</p>
-                          <Badge
-                            variant={
+                          <StatusBadge
+                            tone={
                               profile.availabilityStatus === "available"
-                                ? "default"
+                                ? "success"
                                 : profile.availabilityStatus === "busy"
                                   ? "destructive"
-                                  : "secondary"
+                                  : "warning"
                             }
                             className="text-sm"
                           >
-                            {availabilityLabels[profile.availabilityStatus || "available"]}
-                          </Badge>
+                            {AVAILABILITY_LABELS[profile.availabilityStatus || "available"]}
+                          </StatusBadge>
                         </div>
                       </div>
                     </div>

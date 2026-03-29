@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, isAdminAuthError } from "@/lib/admin-utils";
 import { getAuthToken } from "@/lib/auth-utils";
 import { storage } from "@/lib/storage";
-import { insertProjectSchema, projectStatuses } from "@shared/schema";
+import { updateProjectSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function GET(
@@ -54,10 +54,7 @@ export async function PATCH(
 
   try {
     const body = await request.json();
-    const input = insertProjectSchema
-      .partial()
-      .extend({ status: z.enum(projectStatuses).optional() })
-      .parse(body);
+    const input = updateProjectSchema.parse(body);
 
     const project = await storage.getProject(projectId, token ?? undefined);
     if (!project) {

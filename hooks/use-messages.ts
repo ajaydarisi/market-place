@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { api, buildUrl } from "@shared/routes";
+import { api, buildUrl, type ConversationSummary } from "@shared/routes";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { authFetch } from "@/lib/api";
 import { createClient } from "@/lib/supabase/client";
@@ -56,13 +56,10 @@ export function useMessagesRealtime(userId: string) {
   }, [userId, queryClient]);
 }
 
-export interface Conversation {
-  projectId: number;
-  projectTitle: string;
+export interface Conversation extends ConversationSummary {
   otherUserId: string;
   otherUserName: string;
   otherUserAvatar: string | null;
-  lastMessage: string;
   lastMessageAt: string;
 }
 
@@ -72,26 +69,17 @@ export function useConversations(currentUserId: string) {
     queryFn: async () => {
       const res = await authFetch(api.messages.conversations.path);
       if (!res.ok) throw new Error("Failed to fetch conversations");
-      const messages: any[] = await res.json();
-
-      const convMap = new Map<string, Conversation>();
-      for (const msg of messages) {
-        const otherUser = msg.senderId === currentUserId ? msg.receiver : msg.sender;
-        const key = `${msg.projectId}-${otherUser?.id}`;
-        if (!convMap.has(key)) {
-          convMap.set(key, {
-            projectId: msg.projectId,
-            projectTitle: msg.project?.title || "Unknown Project",
-            otherUserId: otherUser?.id || "",
-            otherUserName: [otherUser?.firstName, otherUser?.lastName].filter(Boolean).join(" ") || "User",
-            otherUserAvatar: otherUser?.profileImageUrl || null,
-            lastMessage: msg.content,
-            lastMessageAt: msg.createdAt,
-          });
-        }
-      }
-
-      return Array.from(convMap.values());
+      const conversations = api.messages.conversations.responses[200].parse(await res.json());
+      return conversations.map((conversation) => ({
+        ...conversation,
+        otherUserId: conversation.otherUser.id,
+        otherUserName:
+          [conversation.otherUser.firstName, conversation.otherUser.lastName]
+            .filter(Boolean)
+            .join(" ") || "User",
+        otherUserAvatar: conversation.otherUser.profileImageUrl || null,
+        lastMessageAt: String(conversation.lastActivityAt),
+      }));
     },
     enabled: !!currentUserId,
   });
@@ -112,6 +100,25 @@ export function useSendMessage() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: [api.messages.list.path, variables.projectId] });
+      queryClient.invalidateQueries({ queryKey: [api.messages.conversations.path] });
+    },
+  });
+}
+
+export function useMarkMessagesRead() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (projectId: number) => {
+      const url = buildUrl(api.messages.markRead.path, { projectId });
+      const res = await authFetch(url, {
+        method: api.messages.markRead.method,
+      });
+      if (!res.ok) throw new Error("Failed to mark messages as read");
+      return api.messages.markRead.responses[200].parse(await res.json());
+    },
+    onSuccess: (_, projectId) => {
+      queryClient.invalidateQueries({ queryKey: [api.messages.list.path, projectId] });
       queryClient.invalidateQueries({ queryKey: [api.messages.conversations.path] });
     },
   });

@@ -4,7 +4,7 @@ import { getAuthUser, getAuthToken } from "@/lib/auth-utils";
 import { storage } from "@/lib/storage";
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const user = await getAuthUser();
@@ -13,8 +13,10 @@ export async function GET(
   }
 
   const { id } = await params;
+  const { searchParams } = new URL(request.url);
   const token = await getAuthToken();
-  const interests = await storage.listInterests(Number(id), token ?? undefined);
+  const sort = searchParams.get("sort") ?? undefined;
+  const interests = await storage.listInterests(Number(id), { sort }, token ?? undefined);
   return NextResponse.json(interests);
 }
 
@@ -33,14 +35,38 @@ export async function POST(
   try {
     const body = await request.json();
     const input = api.interests.create.input.parse(body);
+    const projectId = Number(id);
+
+    const project = await storage.getProject(projectId, token ?? undefined);
+    if (!project) {
+      return NextResponse.json({ message: "Project not found" }, { status: 404 });
+    }
+
+    if (project.clientId === user.id) {
+      return NextResponse.json({ message: "Clients cannot apply to their own projects" }, { status: 403 });
+    }
+
+    if (project.status !== "open") {
+      return NextResponse.json({ message: "Only open projects accept proposals" }, { status: 400 });
+    }
 
     const interest = await storage.createInterest(
-      { projectId: Number(id), message: input.message },
+      {
+        projectId,
+        message: input.message,
+        proposedBudget: input.proposedBudget,
+        estimatedDurationDays: input.estimatedDurationDays,
+        relevantSkills: input.relevantSkills,
+        screeningAnswers: input.screeningAnswers,
+      },
       user.id,
       token ?? undefined
     );
     return NextResponse.json(interest, { status: 201 });
-  } catch {
+  } catch (error) {
+    if ((error as Error & { code?: string }).code === "ACTIVE_PROPOSAL_EXISTS") {
+      return NextResponse.json({ message: (error as Error).message }, { status: 409 });
+    }
     return NextResponse.json({ message: "Error" }, { status: 500 });
   }
 }

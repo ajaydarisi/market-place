@@ -1,6 +1,10 @@
 "use client";
 
+import { BackLinkButton } from "@/components/back-link-button";
+import { EmptyState } from "@/components/empty-state";
+import { FilterBar } from "@/components/filter-bar";
 import { Navigation } from "@/components/navigation";
+import { PageHeader } from "@/components/page-header";
 import { ProfileAvatar } from "@/components/profile-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -140,23 +144,17 @@ function AdminProjectsContent() {
     <div className="min-h-screen bg-background">
       <Navigation />
       <main className="container mx-auto mobile-page">
-        <Link
-          href="/admin"
-          aria-label="Back to admin dashboard"
-          className="surface-glass mb-4 inline-flex items-center rounded-full px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-primary"
-        >
-          <ArrowLeft className="mr-1 h-4 w-4" />
+        <BackLinkButton href="/admin" aria-label="Back to admin dashboard" className="mb-4">
           Back to Dashboard
-        </Link>
+        </BackLinkButton>
 
-        <div className="surface-glass mobile-panel mb-6 border-primary/10 md:mb-8">
-          <h1 className="mobile-section-title">Projects</h1>
-          <p className="mobile-copy mt-2">
-            Manage all projects on the platform. Total: {data?.total || 0} projects.
-          </p>
-        </div>
+        <PageHeader
+          className="mb-6 md:mb-8"
+          title="Projects"
+          description={`Manage all projects on the platform. Total: ${data?.total || 0} projects.`}
+        />
 
-        <Card className="mb-4 p-4 md:mb-6">
+        <FilterBar className="mb-4 md:mb-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -181,16 +179,24 @@ function AdminProjectsContent() {
               </SelectContent>
             </Select>
           </div>
-        </Card>
+        </FilterBar>
 
-        <Card>
-          {isLoading ? (
+        {isLoading ? (
+          <Card>
             <div className="p-6 space-y-4">
               {[1, 2, 3, 4, 5].map((i) => (
                 <Skeleton key={i} className="h-16 w-full" />
               ))}
             </div>
-          ) : (
+          </Card>
+        ) : data?.items.length === 0 ? (
+          <EmptyState
+            icon={Search}
+            title="No projects found"
+            description="Try a different keyword or reset the status filter."
+          />
+        ) : (
+          <Card>
             <>
               <div className="divide-y divide-border/50 md:hidden">
                 {data?.items.map((project) => (
@@ -224,12 +230,12 @@ function AdminProjectsContent() {
                       </p>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                      <Link href={`/admin/projects/${project.id}`}>
-                        <Button variant="outline" className="w-full" aria-label="Edit project">
+                      <Button asChild variant="outline" className="w-full" aria-label="Edit project">
+                        <Link href={`/admin/projects/${project.id}`}>
                           <Edit className="mr-2 h-4 w-4" />
                           Edit
-                        </Button>
-                      </Link>
+                        </Link>
+                      </Button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button variant="outline" className="w-full text-destructive" aria-label="Delete project">
@@ -258,11 +264,6 @@ function AdminProjectsContent() {
                     </div>
                   </div>
                 ))}
-                {data?.items.length === 0 && (
-                  <div className="p-8 text-center">
-                    <p className="text-muted-foreground">No projects found</p>
-                  </div>
-                )}
               </div>
 
               <div className="hidden md:block">
@@ -311,11 +312,11 @@ function AdminProjectsContent() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
-                            <Link href={`/admin/projects/${project.id}`}>
-                              <Button variant="ghost" size="icon" aria-label="Edit project">
+                            <Button asChild variant="ghost" size="icon" aria-label="Edit project">
+                              <Link href={`/admin/projects/${project.id}`}>
                                 <Edit className="h-4 w-4" />
-                              </Button>
-                            </Link>
+                              </Link>
+                            </Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button variant="ghost" size="icon" aria-label="Delete project">
@@ -344,19 +345,12 @@ function AdminProjectsContent() {
                         </TableCell>
                       </TableRow>
                     ))}
-                    {data?.items.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8">
-                          <p className="text-muted-foreground">No projects found</p>
-                        </TableCell>
-                      </TableRow>
-                    )}
                   </TableBody>
                 </Table>
               </div>
             </>
-          )}
-        </Card>
+          </Card>
+        )}
 
         {/* Pagination */}
         {data && data.total > 20 && (

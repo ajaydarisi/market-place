@@ -3,6 +3,8 @@
 import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 import { forwardRef, useImperativeHandle, useRef } from "react";
 
+import { cn } from "@/lib/utils";
+
 export interface CaptchaRef {
   reset: () => void;
   getToken: () => string | undefined;
@@ -12,10 +14,12 @@ interface CaptchaProps {
   onSuccess: (token: string) => void;
   onError?: () => void;
   onExpire?: () => void;
+  className?: string;
+  "data-testid"?: string;
 }
 
 export const Captcha = forwardRef<CaptchaRef, CaptchaProps>(
-  ({ onSuccess, onError, onExpire }, ref) => {
+  ({ onSuccess, onError, onExpire, className, "data-testid": dataTestId }, ref) => {
     const turnstileRef = useRef<TurnstileInstance>(null);
     const tokenRef = useRef<string | undefined>(undefined);
 
@@ -35,7 +39,7 @@ export const Captcha = forwardRef<CaptchaRef, CaptchaProps>(
     }
 
     return (
-      <div data-testid="captcha" className="flex justify-center">
+      <div data-testid={dataTestId ?? "captcha"} className={cn("flex justify-center", className)}>
         <Turnstile
           ref={turnstileRef}
           siteKey={siteKey}

@@ -1,11 +1,13 @@
 "use client";
 
+import { ActionListItem } from "@/components/action-list-item";
+import { MetricCard } from "@/components/metric-card";
 import { Navigation } from "@/components/navigation";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
+import { SectionCard } from "@/components/section-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAdminStats } from "@/hooks/use-admin";
-import { Users, Briefcase, FolderOpen, CheckCircle, Shield, UserCog } from "lucide-react";
-import Link from "next/link";
+import { Users, Briefcase, FolderOpen, CheckCircle, Shield, UserCog, MessageSquare, TimerReset, Star } from "lucide-react";
 
 export default function AdminDashboard() {
   const { data: stats, isLoading } = useAdminStats();
@@ -18,77 +20,67 @@ export default function AdminDashboard() {
     { title: "Total Projects", value: stats?.totalProjects, icon: Briefcase, href: "/admin/projects", color: "text-primary" },
     { title: "Open Projects", value: stats?.openProjects, icon: FolderOpen, href: "/admin/projects?status=open", color: "text-status-online" },
     { title: "Completed", value: stats?.completedProjects, icon: CheckCircle, href: "/admin/projects?status=completed", color: "text-status-online" },
+    { title: "With Proposals", value: stats?.projectsWithProposals, icon: MessageSquare, href: "/admin/projects", color: "text-primary" },
+    { title: "Assigned", value: stats?.assignedProjects, icon: Briefcase, href: "/admin/projects?status=in_progress", color: "text-primary" },
+    { title: "Avg Time to First Proposal", value: stats ? `${stats.avgTimeToFirstProposalHours}h` : undefined, icon: TimerReset, href: "/admin/projects", color: "text-accent-foreground" },
+    { title: "Review Submission Rate", value: stats ? `${stats.reviewSubmissionRate}%` : undefined, icon: Star, href: "/admin/projects?status=completed", color: "text-accent-foreground" },
   ];
 
   return (
     <div className="page-shell min-h-screen bg-background">
       <Navigation />
       <main className="container mx-auto mobile-page">
-        <div className="surface-glass mobile-panel mb-6 border-primary/10 md:mb-8">
-          <h1 className="mobile-section-title">Admin Dashboard</h1>
-          <p className="mobile-copy mt-2">Manage users, projects, and platform settings.</p>
-        </div>
+        <PageHeader
+          className="mb-6 md:mb-8"
+          title="Admin Dashboard"
+          description="Manage users, projects, and platform settings with one consistent control surface."
+        />
 
         <div className="mb-6 grid grid-cols-1 gap-4 md:mb-8 md:grid-cols-2 md:gap-6 lg:grid-cols-4">
           {statCards.map((stat) => (
-            <Link key={stat.title} href={stat.href} aria-label={`View ${stat.title}`}>
-              <Card className="hover:border-primary/50 transition-colors cursor-pointer">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                  <stat.icon className={`h-4 w-4 ${stat.color}`} />
-                </CardHeader>
-                <CardContent>
-                  {isLoading ? (
-                    <Skeleton className="h-8 w-16" />
-                  ) : (
-                    <div className="text-2xl font-bold">{stat.value?.toLocaleString() ?? 0}</div>
-                  )}
-                </CardContent>
-              </Card>
-            </Link>
+            <MetricCard
+              key={stat.title}
+              href={stat.href}
+              title={stat.title}
+              value={typeof stat.value === "number" ? stat.value.toLocaleString() : stat.value ?? 0}
+              icon={stat.icon}
+              iconClassName={stat.color}
+              loading={isLoading}
+            />
           ))}
         </div>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-              <CardDescription>Common administrative tasks</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Link
-                href="/admin/users"
-                className="block p-3 rounded-lg hover:bg-muted transition-colors"
-                aria-label="Manage users"
-              >
-                <div className="font-medium">Manage Users</div>
-                <div className="text-sm text-muted-foreground">View, edit, or delete user accounts</div>
-              </Link>
-              <Link
-                href="/admin/projects"
-                className="block p-3 rounded-lg hover:bg-muted transition-colors"
-                aria-label="Manage projects"
-              >
-                <div className="font-medium">Manage Projects</div>
-                <div className="text-sm text-muted-foreground">Review and moderate project listings</div>
-              </Link>
-              <Link
-                href="/admin/audit-logs"
-                className="block p-3 rounded-lg hover:bg-muted transition-colors"
-                aria-label="View audit logs"
-              >
-                <div className="font-medium">Audit Logs</div>
-                <div className="text-sm text-muted-foreground">View administrative action history</div>
-              </Link>
-            </CardContent>
-          </Card>
+          <SectionCard
+            title="Quick Actions"
+            description="Common administrative tasks"
+            contentClassName="space-y-2"
+          >
+            <ActionListItem
+              href="/admin/users"
+              ariaLabel="Manage users"
+              icon={Users}
+              title="Manage Users"
+              description="View, edit, or delete user accounts."
+            />
+            <ActionListItem
+              href="/admin/projects"
+              ariaLabel="Manage projects"
+              icon={Briefcase}
+              title="Manage Projects"
+              description="Review and moderate project listings."
+            />
+            <ActionListItem
+              href="/admin/audit-logs"
+              ariaLabel="View audit logs"
+              icon={Shield}
+              title="Audit Logs"
+              description="Inspect administrative action history."
+            />
+          </SectionCard>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Platform Overview</CardTitle>
-              <CardDescription>Current platform statistics</CardDescription>
-            </CardHeader>
-            <CardContent>
+          <SectionCard title="Platform Overview" description="Current platform statistics">
+            <div>
               {isLoading ? (
                 <div className="space-y-4">
                   <Skeleton className="h-4 w-full" />
@@ -118,10 +110,26 @@ export default function AdminDashboard() {
                       %
                     </span>
                   </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Projects with proposals</span>
+                    <span className="font-medium">{stats?.projectsWithProposals ?? 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Assigned projects</span>
+                    <span className="font-medium">{stats?.assignedProjects ?? 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Avg time to first proposal</span>
+                    <span className="font-medium">{stats?.avgTimeToFirstProposalHours ?? 0}h</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Review submission rate</span>
+                    <span className="font-medium">{stats?.reviewSubmissionRate ?? 0}%</span>
+                  </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </SectionCard>
         </div>
       </main>
     </div>

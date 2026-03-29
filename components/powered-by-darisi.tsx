@@ -1,16 +1,20 @@
 import Image from "next/image";
 
+import { Button } from "@/components/ui/button";
+
 export function PoweredByDarisi() {
   return (
-    <a
-      href="https://darisi.in"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex items-center gap-1 text-muted-foreground/70 transition-colors hover:text-muted-foreground"
+    <Button
+      asChild
+      variant="ghost"
+      size="sm"
+      className="h-auto gap-1.5 px-0 text-muted-foreground/70 hover:bg-transparent hover:text-muted-foreground"
     >
-      <span className="text-xs uppercase tracking-[0.2em]">Powered by</span>
-      <Image src="/logos/darisi.svg" alt="DARISI" width={25} height={25} className="rounded-lg" />
-      <span className="text-xs font-semibold uppercase tracking-[0.28em]">DARISI</span>
-    </a>
+      <a href="https://darisi.in" target="_blank" rel="noopener noreferrer">
+        <span className="text-[10px] uppercase tracking-[0.16em]">Powered by</span>
+        <Image src="/logos/darisi.svg" alt="DARISI" width={18} height={18} className="rounded-md" />
+        <span className="text-[10px] font-semibold uppercase tracking-[0.2em]">DARISI</span>
+      </a>
+    </Button>
   );
 }

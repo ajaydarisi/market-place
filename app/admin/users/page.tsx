@@ -1,6 +1,10 @@
 "use client";
 
+import { BackLinkButton } from "@/components/back-link-button";
+import { EmptyState } from "@/components/empty-state";
+import { FilterBar } from "@/components/filter-bar";
 import { Navigation } from "@/components/navigation";
+import { PageHeader } from "@/components/page-header";
 import { ProfileAvatar } from "@/components/profile-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,7 +39,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useAdminUsers, useAdminDeleteUser } from "@/hooks/use-admin";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Search, Edit, Trash2, Loader2 } from "lucide-react";
+import { Search, Edit, Trash2, Loader2, Users } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState, useEffect } from "react";
@@ -130,23 +134,17 @@ function AdminUsersContent() {
     <div className="min-h-screen bg-background">
       <Navigation />
       <main className="container mx-auto mobile-page">
-        <Link
-          href="/admin"
-          aria-label="Back to admin dashboard"
-          className="surface-glass mb-4 inline-flex items-center rounded-full px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-primary"
-        >
-          <ArrowLeft className="mr-1 h-4 w-4" />
+        <BackLinkButton href="/admin" aria-label="Back to admin dashboard" className="mb-4">
           Back to Dashboard
-        </Link>
+        </BackLinkButton>
 
-        <div className="surface-glass mobile-panel mb-6 border-primary/10 md:mb-8">
-          <h1 className="mobile-section-title">Users</h1>
-          <p className="mobile-copy mt-2">
-            Manage all users on the platform. Total: {data?.total || 0} users.
-          </p>
-        </div>
+        <PageHeader
+          className="mb-6 md:mb-8"
+          title="Users"
+          description={`Manage all users on the platform. Total: ${data?.total || 0} users.`}
+        />
 
-        <Card className="mb-4 p-4 md:mb-6">
+        <FilterBar className="mb-4 md:mb-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -170,16 +168,24 @@ function AdminUsersContent() {
               </SelectContent>
             </Select>
           </div>
-        </Card>
+        </FilterBar>
 
-        <Card>
-          {isLoading ? (
+        {isLoading ? (
+          <Card>
             <div className="p-6 space-y-4">
               {[1, 2, 3, 4, 5].map((i) => (
                 <Skeleton key={i} className="h-16 w-full" />
               ))}
             </div>
-          ) : (
+          </Card>
+        ) : data?.items.length === 0 ? (
+          <EmptyState
+            icon={Users}
+            title="No users found"
+            description="Try widening your search or clearing the role filter."
+          />
+        ) : (
+          <Card>
             <>
               <div className="divide-y divide-border/50 md:hidden">
                 {data?.items.map((user) => (
@@ -208,12 +214,12 @@ function AdminUsersContent() {
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                      <Link href={`/admin/users/${user.id}`}>
-                        <Button variant="outline" className="w-full" aria-label="Edit user">
+                      <Button asChild variant="outline" className="w-full" aria-label="Edit user">
+                        <Link href={`/admin/users/${user.id}`}>
                           <Edit className="mr-2 h-4 w-4" />
                           Edit
-                        </Button>
-                      </Link>
+                        </Link>
+                      </Button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button variant="outline" className="w-full text-destructive" aria-label="Delete user">
@@ -242,11 +248,6 @@ function AdminUsersContent() {
                     </div>
                   </div>
                 ))}
-                {data?.items.length === 0 && (
-                  <div className="p-8 text-center">
-                    <p className="text-muted-foreground">No users found</p>
-                  </div>
-                )}
               </div>
 
               <div className="hidden md:block">
@@ -292,11 +293,11 @@ function AdminUsersContent() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
-                            <Link href={`/admin/users/${user.id}`}>
-                              <Button variant="ghost" size="icon" aria-label="Edit user">
+                            <Button asChild variant="ghost" size="icon" aria-label="Edit user">
+                              <Link href={`/admin/users/${user.id}`}>
                                 <Edit className="h-4 w-4" />
-                              </Button>
-                            </Link>
+                              </Link>
+                            </Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button variant="ghost" size="icon" aria-label="Delete user">
@@ -325,19 +326,12 @@ function AdminUsersContent() {
                         </TableCell>
                       </TableRow>
                     ))}
-                    {data?.items.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={5} className="text-center py-8">
-                          <p className="text-muted-foreground">No users found</p>
-                        </TableCell>
-                      </TableRow>
-                    )}
                   </TableBody>
                 </Table>
               </div>
             </>
-          )}
-        </Card>
+          </Card>
+        )}
 
         {/* Pagination */}
         {data && data.total > 20 && (
