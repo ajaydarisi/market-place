@@ -36,8 +36,11 @@ export async function GET(request: NextRequest) {
   }
 
   const user = await getAuthUser();
+  if (!user) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
   const token = await getAuthToken();
-  if (filters.sort === "recommended" && user) {
+  if (filters.sort === "recommended") {
     filters.currentUserId = user.id;
   }
   const projects = await storage.listProjects(filters, token ?? undefined);

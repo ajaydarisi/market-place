@@ -82,7 +82,7 @@ export interface IStorage {
   createReview(review: InsertReview, reviewerId: string, token?: string): Promise<ReviewWithUsers>;
 
   // Users
-  getUser(id: string, token?: string): Promise<User | undefined>;
+  getUser(id: string, token?: string, includeEmail?: boolean): Promise<User | undefined>;
   updateUser(id: string, updates: UpdateUserRequest, token?: string): Promise<User>;
 
   // Admin: Users
@@ -215,11 +215,12 @@ async function getReviewSummaryByUserIds(client: any, userIds: string[]): Promis
 }
 
 // Helper to map public.users (snake_case) to User (camelCase)
-function mapUser(row: any): User {
+function mapUser(row: any, includeEmail = false): User {
   if (!row) return row;
   return {
     id: row.id,
-    email: row.email,
+    // Email is sensitive PII — only surfaced to self/admin callers that opt in.
+    email: includeEmail ? row.email : undefined,
     firstName: row.first_name,
     lastName: row.last_name,
     profileImageUrl: row.profile_image_url,
@@ -1107,7 +1108,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Users
-  async getUser(id: string, token?: string): Promise<User | undefined> {
+  async getUser(id: string, token?: string, includeEmail = false): Promise<User | undefined> {
     const client = await getClient(token);
     const { data, error } = await client
       .from("users")
@@ -1117,7 +1118,7 @@ export class DatabaseStorage implements IStorage {
 
     if (error || !data) return undefined;
     const reviewSummaryMap = await getReviewSummaryByUserIds(client, [id]);
-    return withReviewSummary(mapUser(data), reviewSummaryMap.get(id));
+    return withReviewSummary(mapUser(data, includeEmail), reviewSummaryMap.get(id));
   }
 
   async updateUser(id: string, updates: UpdateUserRequest, token?: string): Promise<User> {
@@ -1136,7 +1137,8 @@ export class DatabaseStorage implements IStorage {
 
     if (error) throw error;
     const reviewSummaryMap = await getReviewSummaryByUserIds(client, [id]);
-    return withReviewSummary(mapUser(data), reviewSummaryMap.get(id));
+    // Self-service update — the caller is updating their own record.
+    return withReviewSummary(mapUser(data, true), reviewSummaryMap.get(id));
   }
 
   // ==================== ADMIN METHODS ====================
@@ -1167,9 +1169,15 @@ export class DatabaseStorage implements IStorage {
     }
 
     if (filters?.search) {
-      usersQuery = usersQuery.or(
-        `first_name.ilike.%${filters.search}%,last_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%`
-      );
+      // The search term is interpolated into a PostgREST `.or()` filter string,
+      // so strip characters that could break out of the ilike pattern and inject
+      // additional filter conditions (comma, parens, dot, colon, backslash, *).
+      const safeSearch = filters.search.replace(/[,().:*\\%]/g, " ").trim();
+      if (safeSearch) {
+        usersQuery = usersQuery.or(
+          `first_name.ilike.%${safeSearch}%,last_name.ilike.%${safeSearch}%,email.ilike.%${safeSearch}%`
+        );
+      }
     }
 
     usersQuery = usersQuery
@@ -1208,7 +1216,7 @@ export class DatabaseStorage implements IStorage {
     let items = (usersData || []).map((row: any) => {
       const profile = profilesByUserId.get(row.id);
       return {
-        ...mapUser(row),
+        ...mapUser(row, true), // admin-only listing
         profile: profile ? mapProfile(profile) : null,
         isDeleted: row.is_deleted || false,
       };
@@ -1239,7 +1247,7 @@ export class DatabaseStorage implements IStorage {
 
     if (error) throw error;
     const reviewSummaryMap = await getReviewSummaryByUserIds(client, [userId]);
-    return withReviewSummary(mapUser(data), reviewSummaryMap.get(userId));
+    return withReviewSummary(mapUser(data, true), reviewSummaryMap.get(userId)); // admin
   }
 
   // Admin: Soft delete user and their projects
@@ -1351,7 +1359,7 @@ export class DatabaseStorage implements IStorage {
 
     const items = rows.map((row) => ({
       ...mapProject(row),
-      client: withReviewSummary(mapUser(row.client), reviewSummaryMap.get(row.client?.id)),
+      client: withReviewSummary(mapUser(row.client, true), reviewSummaryMap.get(row.client?.id)), // admin
     }));
 
     return { items, total: count || 0 };

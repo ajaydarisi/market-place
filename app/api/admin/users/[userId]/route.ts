@@ -21,7 +21,7 @@ export async function GET(
   const token = await getAuthToken();
 
   try {
-    const user = await storage.getUser(userId, token ?? undefined);
+    const user = await storage.getUser(userId, token ?? undefined, true); // admin
     if (!user) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });
     }

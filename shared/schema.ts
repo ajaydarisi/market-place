@@ -24,7 +24,9 @@ export const proposalSortOptions = ["newest", "best_match", "lowest_budget", "fa
 // USER
 export const userSchema = z.object({
   id: z.string().uuid(),
-  email: z.string().email(),
+  // Only returned to the user themselves and to admins; omitted from all
+  // public/embedded User payloads to prevent email harvesting.
+  email: z.string().email().optional(),
   firstName: z.string().nullable().optional(),
   lastName: z.string().nullable().optional(),
   profileImageUrl: z.string().url().nullable().optional(),
