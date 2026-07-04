@@ -5,6 +5,7 @@ import {
   type InsertInterest, type InsertMessage,
   type InsertProfile, type InsertProject, type InsertProjectLog, type InsertReview,
   type Message,
+  type Notification,
   type Profile, type Project, type ProjectInterest, type ProjectLog,
   type ProposalScreeningAnswer,
   type ReferenceLink,
@@ -444,7 +445,69 @@ function buildProjectPayload(values: Partial<InsertProject> & { status?: string 
   return payload;
 }
 
+function mapNotification(row: Record<string, any>): Notification {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    actorId: row.actor_id,
+    type: row.type,
+    projectId: row.project_id,
+    content: row.content,
+    read: row.read ?? false,
+    createdAt: row.created_at,
+  };
+}
+
 export class DatabaseStorage implements IStorage {
+  // Notifications
+  async createNotification(
+    notification: Pick<Notification, "userId" | "type" | "projectId" | "content">,
+    actorId: string,
+    token?: string,
+  ): Promise<void> {
+    // Never notify yourself; never let a notification failure break the main action.
+    if (notification.userId === actorId) return;
+    try {
+      const client = await getClient(token);
+      const { error } = await client.from("notifications").insert({
+        user_id: notification.userId,
+        actor_id: actorId,
+        type: notification.type,
+        project_id: notification.projectId,
+        content: notification.content,
+      });
+      if (error) throw error;
+    } catch (error) {
+      console.error("Failed to create notification:", error);
+    }
+  }
+
+  async listNotifications(userId: string, token?: string): Promise<Notification[]> {
+    const client = await getClient(token);
+    const { data, error } = await client
+      .from("notifications")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(30);
+
+    if (error) throw error;
+    return (data ?? []).map(mapNotification);
+  }
+
+  async markNotificationsRead(userId: string, token?: string): Promise<number> {
+    const client = await getClient(token);
+    const { data, error } = await client
+      .from("notifications")
+      .update({ read: true })
+      .eq("user_id", userId)
+      .eq("read", false)
+      .select("id");
+
+    if (error) throw error;
+    return data?.length ?? 0;
+  }
+
   // Profiles
   async getProfile(userId: string, token?: string): Promise<Profile | undefined> {
     const client = await getClient(token);

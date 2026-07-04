@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { TagInput } from "@/components/ui/tag-input";
 import { useGenerateProjectDraft } from "@/hooks/use-projects";
+import { useImprovePost } from "@/hooks/use-ai";
 import {
   communicationCadences,
   experienceLevels,
@@ -23,6 +24,7 @@ import {
   scopeSizes,
   teamPreferences,
   type InsertProject,
+  type ProjectDraft,
   type ReferenceLink,
 } from "@shared/schema";
 import {
@@ -208,6 +210,7 @@ export function ProjectIntakeForm({
   const [rawBrief, setRawBrief] = useState("");
   const [draftFeedback, setDraftFeedback] = useState<{ missingFields: string[]; warnings: string[] } | null>(null);
   const { mutate: generateDraft, isPending: isGeneratingDraft } = useGenerateProjectDraft();
+  const improvePost = useImprovePost();
 
   const form = useForm<ProjectIntakeFormValues>({
     resolver: zodResolver(insertProjectSchema),
@@ -939,6 +942,57 @@ export function ProjectIntakeForm({
                     </CardContent>
                   </Card>
                 </div>
+
+                <Card className="border-primary/15 bg-primary/[0.03]">
+                  <CardHeader className="pb-3">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <CardTitle className="flex items-center gap-2 text-base">
+                          <Sparkles className="h-4 w-4 text-primary" />
+                          AI Post Review
+                        </CardTitle>
+                        <CardDescription className="mt-1">
+                          Checks for missing details, unclear requirements, and unrealistic budget or timeline.
+                        </CardDescription>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        data-testid="improve-post-button"
+                        disabled={improvePost.isPending}
+                        onClick={() => improvePost.mutate(form.getValues() as ProjectDraft)}
+                      >
+                        {improvePost.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                        Improve this post
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  {improvePost.data || improvePost.isError ? (
+                    <CardContent className="space-y-3">
+                      {improvePost.isError ? (
+                        <p className="text-sm text-muted-foreground">
+                          {improvePost.error instanceof Error ? improvePost.error.message : "AI review failed."}
+                        </p>
+                      ) : null}
+                      {improvePost.data?.budgetAssessment ? (
+                        <p className="text-sm"><span className="font-semibold">Budget:</span> {improvePost.data.budgetAssessment}</p>
+                      ) : null}
+                      {improvePost.data?.timelineAssessment ? (
+                        <p className="text-sm"><span className="font-semibold">Timeline:</span> {improvePost.data.timelineAssessment}</p>
+                      ) : null}
+                      {improvePost.data?.suggestions.map((suggestion, index) => (
+                        <div key={index} className="rounded-2xl border border-border/60 bg-background/60 px-4 py-3">
+                          {suggestion.field ? <Badge variant="outline" className="mb-2">{suggestion.field}</Badge> : null}
+                          <p className="text-sm font-medium">{suggestion.issue}</p>
+                          <p className="mt-1 text-sm text-muted-foreground">{suggestion.recommendation}</p>
+                        </div>
+                      ))}
+                      {improvePost.data && improvePost.data.suggestions.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">This post already looks strong — nothing to fix.</p>
+                      ) : null}
+                    </CardContent>
+                  ) : null}
+                </Card>
               </div>
             ) : null}
 

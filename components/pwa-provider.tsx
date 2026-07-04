@@ -84,7 +84,7 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
 
   const promptCopy = useMemo(
     () => ({
-      title: "Install DevMarket",
+      title: "Install SkillPilot",
       subtitle: "Keep projects, messages, and hiring flows one tap away.",
     }),
     []

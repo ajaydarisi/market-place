@@ -149,7 +149,7 @@ export function AppearanceMenuItems({ className }: AppearanceMenuItemsProps) {
             ? selectedTheme === "system"
               ? `Following system: ${getResolvedThemeLabel(resolvedTheme)}`
               : `${getThemeSummary(selectedTheme, resolvedTheme)} mode active`
-            : "Choose how DevMarket looks on this device."}
+            : "Choose how SkillPilot looks on this device."}
         </p>
       </div>
 

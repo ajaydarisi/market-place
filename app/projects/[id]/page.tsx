@@ -11,13 +11,18 @@ import {
   Clock,
   FileText,
   Flag,
+  Layers,
   Loader2,
   MessageSquare,
+  ScrollText,
   Send,
+  ShieldCheck,
+  Sparkles,
   Star,
   Trash2,
   User,
   UserCheck,
+  Wand2,
 } from "lucide-react";
 
 import { Navigation } from "@/components/navigation";
@@ -52,9 +57,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { TagInput } from "@/components/ui/tag-input";
 import { Textarea } from "@/components/ui/textarea";
+import { useQueryClient } from "@tanstack/react-query";
+import { api } from "@shared/routes";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfile } from "@/hooks/use-profiles";
 import { useProjectInterests, useExpressInterest, useUpdateInterestStatus } from "@/hooks/use-interests";
+import { useCodeReview, useMatchRationale, useProposalDraft, useScopeOfWork, useStackAdvice } from "@/hooks/use-ai";
 import { useProjectLogs, useCreateProjectLog } from "@/hooks/use-project-logs";
 import { useProject, useDeleteProject } from "@/hooks/use-projects";
 import { useProjectReviews, useCreateProjectReview } from "@/hooks/use-reviews";
@@ -103,6 +111,32 @@ export default function ProjectDetail() {
 
   const [logContent, setLogContent] = useState("");
   const [logType, setLogType] = useState<typeof logTypes[number]>("update");
+
+  const queryClient = useQueryClient();
+  const proposalDraft = useProposalDraft();
+  const stackAdvice = useStackAdvice();
+  const scopeOfWork = useScopeOfWork();
+  const codeReview = useCodeReview();
+  const [reviewSubmission, setReviewSubmission] = useState("");
+
+  const invalidateLogs = () =>
+    queryClient.invalidateQueries({ queryKey: [api.projectLogs.list.path, projectId] });
+
+  const handleProposalDraft = () => {
+    proposalDraft.mutate(projectId, {
+      onSuccess: (draft) => {
+        setInterestMessage(draft.message);
+        if (draft.proposedBudget) setInterestBudget(String(draft.proposedBudget));
+        if (draft.estimatedDurationDays) setInterestDuration(String(draft.estimatedDurationDays));
+        if (draft.relevantSkills.length > 0) setInterestSkills(draft.relevantSkills);
+        setInterestScreeningAnswers((project?.screeningQuestions ?? []).map((question, index) =>
+          draft.screeningAnswers.find((answer) => answer.question === question)?.answer
+            ?? draft.screeningAnswers[index]?.answer
+            ?? "",
+        ));
+      },
+    });
+  };
 
   const [reviewRating, setReviewRating] = useState("5");
   const [reviewComment, setReviewComment] = useState("");
@@ -611,6 +645,7 @@ export default function ProjectDetail() {
                                   emptyLabel="No reviews yet"
                                 />
                               </div>
+                              <ProposalMatchRationale projectId={projectId} interestId={interest.id!} />
                             </div>
                           </div>
 
@@ -971,6 +1006,30 @@ export default function ProjectDetail() {
                         </DialogDescription>
                       </DialogHeader>
 
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full border-primary/30 text-primary"
+                        onClick={handleProposalDraft}
+                        disabled={proposalDraft.isPending}
+                        data-testid="proposal-draft-button"
+                      >
+                        {proposalDraft.isPending
+                          ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          : <Wand2 className="mr-2 h-4 w-4" />}
+                        Write my proposal
+                      </Button>
+                      {proposalDraft.isError ? (
+                        <p className="text-sm text-muted-foreground">
+                          {proposalDraft.error instanceof Error ? proposalDraft.error.message : "Draft failed."}
+                        </p>
+                      ) : null}
+                      {proposalDraft.data ? (
+                        <p className="text-xs text-muted-foreground">
+                          AI drafted this proposal from your profile — review and edit before submitting.
+                        </p>
+                      ) : null}
+
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div className="space-y-2">
                           <FormLabel>Proposed Budget (₹)</FormLabel>
@@ -1049,8 +1108,172 @@ export default function ProjectDetail() {
               </CardContent>
             </Card>
           ) : null}
+
+          {isDeveloper ? (
+            <Card className="surface-glass" data-testid="ai-tools-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  AI Tools
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => stackAdvice.mutate(projectId)}
+                    disabled={stackAdvice.isPending}
+                    data-testid="stack-advice-button"
+                  >
+                    {stackAdvice.isPending
+                      ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      : <Layers className="mr-2 h-4 w-4" />}
+                    Suggest a stack
+                  </Button>
+                  {stackAdvice.isError ? (
+                    <p className="text-sm text-muted-foreground">
+                      {stackAdvice.error instanceof Error ? stackAdvice.error.message : "Advice failed."}
+                    </p>
+                  ) : null}
+                  {stackAdvice.data ? (
+                    <div className="space-y-3 text-sm">
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Recommended</p>
+                        {stackAdvice.data.primary.map((item) => (
+                          <div key={`${item.component}-${item.choice}`} className="rounded-2xl border border-border/60 bg-background/35 px-3 py-2">
+                            <p className="font-medium text-foreground">{item.component}: {item.choice}</p>
+                            <p className="mt-0.5 text-xs text-muted-foreground">{item.reason}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Budget alternative</p>
+                        {stackAdvice.data.budgetAlternative.map((item) => (
+                          <div key={`${item.component}-${item.choice}`} className="rounded-2xl border border-border/60 bg-background/35 px-3 py-2">
+                            <p className="font-medium text-foreground">{item.component}: {item.choice}</p>
+                            <p className="mt-0.5 text-xs text-muted-foreground">{item.reason}</p>
+                          </div>
+                        ))}
+                      </div>
+                      {stackAdvice.data.notes ? (
+                        <p className="text-xs text-muted-foreground">{stackAdvice.data.notes}</p>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
+
+                {isAssignedDev ? (
+                  <>
+                    <Separator />
+                    <div className="space-y-3">
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => scopeOfWork.mutate(projectId, { onSuccess: invalidateLogs })}
+                        disabled={scopeOfWork.isPending}
+                        data-testid="scope-of-work-button"
+                      >
+                        {scopeOfWork.isPending
+                          ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          : <ScrollText className="mr-2 h-4 w-4" />}
+                        Draft scope of work
+                      </Button>
+                      {scopeOfWork.isError ? (
+                        <p className="text-sm text-muted-foreground">
+                          {scopeOfWork.error instanceof Error ? scopeOfWork.error.message : "Scope draft failed."}
+                        </p>
+                      ) : null}
+                      {scopeOfWork.data ? (
+                        <p className="text-sm text-muted-foreground">
+                          Scope of work drafted from the message thread and saved to Project Activity for the client to confirm.
+                        </p>
+                      ) : null}
+                    </div>
+
+                    <Separator />
+                    <div className="space-y-3">
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Pre-delivery review</p>
+                      <Textarea
+                        value={reviewSubmission}
+                        onChange={(event) => setReviewSubmission(event.target.value)}
+                        className="min-h-[100px] resize-none"
+                        placeholder="Paste a repo link, diff, or a summary of the finished work..."
+                        data-testid="review-submission-input"
+                      />
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => codeReview.mutate({ projectId, submission: reviewSubmission }, { onSuccess: invalidateLogs })}
+                        disabled={codeReview.isPending || reviewSubmission.trim().length < 20}
+                        data-testid="code-review-button"
+                      >
+                        {codeReview.isPending
+                          ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          : <ShieldCheck className="mr-2 h-4 w-4" />}
+                        Run AI review
+                      </Button>
+                      {codeReview.isError ? (
+                        <p className="text-sm text-muted-foreground">
+                          {codeReview.error instanceof Error ? codeReview.error.message : "Review failed."}
+                        </p>
+                      ) : null}
+                      {codeReview.data ? (
+                        <div className="space-y-2 text-sm">
+                          <p className="text-muted-foreground">{codeReview.data.summary}</p>
+                          {codeReview.data.findings.map((finding, index) => (
+                            <div key={index} className="rounded-2xl border border-border/60 bg-background/35 px-3 py-2">
+                              <div className="flex items-center gap-2">
+                                <Badge variant={finding.severity === "high" ? "destructive" : "secondary"}>
+                                  {finding.severity}
+                                </Badge>
+                                <Badge variant="outline">{finding.category}</Badge>
+                              </div>
+                              <p className="mt-1.5 text-xs text-muted-foreground">{finding.detail}</p>
+                            </div>
+                          ))}
+                          {codeReview.data.findings.length === 0 ? (
+                            <p className="text-muted-foreground">No issues flagged — looks ready to deliver.</p>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </div>
+                  </>
+                ) : null}
+              </CardContent>
+            </Card>
+          ) : null}
         </div>
       </main>
     </div>
+  );
+}
+
+function ProposalMatchRationale({ projectId, interestId }: { projectId: number; interestId: number }) {
+  const rationale = useMatchRationale();
+
+  if (rationale.data) {
+    return (
+      <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+        <Sparkles className="mr-1 inline h-3 w-3 text-primary" />
+        {rationale.data.rationale}
+      </p>
+    );
+  }
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="mt-1 h-auto px-2 py-1 text-xs text-primary hover:text-primary"
+      disabled={rationale.isPending}
+      onClick={() => rationale.mutate({ projectId, interestId })}
+      data-testid={`proposal-rationale-${interestId}`}
+    >
+      {rationale.isPending
+        ? <Loader2 className="h-3 w-3 animate-spin" />
+        : <Sparkles className="h-3 w-3" />}
+      <span className="ml-1">Why this match?</span>
+    </Button>
   );
 }

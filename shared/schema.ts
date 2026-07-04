@@ -282,6 +282,103 @@ export const projectDraftResponseSchema = z.object({
 export type ProjectDraft = z.infer<typeof projectDraftSchema>;
 export type ProjectDraftResponse = z.infer<typeof projectDraftResponseSchema>;
 
+// === NOTIFICATIONS ===
+
+export const notificationTypes = [
+  "proposal_received",
+  "proposal_accepted",
+  "proposal_rejected",
+  "message_received",
+] as const;
+
+export const notificationSchema = z.object({
+  id: z.number().optional(),
+  userId: z.string().uuid(),
+  actorId: z.string().uuid(),
+  type: z.enum(notificationTypes),
+  projectId: z.number(),
+  content: z.string(),
+  read: z.boolean().default(false),
+  createdAt: z.string().or(z.date()).optional(),
+});
+
+export type Notification = z.infer<typeof notificationSchema>;
+
+// === AI FEATURES ===
+
+export const postImprovementResponseSchema = z.object({
+  suggestions: z.array(z.object({
+    field: z.string().nullable().optional(),
+    issue: z.string(),
+    recommendation: z.string(),
+  })),
+  budgetAssessment: z.string().nullable().optional(),
+  timelineAssessment: z.string().nullable().optional(),
+});
+
+export type PostImprovementResponse = z.infer<typeof postImprovementResponseSchema>;
+
+export const matchRationaleResponseSchema = z.object({
+  score: z.number().min(0).max(100),
+  rationale: z.string(),
+});
+
+export type MatchRationaleResponse = z.infer<typeof matchRationaleResponseSchema>;
+
+export const proposalDraftResponseSchema = z.object({
+  message: z.string(),
+  relevantSkills: z.array(z.string()).default([]),
+  proposedBudget: z.number().positive().nullable().optional(),
+  estimatedDurationDays: z.number().int().positive().nullable().optional(),
+  screeningAnswers: z.array(proposalScreeningAnswerSchema).default([]),
+});
+
+export type ProposalDraftResponse = z.infer<typeof proposalDraftResponseSchema>;
+
+export const scopeOfWorkResponseSchema = z.object({
+  summary: z.string(),
+  deliverables: z.array(z.string()),
+  assumptions: z.array(z.string()).default([]),
+  exclusions: z.array(z.string()).default([]),
+  timelineWeeks: z.number().positive().nullable().optional(),
+  costEstimate: z.number().positive().nullable().optional(),
+});
+
+export type ScopeOfWorkResponse = z.infer<typeof scopeOfWorkResponseSchema>;
+
+export const stackAdviceItemSchema = z.object({
+  component: z.string(),
+  choice: z.string(),
+  reason: z.string(),
+});
+
+export const stackAdviceResponseSchema = z.object({
+  primary: z.array(stackAdviceItemSchema),
+  budgetAlternative: z.array(stackAdviceItemSchema),
+  notes: z.string().nullable().optional(),
+});
+
+export type StackAdviceResponse = z.infer<typeof stackAdviceResponseSchema>;
+
+export const profileOptimizationResponseSchema = z.object({
+  headline: z.string(),
+  bio: z.string(),
+  suggestedSkills: z.array(z.string()),
+});
+
+export type ProfileOptimizationResponse = z.infer<typeof profileOptimizationResponseSchema>;
+
+export const codeReviewResponseSchema = z.object({
+  summary: z.string(),
+  findings: z.array(z.object({
+    severity: z.enum(["high", "medium", "low"]),
+    category: z.enum(["bug", "security", "requirement"]),
+    detail: z.string(),
+  })),
+});
+
+export type CodeReviewResponse = z.infer<typeof codeReviewResponseSchema>;
+
 // Admin-specific types
 export const adminAuditLogSchema = z.object({
   id: z.number().optional(),

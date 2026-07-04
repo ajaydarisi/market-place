@@ -23,7 +23,6 @@ import {
   Brain,
   Cloud,
   LayoutDashboard,
-  Sun,
   Shield,
   Activity,
   Github,
@@ -89,9 +88,9 @@ const PLATFORM_FEATURES: {
     icon: LayoutDashboard,
   },
   {
-    title: "Dark & Light Theme",
-    description: "Comfortable viewing in any lighting condition",
-    icon: Sun,
+    title: "AI at Every Step",
+    description: "Post drafting, matching, proposals, stack advice, and pre-delivery review",
+    icon: Brain,
   },
   {
     title: "Mobile Responsive",
@@ -116,13 +115,13 @@ const CLIENT_STEPS: {
   icon: LucideIcon;
 }[] = [
   {
-    title: "Post Your Project",
-    description: "Describe requirements, set budget, choose category",
+    title: "Describe Your Project",
+    description: "Type a rough brief — AI turns it into a professional post",
     icon: FileText,
   },
   {
-    title: "Review Proposals",
-    description: "Receive applications and review developer profiles",
+    title: "Review AI-Matched Proposals",
+    description: "Proposals arrive ranked, each with a reason for the match",
     icon: Users,
   },
   {
@@ -139,12 +138,12 @@ const DEVELOPER_STEPS: {
 }[] = [
   {
     title: "Build Your Profile",
-    description: "Showcase skills, experience, and portfolio",
+    description: "AI optimizes your bio and skills to rank higher in matching",
     icon: UserCircle,
   },
   {
     title: "Browse & Apply",
-    description: "Search projects and submit custom proposals",
+    description: "AI recommends matched projects and drafts your proposal",
     icon: Search,
   },
   {
@@ -155,7 +154,7 @@ const DEVELOPER_STEPS: {
 ];
 
 const CLIENT_FEATURES: { text: string; icon: LucideIcon }[] = [
-  { text: "Post projects with detailed requirements and budgets", icon: Briefcase },
+  { text: "AI writes and improves your project post from a rough brief", icon: Briefcase },
   { text: "Access a curated pool of Junior to Lead-level developers", icon: Users },
   { text: "Review proposals with custom pitches and portfolios", icon: FileText },
   { text: "Real-time messaging to discuss project details", icon: MessageSquare },
@@ -166,7 +165,7 @@ const DEVELOPER_FEATURES: { text: string; icon: LucideIcon }[] = [
   { text: "Browse projects across 5 in-demand categories", icon: Search },
   { text: "Create a detailed profile with GitHub, LinkedIn, and portfolio", icon: Github },
   { text: "Specify your experience level and availability status", icon: UserCircle },
-  { text: "Submit custom proposals to stand out", icon: Send },
+  { text: "AI drafts tailored proposals from your profile and the job post", icon: Send },
   { text: "Direct messaging with potential clients", icon: MessageSquare },
 ];
 
@@ -176,19 +175,19 @@ const HERO_PULSES: {
   icon: LucideIcon;
 }[] = [
   {
-    title: "Curated talent lanes",
-    description: "One marketplace for web, mobile, AI, design, and cloud specialists.",
-    icon: Briefcase,
+    title: "Post in two minutes",
+    description: "AI turns your rough idea into a brief developers can actually bid on.",
+    icon: FileText,
   },
   {
-    title: "Faster conversations",
-    description: "Real-time messaging keeps proposals, feedback, and next steps moving.",
-    icon: MessageSquare,
+    title: "Win more work",
+    description: "AI drafts your proposals, optimizes your profile, and checks your code before delivery.",
+    icon: Send,
   },
   {
-    title: "Clear project visibility",
-    description: "Role-based dashboards and tracking keep both sides aligned from kickoff to delivery.",
-    icon: LayoutDashboard,
+    title: "Trust built in",
+    description: "Every match comes with a reason, and every delivery is AI-reviewed against the agreed scope.",
+    icon: Shield,
   },
 ];
 
@@ -224,7 +223,7 @@ export default function Landing() {
             <Briefcase className="h-5 w-5 text-white" />
           </div>
           <div className="font-display text-xl font-bold tracking-tight md:text-2xl">
-            Dev<span className="text-gradient">Market</span>
+            Skill<span className="text-gradient">Pilot</span>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -247,19 +246,19 @@ export default function Landing() {
       <section className="container mx-auto px-4 pb-16 pt-3 md:pb-28 md:pt-10">
         <div className="mx-auto max-w-5xl text-center">
           <Badge variant="outline" className="surface-glass mx-auto mb-5 border-primary/20 px-4 py-2 text-xs text-muted-foreground sm:text-sm">
-            <Activity className="mr-2 h-4 w-4 text-primary" />
-            Project visibility for modern digital teams
+            <Brain className="mr-2 h-4 w-4 text-primary" />
+            The AI-first freelancer marketplace
           </Badge>
 
           <div className="hero-grid relative overflow-hidden rounded-[1.75rem] border border-border/40 px-4 py-8 sm:px-8 sm:py-14 md:rounded-[2rem] md:px-12 md:py-16">
             <div className="mx-auto max-w-4xl animate-in fade-in slide-in-from-bottom-4 space-y-5 duration-700 md:space-y-6">
               <h1 className="text-[2.55rem] font-display font-bold leading-[0.98] tracking-tight text-foreground sm:text-6xl md:text-7xl">
-                Build Your Vision.
-                <span className="mt-2 block text-gradient">Find World-Class Talent.</span>
+                Hire Smarter. Deliver Faster.
+                <span className="mt-2 block text-gradient">AI at Every Step.</span>
               </h1>
 
               <p className="mx-auto max-w-3xl text-base leading-relaxed text-muted-foreground sm:text-xl md:text-2xl">
-                The premium freelance marketplace for Web, Mobile, AI, Design, and DevOps projects. Bring the right people into the room faster and keep every conversation moving.
+                SkillPilot is the freelancer marketplace built AI-first: every post, proposal, and match is drafted, checked, and ranked by AI. Clients get a professional brief and a shortlist of matched developers in minutes. Developers get AI that writes proposals, plans the stack, and reviews work before delivery.
               </p>
 
               <div className="flex flex-col items-stretch justify-center gap-3 pt-3 sm:flex-row sm:items-center">
@@ -285,8 +284,8 @@ export default function Landing() {
 
               <div className="flex flex-wrap items-center justify-center gap-2.5 pt-4">
                 <Badge variant="secondary" className="surface-glass px-4 py-2 text-sm">
-                  <Activity className="mr-2 h-4 w-4 text-primary" />
-                  Project Tracking
+                  <Brain className="mr-2 h-4 w-4 text-primary" />
+                  AI Matching
                 </Badge>
                 <Badge variant="secondary" className="surface-glass px-4 py-2 text-sm">
                   <Shield className="mr-2 h-4 w-4 text-accent" />
@@ -649,10 +648,10 @@ export default function Landing() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col items-center justify-between gap-2 sm:flex-row">
             <div className="font-display text-base font-bold tracking-tight">
-              Dev<span className="text-gradient">Market</span>
+              Skill<span className="text-gradient">Pilot</span>
             </div>
             <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-              © {new Date().getFullYear()} DevMarket. All rights reserved.
+              © {new Date().getFullYear()} SkillPilot. All rights reserved.
             </p>
           </div>
           <div className="mt-2 flex justify-center sm:justify-end">

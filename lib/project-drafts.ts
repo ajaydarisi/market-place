@@ -1,4 +1,4 @@
-import { engagementTypes, projectTypes, scopeSizes, type ProjectDraftResponse, type ReferenceLink } from "@shared/schema";
+import { engagementTypes, projectTypes, scopeSizes, type ProjectDraft, type ProjectDraftResponse, type ReferenceLink } from "@shared/schema";
 import { PROJECT_CATEGORY_OPTIONS, normalizeTechnologyTags } from "@shared/marketplace";
 
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
@@ -277,9 +277,20 @@ export function generateProjectDraft(rawBrief: string): ProjectDraftResponse {
     referenceLinks: extractReferenceLinks(rawBrief),
   };
 
+  const { missingFields, warnings } = computeDraftFeedback(draft);
+
+  return {
+    draft,
+    missingFields,
+    warnings,
+    source: "heuristic",
+  };
+}
+
+export function computeDraftFeedback(draft: ProjectDraft): { missingFields: string[]; warnings: string[] } {
   const missingFields = REQUIRED_DRAFT_FIELDS.filter((field) => {
     if (field === "estimatedDurationWeeksOrDeadline") {
-      return !draft.estimatedDurationWeeks;
+      return !draft.estimatedDurationWeeks && !draft.deadline;
     }
 
     const value = draft[field as keyof typeof draft];
@@ -288,15 +299,10 @@ export function generateProjectDraft(rawBrief: string): ProjectDraftResponse {
   });
 
   const warnings = [
-    !budget.budgetMin || !budget.budgetMax ? "No clear INR budget detected in the brief." : "",
-    !draft.estimatedDurationWeeks ? "No clear duration detected; add weeks or a deadline manually." : "",
-    technologyTags.length === 0 ? "No known technology tags were detected; add the stack manually." : "",
+    !draft.budgetMin || !draft.budgetMax ? "No clear INR budget detected in the brief." : "",
+    !draft.estimatedDurationWeeks && !draft.deadline ? "No clear duration detected; add weeks or a deadline manually." : "",
+    (draft.technologyTags ?? []).length === 0 ? "No known technology tags were detected; add the stack manually." : "",
   ].filter(Boolean);
 
-  return {
-    draft,
-    missingFields,
-    warnings,
-    source: "heuristic",
-  };
+  return { missingFields, warnings };
 }

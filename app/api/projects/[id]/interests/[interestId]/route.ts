@@ -63,6 +63,19 @@ export async function PATCH(
       );
     }
 
+    await storage.createNotification(
+      {
+        userId: interest.developerId,
+        type: input.status === "accepted" ? "proposal_accepted" : "proposal_rejected",
+        projectId,
+        content: input.status === "accepted"
+          ? `Your proposal for "${project.title}" was accepted`
+          : `Your proposal for "${project.title}" was not selected`,
+      },
+      user.id,
+      token ?? undefined
+    );
+
     return NextResponse.json(updatedInterest);
   } catch (error) {
     console.error("Error updating interest status:", error);

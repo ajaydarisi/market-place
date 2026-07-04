@@ -43,6 +43,18 @@ export async function POST(
       user.id,
       token ?? undefined
     );
+
+    await storage.createNotification(
+      {
+        userId: input.receiverId,
+        type: "message_received",
+        projectId: Number(id),
+        content: `New message: ${input.content.slice(0, 80)}`,
+      },
+      user.id,
+      token ?? undefined
+    );
+
     return NextResponse.json(message, { status: 201 });
   } catch {
     return NextResponse.json({ message: "Error" }, { status: 500 });

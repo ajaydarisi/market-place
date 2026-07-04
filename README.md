@@ -1,6 +1,8 @@
-# DevMarket
+# SkillPilot
 
-A two-sided marketplace connecting clients with developers for freelance projects. Clients post projects with budgets and categories, developers browse and submit proposals, and both sides communicate through built-in messaging.
+The AI-first freelancer marketplace. Clients post projects with budgets and categories, developers browse and submit proposals, and both sides communicate through built-in messaging — with AI drafting posts and proposals, explaining matches, advising on tech stacks, and reviewing work before delivery.
+
+**Tagline:** Hire smarter, deliver faster — AI at every step.
 
 ## Tech Stack
 
@@ -32,9 +34,30 @@ cp .env.example .env.local
 # .env.local
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=your-turnstile-site-key
+
+# AI provider (OpenAI-compatible; AI features fall back to heuristics without it)
+AI_API_BASE_URL=https://api.deepseek.com/v1
+AI_API_KEY=your-ai-api-key
+AI_MODEL=deepseek-v4-pro
 ```
 
-Apply the database schema by running the contents of `supabase_schema.sql` in your Supabase SQL Editor.
+Apply the database schema by running the files in `supabase/migrations/` in filename order in your Supabase SQL Editor (or with `supabase db push`).
+
+## Testing
+
+| Command | Description |
+|---------|-------------|
+| `npm test` | Unit tests (matching/scoring logic and AI-fallback heuristics) |
+| `npm run test:e2e` | Playwright end-to-end journeys (needs a configured `.env.local`, a Supabase project with email confirmation disabled, and the Turnstile test site key `1x00000000000000000000AA`) |
+
+## Production launch checklist
+
+1. Apply all files in `supabase/migrations/` in filename order to the production Supabase project (base schema → repair → v15 → v16 → notifications).
+2. Confirm `messages` and `notifications` are in the `supabase_realtime` publication (the migrations add them) — the live message feed and notification bell depend on it.
+3. Set env vars in the host (e.g. Vercel): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (production key), and server-side `AI_API_BASE_URL`, `AI_API_KEY`, `AI_MODEL`. Without the `AI_*` vars, the draft writer falls back to heuristics and the other AI features return 503.
+4. Run the Supabase security advisors after migrating and review RLS warnings.
+5. AI endpoints are rate-limited in-memory per user (10 requests/min); this resets per server instance — move to a shared store if you scale beyond one instance.
 
 ```bash
 # Start dev server

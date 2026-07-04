@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import {
+    codeReviewResponseSchema,
     conversationSummarySchema,
     engagementTypes,
     experienceLevels,
@@ -8,8 +9,15 @@ import {
     insertReviewSchema,
     insertUserSchema,
     logTypes,
+    matchRationaleResponseSchema,
+    postImprovementResponseSchema,
+    profileOptimizationResponseSchema,
     projectDraftResponseSchema,
+    projectDraftSchema,
     projectTypes,
+    proposalDraftResponseSchema,
+    scopeOfWorkResponseSchema,
+    stackAdviceResponseSchema,
     proposalSortOptions,
     proposalScreeningAnswerSchema,
     scopeSizes,
@@ -21,6 +29,7 @@ import {
     type AdminStats,
     type ConversationSummary,
     type Message,
+    type Notification,
     type Profile,
     type Project,
     type ProjectInterest,
@@ -290,6 +299,94 @@ export const api = {
         401: errorSchemas.unauthorized,
         403: z.object({ message: z.string() }),
         409: z.object({ message: z.string() }),
+      },
+    },
+  },
+  notifications: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/notifications',
+      responses: {
+        200: z.array(z.custom<Notification>()),
+        401: errorSchemas.unauthorized,
+      },
+    },
+    markAllRead: {
+      method: 'PATCH' as const,
+      path: '/api/notifications/read',
+      responses: {
+        200: z.object({ updated: z.number() }),
+        401: errorSchemas.unauthorized,
+      },
+    },
+  },
+  // AI features (all require a configured provider; 503 when unavailable)
+  ai: {
+    improvePost: {
+      method: 'POST' as const,
+      path: '/api/projects/improve',
+      input: projectDraftSchema,
+      responses: {
+        200: postImprovementResponseSchema,
+        401: errorSchemas.unauthorized,
+        503: z.object({ message: z.string() }),
+      },
+    },
+    matchRationale: {
+      method: 'GET' as const,
+      path: '/api/projects/:projectId/match-rationale',
+      responses: {
+        200: matchRationaleResponseSchema,
+        401: errorSchemas.unauthorized,
+        503: z.object({ message: z.string() }),
+      },
+    },
+    proposalDraft: {
+      method: 'POST' as const,
+      path: '/api/projects/:projectId/interests/draft',
+      responses: {
+        200: proposalDraftResponseSchema,
+        401: errorSchemas.unauthorized,
+        503: z.object({ message: z.string() }),
+      },
+    },
+    scopeOfWork: {
+      method: 'POST' as const,
+      path: '/api/projects/:projectId/scope',
+      responses: {
+        200: scopeOfWorkResponseSchema,
+        401: errorSchemas.unauthorized,
+        403: z.object({ message: z.string() }),
+        503: z.object({ message: z.string() }),
+      },
+    },
+    stackAdvice: {
+      method: 'POST' as const,
+      path: '/api/projects/:projectId/stack-advice',
+      responses: {
+        200: stackAdviceResponseSchema,
+        401: errorSchemas.unauthorized,
+        503: z.object({ message: z.string() }),
+      },
+    },
+    optimizeProfile: {
+      method: 'POST' as const,
+      path: '/api/profiles/optimize',
+      responses: {
+        200: profileOptimizationResponseSchema,
+        401: errorSchemas.unauthorized,
+        503: z.object({ message: z.string() }),
+      },
+    },
+    codeReview: {
+      method: 'POST' as const,
+      path: '/api/projects/:projectId/review-check',
+      input: z.object({ submission: z.string().min(20, "Describe the work or paste a link/diff (min 20 chars)") }),
+      responses: {
+        200: codeReviewResponseSchema,
+        401: errorSchemas.unauthorized,
+        403: z.object({ message: z.string() }),
+        503: z.object({ message: z.string() }),
       },
     },
   },

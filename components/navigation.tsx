@@ -18,6 +18,7 @@ import {
   AppearanceMenuItems,
 } from "@/components/appearance-selector";
 import { ActionListItem } from "@/components/action-list-item";
+import { NotificationBell } from "@/components/notification-bell";
 import { ProfileAvatar } from "@/components/profile-avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -63,7 +64,7 @@ function getMobileTitle(pathname: string) {
   if (pathname === "/admin") return "Dashboard";
   if (pathname.startsWith("/projects/")) return "Project Details";
   if (pathname.startsWith("/profile")) return "Profile";
-  return "DevMarket";
+  return "SkillPilot";
 }
 
 export function Navigation() {
@@ -307,7 +308,7 @@ export function Navigation() {
                 </div>
                 <div className="flex flex-col">
                   <span className="font-display text-xl font-bold leading-tight tracking-tight">
-                    Dev<span className="text-gradient">Market</span>
+                    Skill<span className="text-gradient">Pilot</span>
                   </span>
                   {profile?.role && (
                     <span
@@ -343,6 +344,8 @@ export function Navigation() {
                   </Link>
                 </Button>
               )}
+
+              <NotificationBell userId={user.id} />
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -412,6 +415,8 @@ export function Navigation() {
                 </div>
               </div>
 
+              <div className="flex items-center gap-2">
+              <NotificationBell userId={user.id} />
               <SheetTrigger asChild>
                 <Button
                   variant="ghost"
@@ -427,6 +432,7 @@ export function Navigation() {
                   />
                 </Button>
               </SheetTrigger>
+              </div>
             </div>
           </div>
         </header>
@@ -483,7 +489,7 @@ export function Navigation() {
                   Appearance
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Choose how DevMarket looks on this device.
+                  Choose how SkillPilot looks on this device.
                 </p>
               </div>
               <AppearanceInlineSelector />

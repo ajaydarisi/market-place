@@ -62,6 +62,18 @@ export async function POST(
       user.id,
       token ?? undefined
     );
+
+    await storage.createNotification(
+      {
+        userId: project.clientId,
+        type: "proposal_received",
+        projectId,
+        content: `New proposal on "${project.title}"`,
+      },
+      user.id,
+      token ?? undefined
+    );
+
     return NextResponse.json(interest, { status: 201 });
   } catch (error) {
     if ((error as Error & { code?: string }).code === "ACTIVE_PROPOSAL_EXISTS") {
