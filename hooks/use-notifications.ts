@@ -27,8 +27,11 @@ export function useNotificationsRealtime(userId: string) {
 
     const supabase = createClient();
 
+    // Unique channel name per subscription so React's dev double-mount (and any
+    // remount) can't re-add callbacks to a channel that's still tearing down,
+    // which throws "cannot add postgres_changes callbacks after subscribe()".
     const channel = supabase
-      .channel("notifications-realtime")
+      .channel(`notifications-realtime-${userId}-${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         {

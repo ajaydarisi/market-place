@@ -27,8 +27,10 @@ export function useMessagesRealtime(userId: string) {
 
     const supabase = createClient();
 
+    // Unique channel name per subscription so React's dev double-mount (and any
+    // remount) can't re-add callbacks to a channel that's still tearing down.
     const channel = supabase
-      .channel("messages-realtime")
+      .channel(`messages-realtime-${userId}-${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         {
