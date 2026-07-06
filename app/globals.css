@@ -73,6 +73,7 @@
   --safe-area-left: env(safe-area-inset-left, 0px);
   --mobile-nav-height: 4.75rem;
   --mobile-header-height: 4.5rem;
+  --desktop-header-height: 5rem;
   --mobile-page-gutter: 1rem;
   --desktop-ui-scale: 0.9;
 
@@ -169,6 +170,16 @@
   @media (min-width: 768px) {
     body.has-mobile-nav {
       padding-bottom: 0;
+    }
+  }
+
+  body.has-fixed-header {
+    padding-top: var(--desktop-header-height);
+  }
+
+  @media (max-width: 767px) {
+    body.has-fixed-header {
+      padding-top: calc(var(--mobile-header-height) + var(--safe-area-top));
     }
   }
 

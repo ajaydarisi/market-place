@@ -79,9 +79,9 @@ export function Navigation() {
   const isDeveloper = profile?.role === "developer";
 
   useEffect(() => {
-    document.body.classList.add("has-mobile-nav");
+    document.body.classList.add("has-mobile-nav", "has-fixed-header");
     return () => {
-      document.body.classList.remove("has-mobile-nav");
+      document.body.classList.remove("has-mobile-nav", "has-fixed-header");
     };
   }, []);
 
@@ -297,7 +297,7 @@ export function Navigation() {
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <header
           data-testid="navigation"
-          className="sticky top-0 z-40 w-full border-b border-border/55 bg-background/88 backdrop-blur-xl supports-[backdrop-filter]:bg-background/78"
+          className="fixed top-0 z-40 w-full border-b border-border/55 bg-background/88 backdrop-blur-xl supports-[backdrop-filter]:bg-background/78"
         >
           <div className="container mx-auto hidden h-20 items-center justify-between gap-4 px-4 md:flex">
             <div className="flex items-center gap-8">
