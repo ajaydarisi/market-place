@@ -129,9 +129,11 @@ function MessagesContent() {
                   {allConversations.map((conv) => {
                     const isActive = selected?.projectId === conv.projectId && selected?.clientId === conv.otherUserId;
                     return (
-                      <button
+                      <Button
                         key={`${conv.projectId}-${conv.otherUserId}`}
-                        className={`w-full text-left p-3 rounded-2xl transition-all flex items-start gap-3 ${
+                        variant="ghost"
+                        type="button"
+                        className={`w-full text-left p-3 h-auto rounded-2xl transition-all flex items-start gap-3 ${
                           isActive
                             ? "bg-primary/[0.08] shadow-sm ring-1 ring-primary/10"
                             : "hover:bg-secondary/45"
@@ -161,7 +163,7 @@ function MessagesContent() {
                             </span>
                           ) : null}
                         </div>
-                      </button>
+                      </Button>
                     );
                   })}
                 </div>
