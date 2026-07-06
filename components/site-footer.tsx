@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/logo";
 import { PoweredByDarisi } from "@/components/powered-by-darisi";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -20,10 +21,10 @@ export function SiteFooter() {
             asChild
             variant="ghost"
             size="sm"
-            className="h-auto px-0 font-display text-base font-bold tracking-tight hover:bg-transparent"
+            className="h-auto px-0 font-display text-base font-bold tracking-tight hover:bg-transparent text-foreground"
           >
             <Link href="/" aria-label="Go to SkillPilot home">
-              Skill<span className="text-gradient">Pilot</span>
+              <Logo showIcon={false} textSize="text-base" />
             </Link>
           </Button>
           <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">

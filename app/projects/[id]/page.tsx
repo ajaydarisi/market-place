@@ -896,7 +896,7 @@ export default function ProjectDetail() {
                             </div>
                           </div>
 
-                          <div className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-3 py-1 text-sm font-medium text-amber-700">
+                          <div className="inline-flex items-center gap-1 rounded-full bg-primary/[0.08] px-3 py-1 text-sm font-medium text-primary">
                             <Star className="h-4 w-4 fill-current" />
                             {review.rating.toFixed(1)}
                           </div>

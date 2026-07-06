@@ -7,11 +7,11 @@ import { Card, CardContent } from "@/components/ui/card";
 
 export default function OfflinePage() {
   return (
-    <div className="page-shell hero-aurora flex min-h-screen items-center justify-center bg-background px-4 py-10">
-      <Card className="surface-glass w-full max-w-md border-primary/10 text-center">
+    <div className="page-shell flex min-h-screen items-center justify-center bg-background px-4 py-10">
+      <Card className="surface-glass w-full max-w-md text-center">
         <CardContent className="p-8 md:p-10">
-          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-[1.6rem] bg-gradient-to-br from-primary via-primary to-accent text-primary-foreground shadow-lg shadow-primary/20">
-            <WifiOff className="h-8 w-8" />
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <Briefcase className="h-7 w-7" />
           </div>
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-border/60 bg-secondary/55 px-3 py-1 text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground">
             <Briefcase className="h-3.5 w-3.5 text-primary" />
