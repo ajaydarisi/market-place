@@ -25,6 +25,8 @@ async function parseOrThrow<T>(res: Response, parse: (data: unknown) => T): Prom
 
 export function useImprovePost() {
   return useMutation({
+    // These render their own inline error UI; opt out of the global error toast.
+    meta: { suppressGlobalError: true },
     mutationFn: async (post: ProjectDraft): Promise<PostImprovementResponse> => {
       const res = await authFetch(api.ai.improvePost.path, {
         method: api.ai.improvePost.method,
@@ -38,6 +40,8 @@ export function useImprovePost() {
 
 export function useMatchRationale() {
   return useMutation({
+    // These render their own inline error UI; opt out of the global error toast.
+    meta: { suppressGlobalError: true },
     mutationFn: async ({ projectId, interestId }: { projectId: number; interestId?: number }): Promise<MatchRationaleResponse> => {
       const url = buildUrl(api.ai.matchRationale.path, { projectId })
         + (interestId ? `?interestId=${interestId}` : "");
@@ -49,6 +53,8 @@ export function useMatchRationale() {
 
 export function useProposalDraft() {
   return useMutation({
+    // These render their own inline error UI; opt out of the global error toast.
+    meta: { suppressGlobalError: true },
     mutationFn: async (projectId: number): Promise<ProposalDraftResponse> => {
       const res = await authFetch(buildUrl(api.ai.proposalDraft.path, { projectId }), {
         method: api.ai.proposalDraft.method,
@@ -60,6 +66,8 @@ export function useProposalDraft() {
 
 export function useScopeOfWork() {
   return useMutation({
+    // These render their own inline error UI; opt out of the global error toast.
+    meta: { suppressGlobalError: true },
     mutationFn: async (projectId: number): Promise<ScopeOfWorkResponse> => {
       const res = await authFetch(buildUrl(api.ai.scopeOfWork.path, { projectId }), {
         method: api.ai.scopeOfWork.method,
@@ -71,6 +79,8 @@ export function useScopeOfWork() {
 
 export function useStackAdvice() {
   return useMutation({
+    // These render their own inline error UI; opt out of the global error toast.
+    meta: { suppressGlobalError: true },
     mutationFn: async (projectId: number): Promise<StackAdviceResponse> => {
       const res = await authFetch(buildUrl(api.ai.stackAdvice.path, { projectId }), {
         method: api.ai.stackAdvice.method,
@@ -82,6 +92,8 @@ export function useStackAdvice() {
 
 export function useOptimizeProfile() {
   return useMutation({
+    // These render their own inline error UI; opt out of the global error toast.
+    meta: { suppressGlobalError: true },
     mutationFn: async (): Promise<ProfileOptimizationResponse> => {
       const res = await authFetch(api.ai.optimizeProfile.path, {
         method: api.ai.optimizeProfile.method,
@@ -93,6 +105,8 @@ export function useOptimizeProfile() {
 
 export function useCodeReview() {
   return useMutation({
+    // These render their own inline error UI; opt out of the global error toast.
+    meta: { suppressGlobalError: true },
     mutationFn: async ({ projectId, submission }: { projectId: number; submission: string }): Promise<CodeReviewResponse> => {
       const res = await authFetch(buildUrl(api.ai.codeReview.path, { projectId }), {
         method: api.ai.codeReview.method,

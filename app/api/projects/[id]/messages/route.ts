@@ -69,12 +69,14 @@ export async function POST(
       token ?? undefined
     );
 
+    // Use the stored (contact-redacted) message content for the preview so the
+    // notification and its email don't leak contact info that createMessage masked.
     await storage.createNotification(
       {
         userId: input.receiverId,
         type: "message_received",
         projectId: Number(id),
-        content: `New message: ${input.content.slice(0, 80)}`,
+        content: `New message: ${message.content.slice(0, 80)}`,
       },
       user.id,
       token ?? undefined

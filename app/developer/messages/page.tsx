@@ -252,27 +252,32 @@ function MessagesContent() {
 
                 {/* Message Input */}
                 <Separator className="bg-border/50" />
-                <div className="safe-bottom flex gap-2 bg-background/35 p-3">
-                  <Input
-                    aria-label="Type a message"
-                    placeholder="Type a message..."
-                    value={messageText}
-                    onChange={(e) => setMessageText(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    className="flex-1"
-                  />
-                  <Button
-                    size="sm"
-                    aria-label="Send message"
-                    onClick={handleSend}
-                    disabled={!messageText.trim() || sendPending}
-                  >
-                    {sendPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Send className="h-4 w-4" />
-                    )}
-                  </Button>
+                <div className="safe-bottom bg-background/35 p-3">
+                  <div className="flex gap-2">
+                    <Input
+                      aria-label="Type a message"
+                      placeholder="Type a message..."
+                      value={messageText}
+                      onChange={(e) => setMessageText(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      className="flex-1"
+                    />
+                    <Button
+                      size="sm"
+                      aria-label="Send message"
+                      onClick={handleSend}
+                      disabled={!messageText.trim() || sendPending}
+                    >
+                      {sendPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Keep contact details in the platform — emails and phone numbers are hidden automatically.
+                  </p>
                 </div>
               </>
             )}

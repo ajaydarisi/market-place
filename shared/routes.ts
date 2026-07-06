@@ -5,6 +5,7 @@ import {
     engagementTypes,
     experienceLevels,
     insertProfileSchema,
+    updateProfileSchema,
     insertProjectSchema,
     insertReviewSchema,
     insertUserSchema,
@@ -90,7 +91,7 @@ export const api = {
     update: {
       method: 'PUT' as const,
       path: '/api/profiles', // Updates current user's profile
-      input: insertProfileSchema.partial(),
+      input: updateProfileSchema,
       responses: {
         200: z.custom<Profile>(),
         401: errorSchemas.unauthorized,
@@ -169,6 +170,17 @@ export const api = {
         404: errorSchemas.notFound,
       },
     },
+    requestCompletion: {
+      method: 'POST' as const,
+      path: '/api/projects/:id/request-completion',
+      responses: {
+        200: z.object({ message: z.string() }),
+        401: errorSchemas.unauthorized,
+        403: z.object({ message: z.string() }),
+        404: errorSchemas.notFound,
+        409: z.object({ message: z.string() }),
+      },
+    },
   },
   interests: {
     create: {
@@ -205,6 +217,16 @@ export const api = {
       input: z.object({ status: z.enum(["accepted", "rejected"]) }),
       responses: {
         200: z.custom<ProjectInterest>(),
+        401: errorSchemas.unauthorized,
+        403: z.object({ message: z.string() }),
+        404: errorSchemas.notFound,
+      },
+    },
+    withdraw: {
+      method: 'DELETE' as const,
+      path: '/api/projects/:projectId/interests/:interestId',
+      responses: {
+        200: z.object({ message: z.string() }),
         401: errorSchemas.unauthorized,
         403: z.object({ message: z.string() }),
         404: errorSchemas.notFound,

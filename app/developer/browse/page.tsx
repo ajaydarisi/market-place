@@ -16,7 +16,8 @@ import {
   PROJECT_TYPE_LABELS,
   SCOPE_SIZE_LABELS,
 } from "@shared/marketplace";
-import { Search } from "lucide-react";
+import { Search, AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useDeferredValue, useState } from "react";
 
 export default function BrowseJobs() {
@@ -31,7 +32,7 @@ export default function BrowseJobs() {
   const [projectType, setProjectType] = useState<string>("all");
   const [scopeSize, setScopeSize] = useState<string>("all");
   const deferredSearch = useDeferredValue(search);
-  const { data: projects, isLoading } = useProjects({
+  const { data: projects, isLoading, isError, refetch } = useProjects({
     search: deferredSearch,
     category: category === "all" ? undefined : category,
     sort,
@@ -166,7 +167,11 @@ export default function BrowseJobs() {
       <main className="container mx-auto px-4 pb-10 pt-2 md:py-12">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between md:mb-8">
           <h2 className="text-xl font-bold font-display sm:text-2xl">
-            {projects?.length ? `${projects.length} Projects Available` : 'Loading projects...'}
+            {isError
+              ? 'Projects'
+              : isLoading
+                ? 'Loading projects...'
+                : `${projects?.length ?? 0} Projects Available`}
           </h2>
           <Select value={sort} onValueChange={setSort}>
             <SelectTrigger aria-label="Sort projects" className="w-full sm:w-[180px]" data-testid="browse-sort-filter">
@@ -182,7 +187,19 @@ export default function BrowseJobs() {
           </Select>
         </div>
 
-        {isLoading ? (
+        {isError ? (
+          <EmptyState
+            icon={AlertTriangle}
+            title="Couldn't load projects"
+            description="Something went wrong fetching projects. Check your connection and try again."
+            action={
+              <Button variant="outline" aria-label="Retry loading projects" onClick={() => refetch()} data-testid="browse-retry">
+                Try again
+              </Button>
+            }
+            className="col-span-full"
+          />
+        ) : isLoading ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 md:gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <Card key={i} className="surface-glass overflow-hidden">

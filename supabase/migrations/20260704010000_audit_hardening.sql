@@ -4,7 +4,12 @@
 -- The application never references this table; enable RLS with no policy so it is
 -- no longer reachable through the public PostgREST API. Service-role writers
 -- (infra/health checks) bypass RLS and are unaffected.
-alter table public.health enable row level security;
+do $$
+begin
+  if exists (select 1 from pg_tables where schemaname = 'public' and tablename = 'health') then
+    alter table public.health enable row level security;
+  end if;
+end $$;
 
 -- #5: the `avatars` bucket is public, so objects are served via their public URL
 -- without needing a SELECT policy. The broad "Anyone can view avatars" SELECT

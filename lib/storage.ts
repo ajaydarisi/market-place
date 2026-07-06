@@ -15,6 +15,8 @@ import {
   type User,
   type UserWithProfile
 } from "@shared/schema";
+import { redactContactInfo } from "@shared/redact";
+import { sendNotificationEmail } from "@/lib/email";
 import { createClient as createServerClient, createAuthenticatedClient } from "@/lib/supabase/server";
 import {
   calculateProfileCompletionScore,
@@ -61,10 +63,10 @@ export interface IStorage {
   createInterest(interest: InsertInterest, developerId: string, token?: string): Promise<ProjectInterest>;
   listInterests(projectId: number, options?: { sort?: string }, token?: string): Promise<(ProjectInterest & { developer: User })[]>;
   updateInterestStatus(interestId: number, status: "accepted" | "rejected", token?: string): Promise<ProjectInterest>;
-  rejectOtherInterests(projectId: number, exceptInterestId: number, token?: string): Promise<void>;
+  acceptProposal(projectId: number, interestId: number, token?: string): Promise<string[]>;
+  withdrawProposal(projectId: number, interestId: number, token?: string): Promise<boolean>;
 
   // Project Assignment
-  assignDeveloper(projectId: number, developerId: string, token?: string): Promise<Project>;
   listAssignedProjects(developerId: string, token?: string): Promise<(Project & { client: User })[]>;
 
   // Project Logs
@@ -478,6 +480,8 @@ export class DatabaseStorage implements IStorage {
         content: notification.content,
       });
       if (error) throw error;
+      // Also deliver by email (fail-open; no-op unless Resend is configured).
+      await sendNotificationEmail(notification);
     } catch (error) {
       console.error("Failed to create notification:", error);
     }
@@ -550,7 +554,9 @@ export class DatabaseStorage implements IStorage {
   async updateProfile(userId: string, updates: UpdateProfileRequest, token?: string): Promise<Profile> {
     const client = await getClient(token);
     const payload: any = {};
-    if (updates.role) payload.role = updates.role;
+    // Defense-in-depth: self-service updates may only set client/developer.
+    // Admin promotion goes through adminUpdateProfile behind requireAdmin.
+    if (updates.role && updates.role !== "admin") payload.role = updates.role;
     if (updates.headline !== undefined) payload.headline = updates.headline;
     if (updates.bio !== undefined) payload.bio = updates.bio;
     if (updates.skills !== undefined) payload.skills = sanitizeStringArray(updates.skills);
@@ -610,9 +616,15 @@ export class DatabaseStorage implements IStorage {
     currentUserId?: string;
   }, token?: string): Promise<(Project & { client: User })[]> {
     const client = await getClient(token);
+    // Only the client "my projects" view renders proposalCount, so only pay for
+    // the per-row interest-count aggregate when filtering by clientId; the
+    // developer browse feed (highest traffic) skips it.
+    const selectClause = filters?.clientId
+      ? "*, client:client_id(*), project_interests!project_interests_project_id_fkey(count)"
+      : "*, client:client_id(*)";
     let query = client
       .from("projects")
-      .select("*, client:client_id(*)")
+      .select(selectClause)
       .eq("is_deleted", false);
 
     if (filters?.clientId) {
@@ -682,6 +694,12 @@ export class DatabaseStorage implements IStorage {
     let projects = rows.map((row) => ({
       ...mapProject(row),
       client: withReviewSummary(mapUser(row.client), reviewSummaryMap.get(row.client?.id)),
+      // PostgREST returns the aggregate as [{ count }]; RLS scopes it to the
+      // caller's visible interests (a client sees all proposals on their own
+      // projects). Only surfaced on the client-facing card.
+      proposalCount: Array.isArray(row.project_interests)
+        ? row.project_interests[0]?.count ?? 0
+        : 0,
     }));
 
     if (filters?.sort === "recommended" && filters.currentUserId) {
@@ -784,11 +802,14 @@ export class DatabaseStorage implements IStorage {
       .insert({
         project_id: insertInterest.projectId,
         developer_id: developerId,
-        message: insertInterest.message,
+        message: redactContactInfo(insertInterest.message).text,
         proposed_budget: insertInterest.proposedBudget,
         estimated_duration_days: insertInterest.estimatedDurationDays,
         relevant_skills: relevantSkills,
-        screening_answers: screeningAnswers,
+        screening_answers: screeningAnswers.map((answer) => ({
+          question: answer.question,
+          answer: redactContactInfo(answer.answer).text,
+        })),
         match_score: matchScore,
       })
       .select()
@@ -854,34 +875,35 @@ export class DatabaseStorage implements IStorage {
     return mapInterest(data);
   }
 
-  async rejectOtherInterests(projectId: number, exceptInterestId: number, token?: string): Promise<void> {
+  // Atomic accept via the accept_proposal RPC (see migration
+  // 20260706010000). Returns the developers whose proposals were auto-rejected
+  // so the caller can notify them. RPC raises PROJECT_NOT_OPEN /
+  // INTEREST_NOT_PENDING / FORBIDDEN / *_NOT_FOUND on invalid state.
+  async acceptProposal(projectId: number, interestId: number, token?: string): Promise<string[]> {
     const client = await getClient(token);
-    const { error } = await client
-      .from("project_interests")
-      .update({ status: "rejected" })
-      .eq("project_id", projectId)
-      .eq("status", "pending")
-      .neq("id", exceptInterestId);
-
+    const { data, error } = await client.rpc("accept_proposal", {
+      p_project_id: projectId,
+      p_interest_id: interestId,
+    });
     if (error) throw error;
+    return ((data as { developer_id: string }[]) ?? []).map((row) => row.developer_id);
   }
 
-  // Project Assignment
-  async assignDeveloper(projectId: number, developerId: string, token?: string): Promise<Project> {
+  // Atomic withdraw via the withdraw_proposal RPC (migration 20260706020000):
+  // notifies the client and deletes the interest in one transaction. Returns
+  // false when there was no still-pending interest owned by the caller (lost
+  // race / not the owner), so the route can 409 rather than report a false
+  // withdrawal.
+  async withdrawProposal(projectId: number, interestId: number, token?: string): Promise<boolean> {
     const client = await getClient(token);
-    const { data, error } = await client
-      .from("projects")
-      .update({
-        assigned_developer_id: developerId,
-        status: "in_progress"
-      })
-      .eq("id", projectId)
-      .select()
-      .single();
-
+    const { data, error } = await client.rpc("withdraw_proposal", {
+      p_project_id: projectId,
+      p_interest_id: interestId,
+    });
     if (error) throw error;
-    return mapProject(data);
+    return data === true;
   }
+
 
   async listAssignedProjects(developerId: string, token?: string): Promise<(Project & { client: User })[]> {
     const client = await getClient(token);
@@ -929,7 +951,9 @@ export class DatabaseStorage implements IStorage {
       .insert({
         project_id: log.projectId,
         author_id: authorId,
-        content: log.content,
+        // Redact contact info in developer/client-authored logs (same channel as
+        // messages). System logs are app-generated and never contain contact info.
+        content: log.isSystem ? log.content : redactContactInfo(log.content).text,
         log_type: log.logType || "update",
         is_system: log.isSystem ?? false,
       })
@@ -1041,7 +1065,7 @@ export class DatabaseStorage implements IStorage {
         project_id: insertMessage.projectId,
         sender_id: senderId,
         receiver_id: insertMessage.receiverId,
-        content: insertMessage.content,
+        content: redactContactInfo(insertMessage.content).text,
         read: false,
       })
       .select()

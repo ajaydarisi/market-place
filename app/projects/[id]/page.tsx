@@ -23,6 +23,7 @@ import {
   User,
   UserCheck,
   Wand2,
+  XCircle,
 } from "lucide-react";
 
 import { Navigation } from "@/components/navigation";
@@ -61,10 +62,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { api } from "@shared/routes";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfile } from "@/hooks/use-profiles";
-import { useProjectInterests, useExpressInterest, useUpdateInterestStatus } from "@/hooks/use-interests";
+import { useProjectInterests, useExpressInterest, useUpdateInterestStatus, useWithdrawInterest } from "@/hooks/use-interests";
 import { useCodeReview, useMatchRationale, useProposalDraft, useScopeOfWork, useStackAdvice } from "@/hooks/use-ai";
 import { useProjectLogs, useCreateProjectLog } from "@/hooks/use-project-logs";
-import { useProject, useDeleteProject } from "@/hooks/use-projects";
+import { useProject, useDeleteProject, useRequestCompletion } from "@/hooks/use-projects";
 import { useProjectReviews, useCreateProjectReview } from "@/hooks/use-reviews";
 import { logTypes } from "@shared/schema";
 import {
@@ -96,6 +97,8 @@ export default function ProjectDetail() {
 
   const { mutate: expressInterest, isPending: interestPending } = useExpressInterest();
   const { mutate: deleteProject, isPending: deletePending } = useDeleteProject();
+  const { mutate: withdrawInterest, isPending: withdrawPending } = useWithdrawInterest();
+  const { mutate: requestCompletion, isPending: completionPending } = useRequestCompletion();
   const { mutate: updateInterestStatus, isPending: assignPending } = useUpdateInterestStatus();
   const { mutate: createLog, isPending: logPending } = useCreateProjectLog();
   const { mutate: createReview, isPending: reviewPending } = useCreateProjectReview();
@@ -146,7 +149,8 @@ export default function ProjectDetail() {
   const isOwner = Boolean(isClient && project?.client.id === user?.id);
   const isAssignedDev = Boolean(isDeveloper && project?.assignedDeveloperId === user?.id);
   const canViewLogs = isOwner || isAssignedDev;
-  const hasExpressedInterest = Boolean(interests?.some((interest) => interest.developerId === user?.id));
+  const myInterest = interests?.find((interest) => interest.developerId === user?.id);
+  const hasExpressedInterest = Boolean(myInterest);
   const myReview = reviews?.find((review) => review.reviewerId === user?.id);
   const canReview =
     project?.status === "completed" &&
@@ -979,10 +983,44 @@ export default function ProjectDetail() {
               <CardContent className="pt-6">
                 {hasExpressedInterest ? (
                   <div className="space-y-3">
-                    <Button className="w-full cursor-default border-status-online bg-status-online text-white hover:bg-status-online/90" size="lg">
-                      <CheckCircle2 className="mr-2 h-5 w-5" />
-                      Proposal Submitted
-                    </Button>
+                    {myInterest?.status === "rejected" ? (
+                      <Button variant="secondary" className="w-full cursor-default" size="lg" disabled>
+                        <XCircle className="mr-2 h-5 w-5" />
+                        Not Selected
+                      </Button>
+                    ) : (
+                      <Button className="w-full cursor-default border-status-online bg-status-online text-white hover:bg-status-online/90" size="lg">
+                        <CheckCircle2 className="mr-2 h-5 w-5" />
+                        {myInterest?.status === "accepted" ? "Proposal Accepted" : "Proposal Submitted"}
+                      </Button>
+                    )}
+                    {myInterest?.status === "pending" ? (
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        aria-label="Withdraw proposal"
+                        disabled={withdrawPending}
+                        onClick={() =>
+                          withdrawInterest({ projectId, interestId: myInterest.id as number })
+                        }
+                        data-testid="withdraw-proposal-button"
+                      >
+                        {withdrawPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                        Withdraw Proposal
+                      </Button>
+                    ) : null}
+                    {isAssignedDev && project?.status === "in_progress" ? (
+                      <Button
+                        className="w-full"
+                        aria-label="Request completion"
+                        disabled={completionPending}
+                        onClick={() => requestCompletion(projectId)}
+                        data-testid="request-completion-button"
+                      >
+                        {completionPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                        Request Completion
+                      </Button>
+                    ) : null}
                     {isAssignedDev ? (
                       <Button asChild variant="outline" className="w-full">
                         <Link href="/developer/messages">

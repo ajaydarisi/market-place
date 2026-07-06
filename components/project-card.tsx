@@ -3,7 +3,7 @@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, ArrowRight, User, BriefcaseBusiness, Sparkles, Loader2 } from "lucide-react";
+import { Calendar, ArrowRight, User, Users, BriefcaseBusiness, Sparkles, Loader2 } from "lucide-react";
 import { useMatchRationale } from "@/hooks/use-ai";
 import { type Project, type User as MarketplaceUser } from "@shared/schema";
 import { formatDistanceToNow } from "date-fns";
@@ -14,6 +14,8 @@ import {
   getProjectCategoryLabel,
   getTechnologyTagLabel,
   PROJECT_TYPE_LABELS,
+  PROJECT_STATUS_LABELS,
+  PROJECT_STATUS_BADGE_VARIANTS,
   SCOPE_SIZE_LABELS,
 } from "@shared/marketplace";
 import { RatingPill } from "@/components/rating-pill";
@@ -38,9 +40,16 @@ export function ProjectCard({ project, isDeveloper, testIdPrefix = "project-card
       <CardHeader className="pb-3 md:pb-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
-            <Badge variant="outline" className="mb-3 bg-primary/[0.06] text-primary border-primary/20">
-              {getProjectCategoryLabel(project.category)}
-            </Badge>
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <Badge variant="outline" className="bg-primary/[0.06] text-primary border-primary/20">
+                {getProjectCategoryLabel(project.category)}
+              </Badge>
+              {!isDeveloper ? (
+                <Badge variant={PROJECT_STATUS_BADGE_VARIANTS[project.status] ?? "secondary"}>
+                  {PROJECT_STATUS_LABELS[project.status] ?? project.status}
+                </Badge>
+              ) : null}
+            </div>
             <CardTitle className="text-lg font-bold leading-tight transition-colors group-hover:text-primary sm:text-xl" title={project.title}>
               {project.title}
             </CardTitle>
@@ -147,6 +156,14 @@ export function ProjectCard({ project, isDeveloper, testIdPrefix = "project-card
             <Calendar className="h-3.5 w-3.5" />
             <span>Posted {formatDistanceToNow(new Date(project.createdAt!), { addSuffix: true })}</span>
           </div>
+          {!isDeveloper ? (
+            <div className="surface-subtle flex items-center gap-1.5 rounded-full px-3 py-1.5">
+              <Users className="h-3.5 w-3.5" />
+              <span>
+                {project.proposalCount ?? 0} {(project.proposalCount ?? 0) === 1 ? "proposal" : "proposals"}
+              </span>
+            </div>
+          ) : null}
         </div>
       </CardContent>
 

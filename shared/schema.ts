@@ -104,6 +104,7 @@ export const projectSchema = z.object({
   status: z.enum(projectStatuses).default("open"),
   recommendationScore: z.number().optional(),
   completenessScore: z.number().optional(),
+  proposalCount: z.number().optional(),
   createdAt: z.date().optional(),
 });
 
@@ -189,6 +190,14 @@ export type ReviewWithUsers = z.infer<typeof reviewWithUsersSchema>;
 // Input Schemas
 export const insertUserSchema = userSchema.omit({ id: true, email: true, createdAt: true, updatedAt: true });
 export const insertProfileSchema = profileSchema.omit({ id: true, userId: true, profileCompletionScore: true, updatedAt: true });
+
+// Roles a user may assign to themselves through the public profile API.
+// `admin` is intentionally excluded — admin promotion happens only via
+// storage.adminUpdateProfile behind requireAdmin, never self-service.
+export const selfAssignableRoles = ["client", "developer"] as const;
+export const updateProfileSchema = insertProfileSchema.partial().extend({
+  role: z.enum(selfAssignableRoles).optional(),
+});
 const projectInputBaseSchema = z.object({
   title: z.string().min(5, "Project title should be at least 5 characters"),
   category: z.string().min(1, "Select a category"),
@@ -290,6 +299,10 @@ export const notificationTypes = [
   "proposal_received",
   "proposal_accepted",
   "proposal_rejected",
+  "proposal_withdrawn",
+  "completion_requested",
+  "project_completed",
+  "project_cancelled",
   "message_received",
 ] as const;
 

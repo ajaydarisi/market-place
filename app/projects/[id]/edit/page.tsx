@@ -13,13 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/hooks/use-auth";
 import { useProject, useUpdateProject } from "@/hooks/use-projects";
 import { projectStatuses, type InsertProject } from "@shared/schema";
-
-const STATUS_LABELS: Record<string, string> = {
-  open: "Open",
-  in_progress: "In Progress",
-  completed: "Completed",
-  cancelled: "Cancelled",
-};
+import { PROJECT_STATUS_LABELS, ALLOWED_STATUS_TRANSITIONS } from "@shared/marketplace";
 
 function toDateInputValue(value?: string | Date | null) {
   if (!value) return null;
@@ -111,9 +105,14 @@ export default function EditProjectPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {projectStatuses.map((nextStatus) => (
+                  {/* Offer only the current status plus its legal transitions so
+                      the UI never presents a change the API will reject (F10). */}
+                  {[
+                    project?.status ?? status,
+                    ...(ALLOWED_STATUS_TRANSITIONS[project?.status ?? status] ?? []),
+                  ].map((nextStatus) => (
                     <SelectItem key={nextStatus} value={nextStatus}>
-                      {STATUS_LABELS[nextStatus]}
+                      {PROJECT_STATUS_LABELS[nextStatus]}
                     </SelectItem>
                   ))}
                 </SelectContent>
