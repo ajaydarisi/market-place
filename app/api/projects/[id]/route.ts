@@ -3,6 +3,7 @@ import { api } from "@shared/routes";
 import { z } from "zod";
 import { getAuthUser, getAuthToken } from "@/lib/auth-utils";
 import { storage } from "@/lib/storage";
+import { parsePositiveInt } from "@/lib/utils";
 import { ALLOWED_STATUS_TRANSITIONS } from "@shared/marketplace";
 
 export async function GET(
@@ -10,8 +11,12 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  const projectId = parsePositiveInt(id);
+  if (projectId === null) {
+    return NextResponse.json({ message: "Invalid project id" }, { status: 400 });
+  }
   const token = await getAuthToken();
-  const project = await storage.getProject(Number(id), token ?? undefined);
+  const project = await storage.getProject(projectId, token ?? undefined);
   if (!project) {
     return NextResponse.json({ message: "Project not found" }, { status: 404 });
   }

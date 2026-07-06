@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, notFound } from "next/navigation";
+import { parsePositiveInt } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import {
   AlertTriangle,
@@ -83,7 +84,11 @@ import {
 export default function ProjectDetail() {
   const params = useParams();
   const router = useRouter();
-  const projectId = parseInt((params.id as string) || "0", 10);
+  const rawId = (params.id as string) || "";
+  const projectId = parsePositiveInt(rawId);
+  if (projectId === null) {
+    notFound();
+  }
 
   const { user } = useAuth();
   const { data: currentProfile } = useProfile(user?.id || "");

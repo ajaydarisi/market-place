@@ -6,7 +6,7 @@ import { projectDraftSchema, engagementTypes, projectTypes, scopeSizes } from "@
 import { PROJECT_CATEGORY_OPTIONS, TECHNOLOGY_TAG_OPTIONS, normalizeTechnologyTags } from "@shared/marketplace";
 
 import { getAuthUser } from "@/lib/auth-utils";
-import { aiJson, checkRateLimit } from "@/lib/ai";
+import { aiEnabled, aiJson, checkRateLimit, rateLimitResponse } from "@/lib/ai";
 import { computeDraftFeedback, generateProjectDraft } from "@/lib/project-drafts";
 
 const CATEGORY_VALUES = PROJECT_CATEGORY_OPTIONS.map((option) => option.value).join(", ");
@@ -23,8 +23,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
+  if (!aiEnabled()) {
+    // Fast path: heuristic, no rate limit consumption (consistency with other AI routes)
+    try {
+      const body = await request.json();
+      const input = api.projects.draft.input.parse(body);
+      return NextResponse.json(generateProjectDraft(input.rawBrief));
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return NextResponse.json({ message: error.errors[0]?.message ?? "Invalid request" }, { status: 400 });
+      }
+      return NextResponse.json({ message: "Internal server error" }, { status: 500 });
+    }
+  }
+
   if (!checkRateLimit(user.id)) {
-    return NextResponse.json({ message: "Too many AI requests, try again in a minute." }, { status: 429 });
+    return rateLimitResponse();
   }
 
   try {

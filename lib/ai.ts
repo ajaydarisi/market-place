@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { NextResponse } from "next/server";
+import { sanitizeForPrompt } from "./utils";
 
 // Server-only client for any OpenAI-compatible chat-completions API.
 // Provider is swappable via env: AI_API_BASE_URL + AI_API_KEY + AI_MODEL.
@@ -26,6 +28,9 @@ export async function aiJson<T>(
     throw new AiUnavailableError("AI provider is not configured");
   }
 
+  const safeSystem = sanitizeForPrompt(systemPrompt, 8000);
+  const safeUser = sanitizeForPrompt(userPrompt);
+
   const response = await fetch(`${BASE_URL!.replace(/\/$/, "")}/chat/completions`, {
     method: "POST",
     headers: {
@@ -35,8 +40,8 @@ export async function aiJson<T>(
     body: JSON.stringify({
       model: MODEL,
       messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
+        { role: "system", content: safeSystem },
+        { role: "user", content: safeUser },
       ],
       response_format: { type: "json_object" },
       temperature: 0.2,
@@ -56,7 +61,6 @@ export async function aiJson<T>(
   return schema.parse(JSON.parse(content));
 }
 
-import { NextResponse } from "next/server";
 
 /** Maps errors from AI routes to consistent HTTP responses. */
 export function aiErrorResponse(error: unknown): NextResponse {
@@ -83,8 +87,9 @@ export function rateLimitResponse(): NextResponse {
   );
 }
 
-// ponytail: in-memory per-user rate limit; move to a shared store (e.g. Upstash)
-// if this ever runs on more than one instance.
+// ponytail: in-memory per-user rate limit (10/min). Resets on cold start / per instance.
+// Suitable for current scale. For multi-instance or high traffic, gate behind env and
+// switch to Redis/Upstash. See also per-route limits in callers.
 const requestLog = new Map<string, number[]>();
 
 export function checkRateLimit(userId: string, limit = 10, windowMs = 60_000): boolean {

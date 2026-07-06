@@ -35,13 +35,16 @@ export async function GET(request: NextRequest) {
       .filter(Boolean);
   }
 
-  const user = await getAuthUser();
-  if (!user) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
-  const token = await getAuthToken();
+  let token: string | undefined;
   if (filters.sort === "recommended") {
+    const user = await getAuthUser();
+    if (!user) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
     filters.currentUserId = user.id;
+    token = await getAuthToken();
+  } else {
+    token = await getAuthToken();
   }
   const projects = await storage.listProjects(filters, token ?? undefined);
   return NextResponse.json(projects);

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { api } from "@shared/routes";
 import { getAuthUser, getAuthToken } from "@/lib/auth-utils";
 import { storage } from "@/lib/storage";
+import { parsePositiveInt } from "@/lib/utils";
 
 export async function DELETE(
   _request: NextRequest,
@@ -13,8 +14,11 @@ export async function DELETE(
   }
 
   const { id, interestId } = await params;
-  const projectId = Number(id);
-  const interestIdNum = Number(interestId);
+  const projectId = parsePositiveInt(id);
+  const interestIdNum = parsePositiveInt(interestId);
+  if (projectId === null || interestIdNum === null) {
+    return NextResponse.json({ message: "Invalid id" }, { status: 400 });
+  }
   const token = await getAuthToken();
 
   try {
@@ -49,8 +53,11 @@ export async function PATCH(
   }
 
   const { id, interestId } = await params;
-  const projectId = Number(id);
-  const interestIdNum = Number(interestId);
+  const projectId = parsePositiveInt(id);
+  const interestIdNum = parsePositiveInt(interestId);
+  if (projectId === null || interestIdNum === null) {
+    return NextResponse.json({ message: "Invalid id" }, { status: 400 });
+  }
   const token = await getAuthToken();
 
   try {
@@ -171,7 +178,10 @@ export async function PATCH(
       token ?? undefined
     );
 
-    return NextResponse.json({ ...interest, status: "accepted" });
+    // Re-fetch to return a consistent post-RPC record (the RPC performed the mutation)
+    const refreshed = await storage.listInterests(projectId, undefined, token ?? undefined);
+    const updated = refreshed.find((i) => i.id === interestIdNum) ?? { ...interest, status: "accepted" as const };
+    return NextResponse.json(updated);
   } catch (error) {
     console.error("Error updating interest status:", error);
     return NextResponse.json({ message: "Error" }, { status: 500 });
