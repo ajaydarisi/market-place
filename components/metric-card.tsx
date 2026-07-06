@@ -41,8 +41,8 @@ export function MetricCard({
           <CardTitle className="text-sm font-medium">{title}</CardTitle>
           {description ? <CardDescription>{description}</CardDescription> : null}
         </div>
-        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/[0.08]">
-          <Icon className={cn("h-4 w-4 text-primary", iconClassName)} />
+        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-pastel-blue/10">
+          <Icon className={cn("h-5 w-5 text-primary", iconClassName)} />
         </div>
       </CardHeader>
       <CardContent>

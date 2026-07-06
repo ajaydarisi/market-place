@@ -13,17 +13,17 @@ export default function AdminDashboard() {
   const { data: stats, isLoading } = useAdminStats();
 
   const statCards = [
-    { title: "Total Users", value: stats?.totalUsers, icon: Users, href: "/admin/users", color: "text-primary" },
-    { title: "Developers", value: stats?.totalDevelopers, icon: UserCog, href: "/admin/users?role=developer", color: "text-accent-foreground" },
-    { title: "Clients", value: stats?.totalClients, icon: Users, href: "/admin/users?role=client", color: "text-secondary-foreground" },
-    { title: "Admins", value: stats?.totalAdmins, icon: Shield, href: "/admin/users?role=admin", color: "text-primary" },
-    { title: "Total Projects", value: stats?.totalProjects, icon: Briefcase, href: "/admin/projects", color: "text-primary" },
-    { title: "Open Projects", value: stats?.openProjects, icon: FolderOpen, href: "/admin/projects?status=open", color: "text-status-online" },
-    { title: "Completed", value: stats?.completedProjects, icon: CheckCircle, href: "/admin/projects?status=completed", color: "text-status-online" },
-    { title: "With Proposals", value: stats?.projectsWithProposals, icon: MessageSquare, href: "/admin/projects", color: "text-primary" },
-    { title: "Assigned", value: stats?.assignedProjects, icon: Briefcase, href: "/admin/projects?status=in_progress", color: "text-primary" },
-    { title: "Avg Time to First Proposal", value: stats ? `${stats.avgTimeToFirstProposalHours}h` : undefined, icon: TimerReset, href: "/admin/projects", color: "text-accent-foreground" },
-    { title: "Review Submission Rate", value: stats ? `${stats.reviewSubmissionRate}%` : undefined, icon: Star, href: "/admin/projects?status=completed", color: "text-accent-foreground" },
+    { title: "Total Users", value: stats?.totalUsers, icon: Users, href: "/admin/users", color: "text-pastel-blue" },
+    { title: "Developers", value: stats?.totalDevelopers, icon: UserCog, href: "/admin/users?role=developer", color: "text-pastel-mint" },
+    { title: "Clients", value: stats?.totalClients, icon: Users, href: "/admin/users?role=client", color: "text-pastel-peach" },
+    { title: "Admins", value: stats?.totalAdmins, icon: Shield, href: "/admin/users?role=admin", color: "text-pastel-lavender" },
+    { title: "Total Projects", value: stats?.totalProjects, icon: Briefcase, href: "/admin/projects", color: "text-pastel-rose" },
+    { title: "Open Projects", value: stats?.openProjects, icon: FolderOpen, href: "/admin/projects?status=open", color: "text-pastel-lemon" },
+    { title: "Completed", value: stats?.completedProjects, icon: CheckCircle, href: "/admin/projects?status=completed", color: "text-pastel-orchid" },
+    { title: "With Proposals", value: stats?.projectsWithProposals, icon: MessageSquare, href: "/admin/projects", color: "text-pastel-coral" },
+    { title: "Assigned", value: stats?.assignedProjects, icon: Briefcase, href: "/admin/projects?status=in_progress", color: "text-pastel-aqua" },
+    { title: "Avg Time to First Proposal", value: stats ? `${stats.avgTimeToFirstProposalHours}h` : undefined, icon: TimerReset, href: "/admin/projects", color: "text-pastel-sky" },
+    { title: "Review Submission Rate", value: stats ? `${stats.reviewSubmissionRate}%` : undefined, icon: Star, href: "/admin/projects?status=completed", color: "text-pastel-sage" },
   ];
 
   return (

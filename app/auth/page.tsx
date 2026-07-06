@@ -1,6 +1,7 @@
 "use client";
 
 import { AppearanceDropdown } from "@/components/appearance-selector";
+import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -143,20 +144,15 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="page-shell hero-aurora min-h-screen bg-background px-4 py-6">
+    <div className="page-shell min-h-screen bg-background px-4 py-6">
       <div className="container mx-auto flex w-full max-w-6xl flex-col gap-8 lg:min-h-[calc(100vh-3rem)] lg:justify-center">
         <header className="flex items-center justify-between gap-3">
           <Link
             href="/"
             aria-label="Go to the SkillPilot home page"
-            className="surface-glass inline-flex items-center gap-3 rounded-full px-3 py-2 md:px-4"
+            className="inline-flex items-center gap-3 px-1"
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-primary via-primary to-accent text-white shadow-lg shadow-primary/20">
-              <Briefcase className="h-5 w-5 text-white" />
-            </div>
-            <div className="font-display text-xl font-bold tracking-tight md:text-2xl">
-              Skill<span className="text-gradient">Pilot</span>
-            </div>
+            <Logo iconSize="h-4 w-4" textSize="text-xl md:text-2xl" />
           </Link>
 
           <AppearanceDropdown
@@ -168,15 +164,17 @@ export default function AuthPage() {
 
         <div className="grid w-full items-center gap-8 lg:grid-cols-[0.95fr_0.8fr] lg:gap-10">
           <div className="order-2 min-w-0 space-y-6 lg:order-1 lg:space-y-8">
-            <Badge variant="outline" className="surface-glass w-fit px-4 py-2 text-xs text-muted-foreground sm:text-sm">
-              <Shield className="mr-2 h-4 w-4 text-primary" />
+            <Badge variant="outline" className="w-fit px-4 py-2 text-xs text-muted-foreground sm:text-sm">
+              <Shield className="mr-2 h-4 w-4 text-accent" />
               High-trust marketplace access
             </Badge>
 
             <div className="max-w-xl min-w-0 space-y-4 lg:space-y-5">
               <h1 className="text-[2.6rem] font-display font-bold leading-[1.02] text-foreground sm:text-5xl md:text-6xl">
                 Welcome back to
-                <span className="mt-2 block">Skill<span className="text-gradient">Pilot</span></span>
+                <span className="mt-2 block">
+                  <Logo showIcon={false} textSize="text-[2.6rem] sm:text-5xl md:text-6xl" />
+                </span>
               </h1>
               <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
                 Meet the right developers faster, keep conversations flowing, and manage hiring with the same premium experience across every step.
@@ -186,7 +184,7 @@ export default function AuthPage() {
             <div className="phone-scroll-row w-full max-w-full sm:grid sm:grid-cols-3 sm:gap-4">
               <Card className="surface-glass w-full border-primary/10 sm:w-auto sm:max-w-none">
                 <div className="flex min-h-[11.5rem] h-full flex-col items-center justify-center px-5 py-5 text-center">
-                  <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/[0.08] text-primary">
+                  <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-accent/[0.12] text-accent">
                     <Briefcase className="h-5 w-5" />
                   </div>
                   <h2 className="mb-1 text-base font-bold">Curated projects</h2>
@@ -204,7 +202,7 @@ export default function AuthPage() {
               </Card>
               <Card className="surface-glass w-full border-primary/10 sm:w-auto sm:max-w-none">
                 <div className="flex min-h-[11.5rem] h-full flex-col items-center justify-center px-5 py-5 text-center">
-                  <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/[0.08] text-primary">
+                  <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-accent/[0.12] text-accent">
                     <CheckCircle2 className="h-5 w-5" />
                   </div>
                   <h2 className="mb-1 text-base font-bold">Clear delivery</h2>
@@ -216,11 +214,11 @@ export default function AuthPage() {
 
           <Card className="surface-glass order-1 min-w-0 w-full max-w-full justify-self-stretch border-primary/10 shadow-2xl sm:max-w-md sm:justify-self-center lg:order-2">
             <CardHeader className="space-y-2 px-4 pb-6 pt-6 text-center sm:px-6">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-[1.4rem] bg-gradient-to-br from-primary via-primary to-accent text-white shadow-lg shadow-primary/20">
-                <Briefcase className="h-6 w-6 translate-y-px text-white" />
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                <Briefcase className="h-6 w-6" />
               </div>
-              <CardTitle className="text-[2rem] leading-none sm:text-3xl">
-                Skill<span className="text-gradient">Pilot</span>
+              <CardTitle className="text-[2rem] leading-none sm:text-3xl text-foreground">
+                <Logo showIcon={false} textSize="text-[2rem] sm:text-3xl" />
               </CardTitle>
               <CardDescription className="px-2 text-sm leading-relaxed sm:px-0 sm:text-base">
                 Sign in to your account or create a new one.
@@ -392,7 +390,7 @@ export default function AuthPage() {
                   />
                   <div className="space-y-2">
                     <Label>Security Check</Label>
-                    <Card className="surface-subtle border-border/60 shadow-none">
+                    <Card className="border border-border/60 shadow-none">
                       <CardContent className="p-4">
                         <Captcha
                           ref={captchaRef}

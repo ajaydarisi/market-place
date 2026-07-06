@@ -32,10 +32,9 @@ export function ProjectCard({ project, isDeveloper, testIdPrefix = "project-card
   return (
     <Card
       data-testid={`${testIdPrefix}-${project.id}`}
-      className="group surface-glass relative overflow-hidden border-border/60 transition-all duration-300 hover:border-primary/30 hover:shadow-2xl"
+      className="group surface-glass relative overflow-hidden border-border/60 transition-all duration-300 hover:border-primary/30 hover:shadow-lg"
     >
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-accent/60" />
-      <div className="pointer-events-none absolute -right-8 top-6 h-28 w-28 rounded-full bg-primary/10 blur-3xl opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+      <div className="pointer-events-none absolute -right-8 top-6 h-28 w-28 rounded-full bg-primary/6 blur-3xl opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
       <CardHeader className="pb-3 md:pb-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -85,7 +84,7 @@ export function ProjectCard({ project, isDeveloper, testIdPrefix = "project-card
             ) : null}
           </div>
           {project.budgetMin && (
-            <div className="surface-subtle rounded-2xl px-4 py-3 text-left sm:text-right">
+            <div className="surface-subtle border-pastel-peach/50 rounded-2xl px-4 py-3 text-left sm:text-right">
               <span className="block text-base font-bold text-foreground sm:text-lg">
                 ₹{project.budgetMin.toLocaleString('en-IN')}
                 {project.budgetMax ? ` - ₹${project.budgetMax.toLocaleString('en-IN')}` : '+'}

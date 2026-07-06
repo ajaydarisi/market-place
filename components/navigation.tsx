@@ -17,6 +17,7 @@ import {
   AppearanceInlineSelector,
   AppearanceMenuItems,
 } from "@/components/appearance-selector";
+import { Logo } from "@/components/logo";
 import { ActionListItem } from "@/components/action-list-item";
 import { NotificationBell } from "@/components/notification-bell";
 import { ProfileAvatar } from "@/components/profile-avatar";
@@ -302,26 +303,20 @@ export function Navigation() {
           <div className="container mx-auto hidden h-20 items-center justify-between gap-4 px-4 md:flex">
             <div className="flex items-center gap-8">
               <Link href={homeHref} aria-label="Go to workspace home" className="flex items-center space-x-3" data-testid="nav-logo-link">
-                <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-primary via-primary to-accent text-white shadow-lg shadow-primary/20 ring-1 ring-white/10">
-                  <Briefcase className="h-7 w-7 translate-y-px text-white" />
-                  <div className="pointer-events-none absolute inset-0 rounded-2xl bg-white/10" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="font-display text-xl font-bold leading-tight tracking-tight">
-                    Skill<span className="text-gradient">Pilot</span>
+                <Logo iconSize="h-6 w-6" textSize="text-xl" />
+                {profile?.role && (
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.22em] ml-2",
+                      isAdmin 
+                        ? "border-pastel-lavender/40 bg-pastel-lavender/10 text-pastel-lavender" 
+                        : "border-border/60 bg-secondary/55 text-muted-foreground"
+                    )}
+                  >
+                    {isAdmin && <Shield className="mr-0.5 inline h-3 w-3" />}
+                    {profile.role}
                   </span>
-                  {profile?.role && (
-                    <span
-                      className={cn(
-                        "inline-flex items-center gap-1 rounded-full border border-border/60 bg-secondary/55 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.22em]",
-                        isAdmin ? "text-primary" : "text-muted-foreground"
-                      )}
-                    >
-                      {isAdmin && <Shield className="mr-0.5 inline h-3 w-3" />}
-                      {profile.role}
-                    </span>
-                  )}
-                </div>
+                )}
               </Link>
 
               <nav className="flex items-center gap-2">
@@ -335,7 +330,6 @@ export function Navigation() {
                   asChild
                   size="sm"
                   aria-label="Post project"
-                  className="border-0 bg-gradient-to-r from-primary via-primary to-accent text-primary-foreground shadow-lg shadow-primary/25"
                   data-testid="nav-post-project-button"
                 >
                   <Link href="/client/post" aria-label="Post a new project">
@@ -352,7 +346,7 @@ export function Navigation() {
                   <Button
                     variant="ghost"
                     aria-label="User menu"
-                    className="surface-glass relative h-auto min-w-0 gap-2 rounded-full border border-card-border/60 px-2.5 py-1.5"
+                    className="relative h-auto min-w-0 gap-2 rounded-full border border-border px-2.5 py-1.5"
                     data-testid="nav-user-menu-trigger"
                   >
                     <span
@@ -403,9 +397,9 @@ export function Navigation() {
                 <Link
                   href={homeHref}
                   aria-label="Go to workspace home"
-                  className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary via-primary to-accent text-white shadow-lg shadow-primary/20"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm"
                 >
-                  <Briefcase className="h-7 w-7 translate-y-px text-white" />
+                  <Briefcase className="h-6 w-6" />
                 </Link>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">{mobileTitle}</p>
@@ -422,7 +416,7 @@ export function Navigation() {
                   variant="ghost"
                   size="icon"
                   aria-label="Open account menu"
-                  className="surface-glass shrink-0 border border-card-border/60"
+                  className="shrink-0 border border-border"
                   data-testid="nav-mobile-account-trigger"
                 >
                   <ProfileAvatar
@@ -462,7 +456,7 @@ export function Navigation() {
                   icon={Shield}
                   title="Audit Logs"
                   description="Review the latest administrative activity."
-                  className="surface-subtle rounded-2xl"
+                  className="rounded-2xl"
                 />
                 <Separator />
               </>
@@ -477,13 +471,13 @@ export function Navigation() {
                   icon={User}
                   title="Profile"
                   description="Manage your account, portfolio, and availability."
-                  className="surface-subtle rounded-2xl"
+                  className="rounded-2xl"
                 />
                 <Separator />
               </>
             )}
 
-            <div className="surface-subtle rounded-[1.4rem] p-3">
+            <div className="rounded-[1.4rem] border border-border/60 p-3">
               <div className="mb-3 px-1">
                 <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
                   Appearance

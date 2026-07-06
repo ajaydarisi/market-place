@@ -279,7 +279,7 @@ export default function Profile() {
             {!isEditing ? (
               <div className="space-y-5">
                 {/* Personal Details */}
-                <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
+                <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5 border-pastel-lemon/50">
                   <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Personal Details</h3>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <div className="space-y-1 min-w-0">
@@ -304,7 +304,7 @@ export default function Profile() {
                 <Separator />
 
                 {/* About */}
-                <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
+                <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5 border-pastel-rose/50">
                   <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">About</h3>
                   <div className="space-y-1 min-w-0 mb-4">
                     <p className="text-xs text-muted-foreground">Headline</p>
@@ -322,7 +322,7 @@ export default function Profile() {
 
                 <Separator />
 
-                <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
+                <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5 border-pastel-rose/50">
                   <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Primary Categories</h3>
                   {profile?.primaryCategories && profile.primaryCategories.length > 0 ? (
                     <div className="flex flex-wrap gap-1.5">
@@ -340,7 +340,7 @@ export default function Profile() {
                 {profile?.role === "developer" && (
                   <>
                     {/* Skills (Developer only) */}
-                    <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
+                    <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5 border-pastel-coral/50">
                       <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Skills</h3>
                       {profile?.skills && profile.skills.length > 0 ? (
                         <div className="flex flex-wrap gap-1.5">
@@ -358,7 +358,7 @@ export default function Profile() {
                     <Separator />
 
                     {/* Portfolio Links (Developer only) */}
-                    <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
+                    <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5 border-pastel-rose/50">
                       <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Portfolio Links</h3>
                       {profile?.portfolioLinks?.github || profile?.portfolioLinks?.linkedin || profile?.portfolioLinks?.website ? (
                         <div className="space-y-2">
@@ -410,7 +410,7 @@ export default function Profile() {
                     <Separator />
 
                     {/* Professional Details (Developer only) */}
-                    <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
+                    <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5 border-pastel-rose/50">
                       <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Professional Details</h3>
                       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div className="space-y-1">
@@ -448,7 +448,7 @@ export default function Profile() {
                     <Separator />
 
                     {/* Company Details (Client only) */}
-                    <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
+                    <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5 border-pastel-rose/50">
                       <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Company Details</h3>
                       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         <div className="space-y-1 min-w-0">
@@ -526,7 +526,7 @@ export default function Profile() {
                   <Separator />
 
                   {/* Personal Details */}
-                  <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
+                  <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5 border-pastel-rose/50">
                     <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Personal Details</h3>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <FormField
@@ -573,7 +573,7 @@ export default function Profile() {
                   <Separator />
 
                   {/* About */}
-                  <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
+                  <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5 border-pastel-rose/50">
                     <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">About</h3>
                     <FormField
                       control={form.control}
@@ -618,7 +618,7 @@ export default function Profile() {
 
                   <Separator />
 
-                  <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
+                  <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5 border-pastel-rose/50">
                     <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Primary Categories</h3>
                     <FormField
                       control={form.control}
@@ -705,7 +705,7 @@ export default function Profile() {
                       <Separator />
 
                       {/* Skills (Developer only) */}
-                      <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
+                      <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5 border-pastel-rose/50">
                         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Skills</h3>
                         <FormField
                           control={form.control}
@@ -730,7 +730,7 @@ export default function Profile() {
                       <Separator />
 
                       {/* Portfolio Links (Developer only) */}
-                      <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
+                      <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5 border-pastel-rose/50">
                         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Portfolio Links</h3>
                         <div className="space-y-3">
                           <FormField
@@ -805,7 +805,7 @@ export default function Profile() {
                       <Separator />
 
                       {/* Professional Details (Developer only) */}
-                      <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
+                      <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5 border-pastel-rose/50">
                         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Professional Details</h3>
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                           <FormField
@@ -872,7 +872,7 @@ export default function Profile() {
                       <Separator />
 
                       {/* Company Details (Client only) */}
-                      <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5">
+                      <div className="surface-subtle rounded-[1.5rem] p-4 sm:p-5 border-pastel-rose/50">
                         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Company Details</h3>
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                           <FormField

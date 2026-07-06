@@ -6,9 +6,9 @@ export default {
   theme: {
     extend: {
       borderRadius: {
-        lg: ".5625rem", /* 9px */
-        md: ".375rem", /* 6px */
-        sm: ".1875rem", /* 3px */
+        lg: "0.5rem",
+        md: "0.375rem",
+        sm: "0.25rem",
       },
       colors: {
         // Flat / base colors (regular buttons)
@@ -76,10 +76,23 @@ export default {
           border: "var(--sidebar-accent-border)"
         },
         status: {
-          online: "rgb(34 197 94)",
-          away: "rgb(245 158 11)",
-          busy: "rgb(239 68 68)",
-          offline: "rgb(156 163 175)",
+          online: "rgb(52 211 153)",   /* soft pastel mint */
+          away: "rgb(251 191 36)",
+          busy: "rgb(248 113 113)",
+          offline: "rgb(148 163 184)",
+        },
+        pastel: {
+          blue: "hsl(var(--pastel-blue) / <alpha-value>)",
+          mint: "hsl(var(--pastel-mint) / <alpha-value>)",
+          peach: "hsl(var(--pastel-peach) / <alpha-value>)",
+          lavender: "hsl(var(--pastel-lavender) / <alpha-value>)",
+          sage: "hsl(var(--pastel-sage) / <alpha-value>)",
+          sky: "hsl(var(--pastel-sky) / <alpha-value>)",
+          rose: "hsl(var(--pastel-rose) / <alpha-value>)",
+          lemon: "hsl(var(--pastel-lemon) / <alpha-value>)",
+          orchid: "hsl(var(--pastel-orchid) / <alpha-value>)",
+          coral: "hsl(var(--pastel-coral) / <alpha-value>)",
+          aqua: "hsl(var(--pastel-aqua) / <alpha-value>)",
         },
       },
       fontFamily: {
@@ -115,5 +128,11 @@ export default {
       },
     },
   },
+  safelist: [
+    { pattern: /bg-pastel-(blue|mint|peach|lavender|sage|sky|rose|lemon|orchid|coral|aqua)(\/(10|15|20|30|35|40|50|60))?/ },
+    { pattern: /text-pastel-(blue|mint|peach|lavender|sage|sky|rose|lemon|orchid|coral|aqua)/ },
+    { pattern: /border-pastel-(blue|mint|peach|lavender|sage|sky|rose|lemon|orchid|coral|aqua)(\/(30|40|50|60))?/ },
+    { pattern: /group-hover:bg-pastel-(blue|mint|peach|lavender|sage|sky|rose|lemon|orchid|coral|aqua)(\/(30|50))?/ },
+  ],
   plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
 } satisfies Config;

@@ -28,7 +28,7 @@ function ActionListItemContent({
     <>
       <div className="flex min-w-0 items-start gap-3 text-left">
         {Icon ? (
-          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/[0.08] text-primary">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-pastel-blue/10 text-primary">
             <Icon className="h-4 w-4" />
           </div>
         ) : null}

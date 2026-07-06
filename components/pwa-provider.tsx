@@ -118,8 +118,8 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
             <div className="glass-card mobile-panel w-full border-primary/15 shadow-2xl shadow-primary/15">
               <div className="mb-4 flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-primary via-primary to-accent text-primary-foreground shadow-lg shadow-primary/20">
-                    <Download className="h-5 w-5" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                    <Download className="h-4.5 w-4.5" />
                   </div>
                   <div className="min-w-0">
                     <p className="flex items-center gap-2 text-sm font-semibold">
