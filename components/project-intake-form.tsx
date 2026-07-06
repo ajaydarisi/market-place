@@ -178,18 +178,20 @@ function TechnologyTagPicker({
               {group.options.map((option) => {
                 const isSelected = selectedSet.has(option.value);
                 return (
-                  <button
+                  <Button
                     key={option.value}
                     type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={() => toggleTag(option.value)}
-                    className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
+                    className={`rounded-full px-3 py-1.5 text-sm transition-colors h-auto ${
                       isSelected
-                        ? "border-primary bg-primary/[0.1] text-primary"
+                        ? "border-primary bg-primary/[0.1] text-primary hover:bg-primary/[0.15]"
                         : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-primary"
                     }`}
                   >
                     {option.label}
-                  </button>
+                  </Button>
                 );
               })}
             </div>
@@ -314,21 +316,22 @@ export function ProjectIntakeForm({
         </div>
         <div className="grid gap-3 sm:grid-cols-5">
           {STEP_TITLES.map((step, index) => (
-            <button
+            <Button
               key={step.key}
               type="button"
-              className={`rounded-2xl border px-3 py-3 text-left transition-colors ${
+              variant="ghost"
+              className={`h-auto rounded-2xl border px-3 py-3 text-left transition-colors ${
                 index === stepIndex
-                  ? "border-primary bg-primary/[0.08] text-primary"
+                  ? "border-primary bg-primary/[0.08] text-primary hover:bg-primary/[0.12]"
                   : index < stepIndex
-                    ? "border-primary/30 bg-background text-foreground"
-                    : "border-border/60 bg-background/70 text-muted-foreground"
+                    ? "border-primary/30 bg-background text-foreground hover:bg-secondary/50"
+                    : "border-border/60 bg-background/70 text-muted-foreground hover:bg-secondary/40"
               }`}
               onClick={() => setStepIndex(index)}
             >
               <p className="text-xs uppercase tracking-[0.2em]">Step {index + 1}</p>
               <p className="mt-1 text-sm font-semibold">{step.label}</p>
-            </button>
+            </Button>
           ))}
         </div>
       </CardHeader>
