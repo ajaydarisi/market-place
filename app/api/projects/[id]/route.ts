@@ -3,14 +3,20 @@ import { api } from "@shared/routes";
 import { z } from "zod";
 import { getAuthUser, getAuthToken } from "@/lib/auth-utils";
 import { storage } from "@/lib/storage";
+import { parsePositiveInt } from "@/lib/utils";
+import { ALLOWED_STATUS_TRANSITIONS } from "@shared/marketplace";
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  const projectId = parsePositiveInt(id);
+  if (projectId === null) {
+    return NextResponse.json({ message: "Invalid project id" }, { status: 400 });
+  }
   const token = await getAuthToken();
-  const project = await storage.getProject(Number(id), token ?? undefined);
+  const project = await storage.getProject(projectId, token ?? undefined);
   if (!project) {
     return NextResponse.json({ message: "Project not found" }, { status: 404 });
   }
@@ -39,6 +45,15 @@ export async function DELETE(
     return NextResponse.json(
       { message: "You can only delete your own projects" },
       { status: 403 }
+    );
+  }
+
+  // Deleting an in-progress project would silently strip it from the assigned
+  // developer's list (F11). Require it to be cancelled or completed first.
+  if (project.status === "in_progress") {
+    return NextResponse.json(
+      { message: "Cancel or complete this project before deleting it." },
+      { status: 409 }
     );
   }
 
@@ -75,7 +90,42 @@ export async function PATCH(
       );
     }
 
+    if (
+      input.status !== undefined &&
+      input.status !== project.status &&
+      !ALLOWED_STATUS_TRANSITIONS[project.status]?.includes(input.status)
+    ) {
+      return NextResponse.json(
+        { message: `Cannot change status from ${project.status} to ${input.status}.` },
+        { status: 409 }
+      );
+    }
+
     const updated = await storage.updateProject(projectId, input, token ?? undefined);
+
+    // Tell the assigned developer when the client closes the project out (F8);
+    // project_completed also serves as the review nudge (B7).
+    if (
+      input.status !== undefined &&
+      input.status !== project.status &&
+      project.assignedDeveloperId &&
+      (input.status === "completed" || input.status === "cancelled")
+    ) {
+      await storage.createNotification(
+        {
+          userId: project.assignedDeveloperId,
+          type: input.status === "completed" ? "project_completed" : "project_cancelled",
+          projectId,
+          content:
+            input.status === "completed"
+              ? `"${project.title}" was marked complete — leave a review`
+              : `"${project.title}" was cancelled by the client`,
+        },
+        user.id,
+        token ?? undefined
+      );
+    }
+
     return NextResponse.json(updated);
   } catch (err) {
     if (err instanceof z.ZodError) {

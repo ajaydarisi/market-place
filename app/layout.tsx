@@ -6,8 +6,8 @@ import "./globals.css";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 
 export const metadata: Metadata = {
-  title: "DevMarket",
-  description: "Connecting visionaries with world-class talent.",
+  title: "SkillPilot",
+  description: "Hire smarter, deliver faster — AI at every step.",
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "DevMarket",
+    title: "SkillPilot",
   },
 };
 

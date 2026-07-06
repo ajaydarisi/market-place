@@ -2,7 +2,7 @@
 
 import { api, buildUrl, type InsertProject, type UpdateProjectRequest } from "@shared/routes";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { authFetch } from "@/lib/api";
+import { authFetch, apiError } from "@/lib/api";
 
 // List projects with optional filters
 export function useProjects(filters?: {
@@ -73,7 +73,7 @@ export function useCreateProject() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error("Failed to create project");
+      if (!res.ok) throw await apiError(res, "Failed to create project");
       return api.projects.create.responses[201].parse(await res.json());
     },
     onSuccess: () => {
@@ -106,12 +106,27 @@ export function useUpdateProject() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error("Failed to update project");
+      if (!res.ok) throw await apiError(res, "Failed to update project");
       return api.projects.update.responses[200].parse(await res.json());
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: [api.projects.list.path] });
       queryClient.invalidateQueries({ queryKey: [api.projects.get.path, variables.id] });
+    },
+  });
+}
+
+export function useRequestCompletion() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (projectId: number) => {
+      const url = buildUrl(api.projects.requestCompletion.path, { id: projectId });
+      const res = await authFetch(url, { method: api.projects.requestCompletion.method });
+      if (!res.ok) throw await apiError(res, "Failed to request completion");
+      return api.projects.requestCompletion.responses[200].parse(await res.json());
+    },
+    onSuccess: (_, projectId) => {
+      queryClient.invalidateQueries({ queryKey: [api.projects.get.path, projectId] });
     },
   });
 }
@@ -124,7 +139,7 @@ export function useDeleteProject() {
       const res = await authFetch(url, {
         method: api.projects.delete.method,
       });
-      if (!res.ok) throw new Error("Failed to delete project");
+      if (!res.ok) throw await apiError(res, "Failed to delete project");
       return api.projects.delete.responses[200].parse(await res.json());
     },
     onSuccess: (_, id) => {

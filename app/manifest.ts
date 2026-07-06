@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "DevMarket",
-    short_name: "DevMarket",
-    description: "Connecting visionaries with world-class talent.",
+    name: "SkillPilot",
+    short_name: "SkillPilot",
+    description: "Hire smarter, deliver faster — AI at every step.",
     start_url: "/",
     scope: "/",
     display: "standalone",

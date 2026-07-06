@@ -19,7 +19,7 @@ export default function OfflinePage() {
           </div>
           <h1 className="text-2xl font-display font-bold">You&apos;re offline</h1>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            DevMarket&apos;s app shell is still available, but live project data and messages need a connection before they can refresh.
+            SkillPilot&apos;s app shell is still available, but live project data and messages need a connection before they can refresh.
           </p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Button asChild>

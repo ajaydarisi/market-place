@@ -24,7 +24,9 @@ export const proposalSortOptions = ["newest", "best_match", "lowest_budget", "fa
 // USER
 export const userSchema = z.object({
   id: z.string().uuid(),
-  email: z.string().email(),
+  // Only returned to the user themselves and to admins; omitted from all
+  // public/embedded User payloads to prevent email harvesting.
+  email: z.string().email().optional(),
   firstName: z.string().nullable().optional(),
   lastName: z.string().nullable().optional(),
   profileImageUrl: z.string().url().nullable().optional(),
@@ -102,6 +104,7 @@ export const projectSchema = z.object({
   status: z.enum(projectStatuses).default("open"),
   recommendationScore: z.number().optional(),
   completenessScore: z.number().optional(),
+  proposalCount: z.number().optional(),
   createdAt: z.date().optional(),
 });
 
@@ -187,6 +190,14 @@ export type ReviewWithUsers = z.infer<typeof reviewWithUsersSchema>;
 // Input Schemas
 export const insertUserSchema = userSchema.omit({ id: true, email: true, createdAt: true, updatedAt: true });
 export const insertProfileSchema = profileSchema.omit({ id: true, userId: true, profileCompletionScore: true, updatedAt: true });
+
+// Roles a user may assign to themselves through the public profile API.
+// `admin` is intentionally excluded — admin promotion happens only via
+// storage.adminUpdateProfile behind requireAdmin, never self-service.
+export const selfAssignableRoles = ["client", "developer"] as const;
+export const updateProfileSchema = insertProfileSchema.partial().extend({
+  role: z.enum(selfAssignableRoles).optional(),
+});
 const projectInputBaseSchema = z.object({
   title: z.string().min(5, "Project title should be at least 5 characters"),
   category: z.string().min(1, "Select a category"),
@@ -281,6 +292,107 @@ export const projectDraftResponseSchema = z.object({
 
 export type ProjectDraft = z.infer<typeof projectDraftSchema>;
 export type ProjectDraftResponse = z.infer<typeof projectDraftResponseSchema>;
+
+// === NOTIFICATIONS ===
+
+export const notificationTypes = [
+  "proposal_received",
+  "proposal_accepted",
+  "proposal_rejected",
+  "proposal_withdrawn",
+  "completion_requested",
+  "project_completed",
+  "project_cancelled",
+  "message_received",
+] as const;
+
+export const notificationSchema = z.object({
+  id: z.number().optional(),
+  userId: z.string().uuid(),
+  actorId: z.string().uuid(),
+  type: z.enum(notificationTypes),
+  projectId: z.number(),
+  content: z.string(),
+  read: z.boolean().default(false),
+  createdAt: z.string().or(z.date()).optional(),
+});
+
+export type Notification = z.infer<typeof notificationSchema>;
+
+// === AI FEATURES ===
+
+export const postImprovementResponseSchema = z.object({
+  suggestions: z.array(z.object({
+    field: z.string().nullable().optional(),
+    issue: z.string(),
+    recommendation: z.string(),
+  })),
+  budgetAssessment: z.string().nullable().optional(),
+  timelineAssessment: z.string().nullable().optional(),
+});
+
+export type PostImprovementResponse = z.infer<typeof postImprovementResponseSchema>;
+
+export const matchRationaleResponseSchema = z.object({
+  score: z.number().min(0).max(100),
+  rationale: z.string(),
+});
+
+export type MatchRationaleResponse = z.infer<typeof matchRationaleResponseSchema>;
+
+export const proposalDraftResponseSchema = z.object({
+  message: z.string(),
+  relevantSkills: z.array(z.string()).default([]),
+  proposedBudget: z.number().positive().nullable().optional(),
+  estimatedDurationDays: z.number().int().positive().nullable().optional(),
+  screeningAnswers: z.array(proposalScreeningAnswerSchema).default([]),
+});
+
+export type ProposalDraftResponse = z.infer<typeof proposalDraftResponseSchema>;
+
+export const scopeOfWorkResponseSchema = z.object({
+  summary: z.string(),
+  deliverables: z.array(z.string()),
+  assumptions: z.array(z.string()).default([]),
+  exclusions: z.array(z.string()).default([]),
+  timelineWeeks: z.number().positive().nullable().optional(),
+  costEstimate: z.number().positive().nullable().optional(),
+});
+
+export type ScopeOfWorkResponse = z.infer<typeof scopeOfWorkResponseSchema>;
+
+export const stackAdviceItemSchema = z.object({
+  component: z.string(),
+  choice: z.string(),
+  reason: z.string(),
+});
+
+export const stackAdviceResponseSchema = z.object({
+  primary: z.array(stackAdviceItemSchema),
+  budgetAlternative: z.array(stackAdviceItemSchema),
+  notes: z.string().nullable().optional(),
+});
+
+export type StackAdviceResponse = z.infer<typeof stackAdviceResponseSchema>;
+
+export const profileOptimizationResponseSchema = z.object({
+  headline: z.string(),
+  bio: z.string(),
+  suggestedSkills: z.array(z.string()),
+});
+
+export type ProfileOptimizationResponse = z.infer<typeof profileOptimizationResponseSchema>;
+
+export const codeReviewResponseSchema = z.object({
+  summary: z.string(),
+  findings: z.array(z.object({
+    severity: z.enum(["high", "medium", "low"]),
+    category: z.enum(["bug", "security", "requirement"]),
+    detail: z.string(),
+  })),
+});
+
+export type CodeReviewResponse = z.infer<typeof codeReviewResponseSchema>;
 
 // Admin-specific types
 export const adminAuditLogSchema = z.object({

@@ -22,12 +22,12 @@ export function SiteFooter() {
             size="sm"
             className="h-auto px-0 font-display text-base font-bold tracking-tight hover:bg-transparent"
           >
-            <Link href="/" aria-label="Go to DevMarket home">
-              Dev<span className="text-gradient">Market</span>
+            <Link href="/" aria-label="Go to SkillPilot home">
+              Skill<span className="text-gradient">Pilot</span>
             </Link>
           </Button>
           <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-            © {new Date().getFullYear()} DevMarket. All rights reserved.
+            © {new Date().getFullYear()} SkillPilot. All rights reserved.
           </p>
         </div>
         <div className="mt-2 flex justify-center sm:justify-end">

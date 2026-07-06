@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { TagInput } from "@/components/ui/tag-input";
 import { useGenerateProjectDraft } from "@/hooks/use-projects";
+import { useImprovePost } from "@/hooks/use-ai";
 import {
   communicationCadences,
   experienceLevels,
@@ -23,6 +24,7 @@ import {
   scopeSizes,
   teamPreferences,
   type InsertProject,
+  type ProjectDraft,
   type ReferenceLink,
 } from "@shared/schema";
 import {
@@ -176,18 +178,20 @@ function TechnologyTagPicker({
               {group.options.map((option) => {
                 const isSelected = selectedSet.has(option.value);
                 return (
-                  <button
+                  <Button
                     key={option.value}
                     type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={() => toggleTag(option.value)}
-                    className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
+                    className={`rounded-full px-3 py-1.5 text-sm transition-colors h-auto ${
                       isSelected
-                        ? "border-primary bg-primary/[0.1] text-primary"
+                        ? "border-primary bg-primary/[0.1] text-primary hover:bg-primary/[0.15]"
                         : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-primary"
                     }`}
                   >
                     {option.label}
-                  </button>
+                  </Button>
                 );
               })}
             </div>
@@ -208,6 +212,7 @@ export function ProjectIntakeForm({
   const [rawBrief, setRawBrief] = useState("");
   const [draftFeedback, setDraftFeedback] = useState<{ missingFields: string[]; warnings: string[] } | null>(null);
   const { mutate: generateDraft, isPending: isGeneratingDraft } = useGenerateProjectDraft();
+  const improvePost = useImprovePost();
 
   const form = useForm<ProjectIntakeFormValues>({
     resolver: zodResolver(insertProjectSchema),
@@ -311,21 +316,22 @@ export function ProjectIntakeForm({
         </div>
         <div className="grid gap-3 sm:grid-cols-5">
           {STEP_TITLES.map((step, index) => (
-            <button
+            <Button
               key={step.key}
               type="button"
-              className={`rounded-2xl border px-3 py-3 text-left transition-colors ${
+              variant="ghost"
+              className={`h-auto rounded-2xl border px-3 py-3 text-left transition-colors ${
                 index === stepIndex
-                  ? "border-primary bg-primary/[0.08] text-primary"
+                  ? "border-primary bg-primary/[0.08] text-primary hover:bg-primary/[0.12]"
                   : index < stepIndex
-                    ? "border-primary/30 bg-background text-foreground"
-                    : "border-border/60 bg-background/70 text-muted-foreground"
+                    ? "border-primary/30 bg-background text-foreground hover:bg-secondary/50"
+                    : "border-border/60 bg-background/70 text-muted-foreground hover:bg-secondary/40"
               }`}
               onClick={() => setStepIndex(index)}
             >
               <p className="text-xs uppercase tracking-[0.2em]">Step {index + 1}</p>
               <p className="mt-1 text-sm font-semibold">{step.label}</p>
-            </button>
+            </Button>
           ))}
         </div>
       </CardHeader>
@@ -939,6 +945,57 @@ export function ProjectIntakeForm({
                     </CardContent>
                   </Card>
                 </div>
+
+                <Card className="border-primary/15 bg-primary/[0.03]">
+                  <CardHeader className="pb-3">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <CardTitle className="flex items-center gap-2 text-base">
+                          <Sparkles className="h-4 w-4 text-primary" />
+                          AI Post Review
+                        </CardTitle>
+                        <CardDescription className="mt-1">
+                          Checks for missing details, unclear requirements, and unrealistic budget or timeline.
+                        </CardDescription>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        data-testid="improve-post-button"
+                        disabled={improvePost.isPending}
+                        onClick={() => improvePost.mutate(form.getValues() as ProjectDraft)}
+                      >
+                        {improvePost.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                        Improve this post
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  {improvePost.data || improvePost.isError ? (
+                    <CardContent className="space-y-3">
+                      {improvePost.isError ? (
+                        <p className="text-sm text-muted-foreground">
+                          {improvePost.error instanceof Error ? improvePost.error.message : "AI review failed."}
+                        </p>
+                      ) : null}
+                      {improvePost.data?.budgetAssessment ? (
+                        <p className="text-sm"><span className="font-semibold">Budget:</span> {improvePost.data.budgetAssessment}</p>
+                      ) : null}
+                      {improvePost.data?.timelineAssessment ? (
+                        <p className="text-sm"><span className="font-semibold">Timeline:</span> {improvePost.data.timelineAssessment}</p>
+                      ) : null}
+                      {improvePost.data?.suggestions.map((suggestion, index) => (
+                        <div key={index} className="rounded-2xl border border-border/60 bg-background/60 px-4 py-3">
+                          {suggestion.field ? <Badge variant="outline" className="mb-2">{suggestion.field}</Badge> : null}
+                          <p className="text-sm font-medium">{suggestion.issue}</p>
+                          <p className="mt-1 text-sm text-muted-foreground">{suggestion.recommendation}</p>
+                        </div>
+                      ))}
+                      {improvePost.data && improvePost.data.suggestions.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">This post already looks strong — nothing to fix.</p>
+                      ) : null}
+                    </CardContent>
+                  ) : null}
+                </Card>
               </div>
             ) : null}
 

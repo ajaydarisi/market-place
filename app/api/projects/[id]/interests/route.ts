@@ -50,6 +50,19 @@ export async function POST(
       return NextResponse.json({ message: "Only open projects accept proposals" }, { status: 400 });
     }
 
+    // Vetting gate (B4): a developer must show at least one portfolio link
+    // before they can apply, so clients never evaluate an unvetted, empty
+    // profile. Admin promotion / profile edits happen elsewhere.
+    const profile = await storage.getProfile(user.id, token ?? undefined);
+    const links = profile?.portfolioLinks;
+    const hasPortfolio = Boolean(links?.github || links?.linkedin || links?.website);
+    if (!hasPortfolio) {
+      return NextResponse.json(
+        { message: "Add a portfolio link (GitHub, LinkedIn, or website) to your profile before applying." },
+        { status: 403 }
+      );
+    }
+
     const interest = await storage.createInterest(
       {
         projectId,
@@ -62,6 +75,18 @@ export async function POST(
       user.id,
       token ?? undefined
     );
+
+    await storage.createNotification(
+      {
+        userId: project.clientId,
+        type: "proposal_received",
+        projectId,
+        content: `New proposal on "${project.title}"`,
+      },
+      user.id,
+      token ?? undefined
+    );
+
     return NextResponse.json(interest, { status: 201 });
   } catch (error) {
     if ((error as Error & { code?: string }).code === "ACTIVE_PROPOSAL_EXISTS") {

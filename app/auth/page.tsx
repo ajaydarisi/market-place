@@ -130,7 +130,7 @@ export default function AuthPage() {
     setIsLoading(true);
     const supabase = createClient();
     const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-      redirectTo: `${window.location.origin}/auth`,
+      redirectTo: `${window.location.origin}/auth/reset`,
     });
 
     if (error) {
@@ -148,14 +148,14 @@ export default function AuthPage() {
         <header className="flex items-center justify-between gap-3">
           <Link
             href="/"
-            aria-label="Go to the DevMarket home page"
+            aria-label="Go to the SkillPilot home page"
             className="surface-glass inline-flex items-center gap-3 rounded-full px-3 py-2 md:px-4"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-primary via-primary to-accent text-white shadow-lg shadow-primary/20">
               <Briefcase className="h-5 w-5 text-white" />
             </div>
             <div className="font-display text-xl font-bold tracking-tight md:text-2xl">
-              Dev<span className="text-gradient">Market</span>
+              Skill<span className="text-gradient">Pilot</span>
             </div>
           </Link>
 
@@ -176,7 +176,7 @@ export default function AuthPage() {
             <div className="max-w-xl min-w-0 space-y-4 lg:space-y-5">
               <h1 className="text-[2.6rem] font-display font-bold leading-[1.02] text-foreground sm:text-5xl md:text-6xl">
                 Welcome back to
-                <span className="mt-2 block">Dev<span className="text-gradient">Market</span></span>
+                <span className="mt-2 block">Skill<span className="text-gradient">Pilot</span></span>
               </h1>
               <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
                 Meet the right developers faster, keep conversations flowing, and manage hiring with the same premium experience across every step.
@@ -220,7 +220,7 @@ export default function AuthPage() {
                 <Briefcase className="h-6 w-6 translate-y-px text-white" />
               </div>
               <CardTitle className="text-[2rem] leading-none sm:text-3xl">
-                Dev<span className="text-gradient">Market</span>
+                Skill<span className="text-gradient">Pilot</span>
               </CardTitle>
               <CardDescription className="px-2 text-sm leading-relaxed sm:px-0 sm:text-base">
                 Sign in to your account or create a new one.

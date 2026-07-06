@@ -36,6 +36,30 @@ export const PROJECT_TYPE_LABELS: Record<string, string> = {
   ongoing: "Ongoing support",
 };
 
+export const PROJECT_STATUS_LABELS: Record<string, string> = {
+  open: "Open",
+  in_progress: "In Progress",
+  completed: "Completed",
+  cancelled: "Cancelled",
+};
+
+export const PROJECT_STATUS_BADGE_VARIANTS: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+  open: "default",
+  in_progress: "secondary",
+  completed: "outline",
+  cancelled: "destructive",
+};
+
+// Legal project status transitions. Enforced server-side in the project PATCH
+// route and used to constrain the edit-page status dropdown so the UI never
+// offers a move the API will reject.
+export const ALLOWED_STATUS_TRANSITIONS: Record<string, readonly string[]> = {
+  open: ["in_progress", "cancelled"],
+  in_progress: ["completed", "cancelled"],
+  completed: [],
+  cancelled: [],
+};
+
 export const SCOPE_SIZE_LABELS: Record<string, string> = {
   small: "Small scope",
   medium: "Medium scope",

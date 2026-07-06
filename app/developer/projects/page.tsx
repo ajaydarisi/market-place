@@ -8,12 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowRight, Briefcase, Calendar, User } from "lucide-react";
+import { ArrowRight, Briefcase, Calendar, User, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 
 export default function DeveloperProjects() {
-  const { data: projects, isLoading } = useAssignedProjects();
+  const { data: projects, isLoading, isError, refetch } = useAssignedProjects();
 
   const statusLabels: Record<string, string> = {
     open: "Open",
@@ -42,7 +42,18 @@ export default function DeveloperProjects() {
           description="Track active assignments, jump into delivery faster, and keep every project surface feeling focused and actionable."
         />
 
-        {isLoading ? (
+        {isError ? (
+          <EmptyState
+            icon={AlertTriangle}
+            title="Couldn't load your projects"
+            description="Something went wrong. Check your connection and try again."
+            action={
+              <Button variant="outline" aria-label="Retry loading projects" onClick={() => refetch()} data-testid="assigned-retry">
+                Try again
+              </Button>
+            }
+          />
+        ) : isLoading ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 md:gap-6">
             {[1, 2, 3].map((i) => (
               <Card key={i} className="surface-glass overflow-hidden">

@@ -5,6 +5,7 @@ import {
   type InsertInterest, type InsertMessage,
   type InsertProfile, type InsertProject, type InsertProjectLog, type InsertReview,
   type Message,
+  type Notification,
   type Profile, type Project, type ProjectInterest, type ProjectLog,
   type ProposalScreeningAnswer,
   type ReferenceLink,
@@ -14,6 +15,8 @@ import {
   type User,
   type UserWithProfile
 } from "@shared/schema";
+import { redactContactInfo } from "@shared/redact";
+import { sendNotificationEmail } from "@/lib/email";
 import { createClient as createServerClient, createAuthenticatedClient } from "@/lib/supabase/server";
 import {
   calculateProfileCompletionScore,
@@ -60,10 +63,10 @@ export interface IStorage {
   createInterest(interest: InsertInterest, developerId: string, token?: string): Promise<ProjectInterest>;
   listInterests(projectId: number, options?: { sort?: string }, token?: string): Promise<(ProjectInterest & { developer: User })[]>;
   updateInterestStatus(interestId: number, status: "accepted" | "rejected", token?: string): Promise<ProjectInterest>;
-  rejectOtherInterests(projectId: number, exceptInterestId: number, token?: string): Promise<void>;
+  acceptProposal(projectId: number, interestId: number, token?: string): Promise<string[]>;
+  withdrawProposal(projectId: number, interestId: number, token?: string): Promise<boolean>;
 
   // Project Assignment
-  assignDeveloper(projectId: number, developerId: string, token?: string): Promise<Project>;
   listAssignedProjects(developerId: string, token?: string): Promise<(Project & { client: User })[]>;
 
   // Project Logs
@@ -81,7 +84,7 @@ export interface IStorage {
   createReview(review: InsertReview, reviewerId: string, token?: string): Promise<ReviewWithUsers>;
 
   // Users
-  getUser(id: string, token?: string): Promise<User | undefined>;
+  getUser(id: string, token?: string, includeEmail?: boolean): Promise<User | undefined>;
   updateUser(id: string, updates: UpdateUserRequest, token?: string): Promise<User>;
 
   // Admin: Users
@@ -214,11 +217,12 @@ async function getReviewSummaryByUserIds(client: any, userIds: string[]): Promis
 }
 
 // Helper to map public.users (snake_case) to User (camelCase)
-function mapUser(row: any): User {
+function mapUser(row: any, includeEmail = false): User {
   if (!row) return row;
   return {
     id: row.id,
-    email: row.email,
+    // Email is sensitive PII — only surfaced to self/admin callers that opt in.
+    email: includeEmail ? row.email : undefined,
     firstName: row.first_name,
     lastName: row.last_name,
     profileImageUrl: row.profile_image_url,
@@ -444,7 +448,71 @@ function buildProjectPayload(values: Partial<InsertProject> & { status?: string 
   return payload;
 }
 
+function mapNotification(row: Record<string, any>): Notification {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    actorId: row.actor_id,
+    type: row.type,
+    projectId: row.project_id,
+    content: row.content,
+    read: row.read ?? false,
+    createdAt: row.created_at,
+  };
+}
+
 export class DatabaseStorage implements IStorage {
+  // Notifications
+  async createNotification(
+    notification: Pick<Notification, "userId" | "type" | "projectId" | "content">,
+    actorId: string,
+    token?: string,
+  ): Promise<void> {
+    // Never notify yourself; never let a notification failure break the main action.
+    if (notification.userId === actorId) return;
+    try {
+      const client = await getClient(token);
+      const { error } = await client.from("notifications").insert({
+        user_id: notification.userId,
+        actor_id: actorId,
+        type: notification.type,
+        project_id: notification.projectId,
+        content: notification.content,
+      });
+      if (error) throw error;
+      // Also deliver by email (fail-open; no-op unless Resend is configured).
+      await sendNotificationEmail(notification);
+    } catch (error) {
+      console.error("Failed to create notification:", error);
+    }
+  }
+
+  async listNotifications(userId: string, token?: string): Promise<Notification[]> {
+    const client = await getClient(token);
+    const { data, error } = await client
+      .from("notifications")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(30);
+
+    if (error) throw error;
+    return (data ?? []).map(mapNotification);
+  }
+
+  async markNotificationsRead(userId: string, token?: string): Promise<number> {
+    const client = await getClient(token);
+    const { data, error } = await client
+      .from("notifications")
+      .update({ read: true })
+      .eq("user_id", userId)
+      .eq("read", false)
+      .select("id");
+
+    if (error) throw error;
+    return data?.length ?? 0;
+  }
+
   // Profiles
   async getProfile(userId: string, token?: string): Promise<Profile | undefined> {
     const client = await getClient(token);
@@ -486,7 +554,9 @@ export class DatabaseStorage implements IStorage {
   async updateProfile(userId: string, updates: UpdateProfileRequest, token?: string): Promise<Profile> {
     const client = await getClient(token);
     const payload: any = {};
-    if (updates.role) payload.role = updates.role;
+    // Defense-in-depth: self-service updates may only set client/developer.
+    // Admin promotion goes through adminUpdateProfile behind requireAdmin.
+    if (updates.role && updates.role !== "admin") payload.role = updates.role;
     if (updates.headline !== undefined) payload.headline = updates.headline;
     if (updates.bio !== undefined) payload.bio = updates.bio;
     if (updates.skills !== undefined) payload.skills = sanitizeStringArray(updates.skills);
@@ -546,9 +616,15 @@ export class DatabaseStorage implements IStorage {
     currentUserId?: string;
   }, token?: string): Promise<(Project & { client: User })[]> {
     const client = await getClient(token);
+    // Only the client "my projects" view renders proposalCount, so only pay for
+    // the per-row interest-count aggregate when filtering by clientId; the
+    // developer browse feed (highest traffic) skips it.
+    const selectClause = filters?.clientId
+      ? "*, client:client_id(*), project_interests!project_interests_project_id_fkey(count)"
+      : "*, client:client_id(*)";
     let query = client
       .from("projects")
-      .select("*, client:client_id(*)")
+      .select(selectClause)
       .eq("is_deleted", false);
 
     if (filters?.clientId) {
@@ -618,6 +694,12 @@ export class DatabaseStorage implements IStorage {
     let projects = rows.map((row) => ({
       ...mapProject(row),
       client: withReviewSummary(mapUser(row.client), reviewSummaryMap.get(row.client?.id)),
+      // PostgREST returns the aggregate as [{ count }]; RLS scopes it to the
+      // caller's visible interests (a client sees all proposals on their own
+      // projects). Only surfaced on the client-facing card.
+      proposalCount: Array.isArray(row.project_interests)
+        ? row.project_interests[0]?.count ?? 0
+        : 0,
     }));
 
     if (filters?.sort === "recommended" && filters.currentUserId) {
@@ -720,11 +802,14 @@ export class DatabaseStorage implements IStorage {
       .insert({
         project_id: insertInterest.projectId,
         developer_id: developerId,
-        message: insertInterest.message,
+        message: redactContactInfo(insertInterest.message).text,
         proposed_budget: insertInterest.proposedBudget,
         estimated_duration_days: insertInterest.estimatedDurationDays,
         relevant_skills: relevantSkills,
-        screening_answers: screeningAnswers,
+        screening_answers: screeningAnswers.map((answer) => ({
+          question: answer.question,
+          answer: redactContactInfo(answer.answer).text,
+        })),
         match_score: matchScore,
       })
       .select()
@@ -790,34 +875,35 @@ export class DatabaseStorage implements IStorage {
     return mapInterest(data);
   }
 
-  async rejectOtherInterests(projectId: number, exceptInterestId: number, token?: string): Promise<void> {
+  // Atomic accept via the accept_proposal RPC (see migration
+  // 20260706010000). Returns the developers whose proposals were auto-rejected
+  // so the caller can notify them. RPC raises PROJECT_NOT_OPEN /
+  // INTEREST_NOT_PENDING / FORBIDDEN / *_NOT_FOUND on invalid state.
+  async acceptProposal(projectId: number, interestId: number, token?: string): Promise<string[]> {
     const client = await getClient(token);
-    const { error } = await client
-      .from("project_interests")
-      .update({ status: "rejected" })
-      .eq("project_id", projectId)
-      .eq("status", "pending")
-      .neq("id", exceptInterestId);
-
+    const { data, error } = await client.rpc("accept_proposal", {
+      p_project_id: projectId,
+      p_interest_id: interestId,
+    });
     if (error) throw error;
+    return ((data as { developer_id: string }[]) ?? []).map((row) => row.developer_id);
   }
 
-  // Project Assignment
-  async assignDeveloper(projectId: number, developerId: string, token?: string): Promise<Project> {
+  // Atomic withdraw via the withdraw_proposal RPC (migration 20260706020000):
+  // notifies the client and deletes the interest in one transaction. Returns
+  // false when there was no still-pending interest owned by the caller (lost
+  // race / not the owner), so the route can 409 rather than report a false
+  // withdrawal.
+  async withdrawProposal(projectId: number, interestId: number, token?: string): Promise<boolean> {
     const client = await getClient(token);
-    const { data, error } = await client
-      .from("projects")
-      .update({
-        assigned_developer_id: developerId,
-        status: "in_progress"
-      })
-      .eq("id", projectId)
-      .select()
-      .single();
-
+    const { data, error } = await client.rpc("withdraw_proposal", {
+      p_project_id: projectId,
+      p_interest_id: interestId,
+    });
     if (error) throw error;
-    return mapProject(data);
+    return data === true;
   }
+
 
   async listAssignedProjects(developerId: string, token?: string): Promise<(Project & { client: User })[]> {
     const client = await getClient(token);
@@ -865,7 +951,9 @@ export class DatabaseStorage implements IStorage {
       .insert({
         project_id: log.projectId,
         author_id: authorId,
-        content: log.content,
+        // Redact contact info in developer/client-authored logs (same channel as
+        // messages). System logs are app-generated and never contain contact info.
+        content: log.isSystem ? log.content : redactContactInfo(log.content).text,
         log_type: log.logType || "update",
         is_system: log.isSystem ?? false,
       })
@@ -977,7 +1065,7 @@ export class DatabaseStorage implements IStorage {
         project_id: insertMessage.projectId,
         sender_id: senderId,
         receiver_id: insertMessage.receiverId,
-        content: insertMessage.content,
+        content: redactContactInfo(insertMessage.content).text,
         read: false,
       })
       .select()
@@ -1044,7 +1132,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Users
-  async getUser(id: string, token?: string): Promise<User | undefined> {
+  async getUser(id: string, token?: string, includeEmail = false): Promise<User | undefined> {
     const client = await getClient(token);
     const { data, error } = await client
       .from("users")
@@ -1054,7 +1142,7 @@ export class DatabaseStorage implements IStorage {
 
     if (error || !data) return undefined;
     const reviewSummaryMap = await getReviewSummaryByUserIds(client, [id]);
-    return withReviewSummary(mapUser(data), reviewSummaryMap.get(id));
+    return withReviewSummary(mapUser(data, includeEmail), reviewSummaryMap.get(id));
   }
 
   async updateUser(id: string, updates: UpdateUserRequest, token?: string): Promise<User> {
@@ -1073,7 +1161,8 @@ export class DatabaseStorage implements IStorage {
 
     if (error) throw error;
     const reviewSummaryMap = await getReviewSummaryByUserIds(client, [id]);
-    return withReviewSummary(mapUser(data), reviewSummaryMap.get(id));
+    // Self-service update — the caller is updating their own record.
+    return withReviewSummary(mapUser(data, true), reviewSummaryMap.get(id));
   }
 
   // ==================== ADMIN METHODS ====================
@@ -1104,9 +1193,15 @@ export class DatabaseStorage implements IStorage {
     }
 
     if (filters?.search) {
-      usersQuery = usersQuery.or(
-        `first_name.ilike.%${filters.search}%,last_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%`
-      );
+      // The search term is interpolated into a PostgREST `.or()` filter string,
+      // so strip characters that could break out of the ilike pattern and inject
+      // additional filter conditions (comma, parens, dot, colon, backslash, *).
+      const safeSearch = filters.search.replace(/[,().:*\\%]/g, " ").trim();
+      if (safeSearch) {
+        usersQuery = usersQuery.or(
+          `first_name.ilike.%${safeSearch}%,last_name.ilike.%${safeSearch}%,email.ilike.%${safeSearch}%`
+        );
+      }
     }
 
     usersQuery = usersQuery
@@ -1145,7 +1240,7 @@ export class DatabaseStorage implements IStorage {
     let items = (usersData || []).map((row: any) => {
       const profile = profilesByUserId.get(row.id);
       return {
-        ...mapUser(row),
+        ...mapUser(row, true), // admin-only listing
         profile: profile ? mapProfile(profile) : null,
         isDeleted: row.is_deleted || false,
       };
@@ -1176,7 +1271,7 @@ export class DatabaseStorage implements IStorage {
 
     if (error) throw error;
     const reviewSummaryMap = await getReviewSummaryByUserIds(client, [userId]);
-    return withReviewSummary(mapUser(data), reviewSummaryMap.get(userId));
+    return withReviewSummary(mapUser(data, true), reviewSummaryMap.get(userId)); // admin
   }
 
   // Admin: Soft delete user and their projects
@@ -1288,7 +1383,7 @@ export class DatabaseStorage implements IStorage {
 
     const items = rows.map((row) => ({
       ...mapProject(row),
-      client: withReviewSummary(mapUser(row.client), reviewSummaryMap.get(row.client?.id)),
+      client: withReviewSummary(mapUser(row.client, true), reviewSummaryMap.get(row.client?.id)), // admin
     }));
 
     return { items, total: count || 0 };

@@ -1,6 +1,7 @@
 "use client";
 
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { QueryClient, QueryFunction, MutationCache } from "@tanstack/react-query";
+import { toast } from "@/hooks/use-toast";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -44,6 +45,19 @@ export const getQueryFn: <T>(options: {
   };
 
 export const queryClient = new QueryClient({
+  // Surface every unhandled mutation failure as a toast. Without this, failed
+  // posts/messages/proposals/onboarding stopped silently (F4). Mutations that
+  // render their own inline error can opt out with meta.suppressGlobalError.
+  mutationCache: new MutationCache({
+    onError: (error, _variables, _context, mutation) => {
+      if (mutation.meta?.suppressGlobalError) return;
+      toast({
+        variant: "destructive",
+        title: "Something went wrong",
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
+    },
+  }),
   defaultOptions: {
     queries: {
       queryFn: getQueryFn({ on401: "throw" }),

@@ -28,7 +28,8 @@ import {
   PROJECT_CATEGORY_LABELS,
   calculateProfileCompletionScore,
 } from "@shared/marketplace";
-import { Loader2, Edit2, Globe, ExternalLink } from "lucide-react";
+import { Loader2, Edit2, Globe, ExternalLink, Sparkles } from "lucide-react";
+import { useOptimizeProfile } from "@/hooks/use-ai";
 
 function GitHubIcon({ className }: { className?: string }) {
   return (
@@ -86,6 +87,7 @@ export default function Profile() {
   const { data: profile, isLoading: isLoadingProfile } = useProfile(authUser?.id ?? "");
   const { mutate: updateUser, isPending: isUpdatingUser } = useUpdateUser();
   const { mutate: updateProfile, isPending: isUpdatingProfile } = useUpdateProfile();
+  const optimizeProfile = useOptimizeProfile();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
 
@@ -634,6 +636,72 @@ export default function Profile() {
 
                   {profile?.role === "developer" && (
                     <>
+                      <Separator />
+
+                      {/* AI Profile Optimizer (Developer only) */}
+                      <div className="surface-subtle rounded-[1.5rem] border border-primary/15 p-4 sm:p-5">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div>
+                            <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                              <Sparkles className="h-3.5 w-3.5 text-primary" />
+                              AI Profile Optimizer
+                            </h3>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                              Rewrites your headline, bio, and skills to rank better in search and matching. Nothing changes until you apply.
+                            </p>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            data-testid="optimize-profile-button"
+                            disabled={optimizeProfile.isPending}
+                            onClick={() => optimizeProfile.mutate()}
+                          >
+                            {optimizeProfile.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                            Optimize my profile
+                          </Button>
+                        </div>
+                        {optimizeProfile.isError ? (
+                          <p className="mt-3 text-sm text-muted-foreground">
+                            {optimizeProfile.error instanceof Error ? optimizeProfile.error.message : "Optimization failed."}
+                          </p>
+                        ) : null}
+                        {optimizeProfile.data ? (
+                          <div className="mt-4 space-y-3 text-sm">
+                            <div className="rounded-2xl border border-border/60 bg-background/50 p-3">
+                              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Suggested headline</p>
+                              <p className="mt-1 font-medium text-foreground">{optimizeProfile.data.headline}</p>
+                            </div>
+                            <div className="rounded-2xl border border-border/60 bg-background/50 p-3">
+                              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Suggested bio</p>
+                              <p className="mt-1 text-foreground">{optimizeProfile.data.bio}</p>
+                            </div>
+                            <div className="rounded-2xl border border-border/60 bg-background/50 p-3">
+                              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Suggested skills</p>
+                              <div className="mt-2 flex flex-wrap gap-1.5">
+                                {optimizeProfile.data.suggestedSkills.map((skill) => (
+                                  <Badge key={skill} variant="secondary">{skill}</Badge>
+                                ))}
+                              </div>
+                            </div>
+                            <Button
+                              type="button"
+                              size="sm"
+                              data-testid="apply-optimized-profile-button"
+                              onClick={() => {
+                                form.setValue("headline", optimizeProfile.data.headline, { shouldDirty: true });
+                                form.setValue("bio", optimizeProfile.data.bio, { shouldDirty: true });
+                                form.setValue("skills", optimizeProfile.data.suggestedSkills, { shouldDirty: true });
+                                toast({ title: "Suggestions applied", description: "Review the fields and save your profile." });
+                              }}
+                            >
+                              Apply suggestions
+                            </Button>
+                          </div>
+                        ) : null}
+                      </div>
+
                       <Separator />
 
                       {/* Skills (Developer only) */}

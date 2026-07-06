@@ -3,7 +3,7 @@
 import { api, buildUrl } from "@shared/routes";
 import type { ProposalScreeningAnswer } from "@shared/schema";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { authFetch } from "@/lib/api";
+import { authFetch, apiError } from "@/lib/api";
 
 export function useProjectInterests(projectId: number, sort?: string) {
   return useQuery({
@@ -74,8 +74,24 @@ export function useUpdateInterestStatus() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
-      if (!res.ok) throw new Error("Failed to update interest status");
+      if (!res.ok) throw await apiError(res, "Failed to update interest status");
       return api.interests.updateStatus.responses[200].parse(await res.json());
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: [api.interests.listByProject.path, variables.projectId] });
+      queryClient.invalidateQueries({ queryKey: [api.projects.get.path, variables.projectId] });
+    },
+  });
+}
+
+export function useWithdrawInterest() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ projectId, interestId }: { projectId: number; interestId: number }) => {
+      const url = buildUrl(api.interests.withdraw.path, { projectId, interestId });
+      const res = await authFetch(url, { method: api.interests.withdraw.method });
+      if (!res.ok) throw await apiError(res, "Failed to withdraw proposal");
+      return api.interests.withdraw.responses[200].parse(await res.json());
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: [api.interests.listByProject.path, variables.projectId] });

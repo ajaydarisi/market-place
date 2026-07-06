@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { api, buildUrl, type ConversationSummary } from "@shared/routes";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { authFetch } from "@/lib/api";
+import { authFetch, apiError } from "@/lib/api";
 import { createClient } from "@/lib/supabase/client";
 
 export function useProjectMessages(projectId: number) {
@@ -27,8 +27,10 @@ export function useMessagesRealtime(userId: string) {
 
     const supabase = createClient();
 
+    // Unique channel name per subscription so React's dev double-mount (and any
+    // remount) can't re-add callbacks to a channel that's still tearing down.
     const channel = supabase
-      .channel("messages-realtime")
+      .channel(`messages-realtime-${userId}-${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         {
@@ -95,7 +97,7 @@ export function useSendMessage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ receiverId, content }),
       });
-      if (!res.ok) throw new Error("Failed to send message");
+      if (!res.ok) throw await apiError(res, "Failed to send message");
       return api.messages.send.responses[201].parse(await res.json());
     },
     onSuccess: (_, variables) => {

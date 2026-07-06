@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -69,6 +71,7 @@
     "zod-validation-error": "^3.4.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@tailwindcss/typography": "^0.5.15",
     "@types/node": "20.19.27",
     "@types/react": "^18.3.11",
@@ -76,6 +79,7 @@
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.17",
-    "typescript": "5.6.3"
+    "typescript": "5.6.3",
+    "vitest": "^3.2.6"
   }
 }
